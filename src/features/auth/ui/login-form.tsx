@@ -7,7 +7,7 @@ import {
   FormMessage,
   Form,
 } from "@/shared/ui/kit/form";
-import { Input } from "@/shared/ui/kit/input";
+import { Input } from "@/shared/ui/kit/inputLogin";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

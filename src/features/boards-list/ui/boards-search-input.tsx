@@ -1,4 +1,4 @@
-import { Input } from "@/shared/ui/kit/input";
+import { Input } from "@/shared/ui/kit/inputLogin";
 
 interface BoardsSearchInputProps {
   value: string;

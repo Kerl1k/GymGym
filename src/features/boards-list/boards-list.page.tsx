@@ -17,7 +17,7 @@ import { BoardsSortSelect } from "./ui/boards-sort-select";
 import { BoardsSearchInput } from "./ui/boards-search-input";
 import { BoardItem } from "./compose/board-item";
 import { BoardCard } from "./compose/board-card";
-import { BoardsSidebar } from "./ui/boards-sidebar";
+import { SideBar } from "../../shared/ui/kit/sidebar";
 import {
   TemplatesGallery,
   TemplatesModal,
@@ -42,7 +42,7 @@ function BoardsListPage() {
       <TemplatesModal />
       <BoardsListLayout
         templates={<TemplatesGallery />}
-        sidebar={<BoardsSidebar />}
+        sidebar={<SideBar />}
         header={
           <BoardsListLayoutHeader
             title="Доски"

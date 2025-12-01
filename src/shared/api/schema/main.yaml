@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Miro-like Collaborative Whiteboard API
-  description: API for a collaborative whiteboard application similar to Miro
+  title: Gym Application API
+  description: API for gym and exercises management
   version: 1.0.0
 
 components:
@@ -11,9 +11,7 @@ components:
       scheme: bearer
       bearerFormat: JWT
 
-
 paths:
-
   /auth/login:
     post:
       $ref: "./endpoints/auth.yaml#/login"
@@ -48,4 +46,16 @@ paths:
     put:
       $ref: "./endpoints/boards.yaml#/renameBoard"
 
-      
+  /exercises:
+    get:
+      $ref: "./endpoints/exercises.yaml#/getAllExercises"
+    post:
+      $ref: "./endpoints/exercises.yaml#/createExercise"
+
+  /exercises/{exerciseId}:
+    get:
+      $ref: "./endpoints/exercises.yaml#/getExerciseById"
+    put:
+      $ref: "./endpoints/exercises.yaml#/updateExercise"
+    delete:
+      $ref: "./endpoints/exercises.yaml#/deleteExercise"

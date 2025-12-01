@@ -8,7 +8,7 @@ interface BoardsSidebarProps {
   className?: string;
 }
 
-export function BoardsSidebar({ className }: BoardsSidebarProps) {
+export function SideBar({ className }: BoardsSidebarProps) {
   return (
     <div className={cn("w-64 border-r p-4 space-y-4", className)}>
       <div className="space-y-2">
