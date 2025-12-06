@@ -1,0 +1,260 @@
+# Schemas
+schemas:
+  TrainingExercise:
+    type: object
+    required:
+      - id
+      - name
+      - type
+      - chill
+      - weight
+      - count
+      - approaches
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - cardio
+          - strength
+          - flexibility
+          - balance
+          - yoga
+          - pilates
+      chill:
+        type: string
+      weight:
+        type: number
+        default: 15
+      count:
+        type: integer
+        default: 8
+      approaches:
+        type: integer
+        default: 1
+
+  Training:
+    type: object
+    required:
+      - id
+      - name
+      - type
+      - exercises
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - cardio
+          - strength
+          - flexibility
+          - balance
+          - yoga
+          - pilates
+      exercises:
+        type: array
+        items:
+          $ref: "#/schemas/TrainingExercise"
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  CreateTraining:
+    type: object
+    required:
+      - name
+      - type
+      - exercises
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - cardio
+          - strength
+          - flexibility
+          - balance
+          - yoga
+          - pilates
+      exercises:
+        type: array
+        items:
+          $ref: "#/schemas/TrainingExercise"
+
+  UpdateTraining:
+    type: object
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+        enum:
+          - cardio
+          - strength
+          - flexibility
+          - balance
+          - yoga
+          - pilates
+      exercises:
+        type: array
+        items:
+          $ref: "#/schemas/TrainingExercise"
+
+  TrainingsList:
+    type: object
+    required:
+      - list
+      - total
+      - totalPages
+    properties:
+      list:
+        type: array
+        items:
+          $ref: "#/schemas/Training"
+      total:
+        type: integer
+      totalPages:
+        type: integer
+
+# Endpoints
+getAllTrainings:
+  summary: Get all trainings
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 1
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        default: 10
+    - name: type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - cardio
+          - strength
+          - flexibility
+          - balance
+          - yoga
+          - pilates
+    - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+  responses:
+    "200":
+      description: List of trainings
+      content:
+        application/json:
+          schema:
+            $ref: "#/schemas/TrainingsList"
+    "401":
+      description: Unauthorized
+
+getTrainingById:
+  summary: Get a training by id
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: trainingId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      description: Training
+      content:
+        application/json:
+          schema:
+            $ref: "#/schemas/Training"
+    "401":
+      description: Unauthorized
+    "404":
+      description: Training not found
+
+createTraining:
+  summary: Create a new training
+  security:
+    - bearerAuth: []
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/CreateTraining"
+  responses:
+    "201":
+      description: Training created successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/schemas/Training"
+    "401":
+      description: Unauthorized
+
+updateTraining:
+  summary: Update a training
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: trainingId
+      in: path
+      required: true
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/UpdateTraining"
+  responses:
+    "200":
+      description: Training updated successfully
+      content:
+        application/json:
+          schema:
+            $ref: "#/schemas/Training"
+    "401":
+      description: Unauthorized
+    "404":
+      description: Training not found
+
+deleteTraining:
+  summary: Delete a training
+  security:
+    - bearerAuth: []
+  parameters:
+    - name: trainingId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    "204":
+      description: Training deleted successfully
+    "401":
+      description: Unauthorized
+    "404":
+      description: Training not found

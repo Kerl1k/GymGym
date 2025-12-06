@@ -37,6 +37,12 @@ export function SideBar({ className }: BoardsSidebarProps) {
             Упраги
           </Link>
         </Button>
+        <Button variant="ghost" className="w-full justify-start" asChild>
+          <Link to={ROUTES.TRAINING}>
+            <LayoutGridIcon className="mr-2 h-4 w-4" />
+            Trenirovki
+          </Link>
+        </Button>
       </div>
     </div>
   );

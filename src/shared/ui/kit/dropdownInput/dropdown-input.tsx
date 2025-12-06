@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
 } from "@/shared/ui/kit/dropdown-menu";
 import { cn } from "@/shared/lib/css";
-import { Input } from "../inputLogin";
+import { Input } from "../input";
 
 interface DropdownInputProps {
   id: string;

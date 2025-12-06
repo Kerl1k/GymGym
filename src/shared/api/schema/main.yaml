@@ -59,3 +59,17 @@ paths:
       $ref: "./endpoints/exercises.yaml#/updateExercise"
     delete:
       $ref: "./endpoints/exercises.yaml#/deleteExercise"
+
+  /trainings:
+    get:
+      $ref: "./endpoints/training.yaml#/getAllTrainings"
+    post:
+      $ref: "./endpoints/training.yaml#/createTraining"
+
+  /trainings/{trainingId}:
+    get:
+      $ref: "./endpoints/training.yaml#/getTrainingById"
+    put:
+      $ref: "./endpoints/training.yaml#/updateTraining"
+    delete:
+      $ref: "./endpoints/training.yaml#/deleteTraining"
