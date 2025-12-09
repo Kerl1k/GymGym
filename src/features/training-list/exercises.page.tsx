@@ -2,27 +2,27 @@ import { Button } from "@/shared/ui/kit/button";
 import { PlusIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
-import { TrainingCreate } from "./ui/trainingCreate";
+import { TrainingCreate } from "./ui/training-create/training-create";
 import {
   ExercisesListLayout,
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/exercises-list-layout";
 import { SideBar } from "../../shared/ui/kit/sidebar";
-import { BoardItem } from "./compose/board-item";
+import { TrainingItem } from "./compose/training-item";
 import { useBoardsFilters } from "./model/use-boards-filters";
-import { useExercisesList } from "./model/use-boards-list";
+import { useTrainingList } from "./model/use-boards-list";
 import { useDebouncedValue } from "@/shared/lib/react";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();
 
   const boardsFilters = useBoardsFilters();
-  const exercisesQuery = useExercisesList({
+  const trainingsQuery = useTrainingList({
     sort: boardsFilters.sort,
     search: useDebouncedValue(boardsFilters.search, 300),
   });
-
+  console.log(trainingsQuery);
   return (
     <ExercisesListLayout
       sidebar={<SideBar />}
@@ -40,14 +40,14 @@ const ExercisesPage = () => {
       }
     >
       <ExercisesListLayoutContent
-        isEmpty={exercisesQuery.exercises.length === 0}
-        isPending={exercisesQuery.isPending}
-        isPendingNext={exercisesQuery.isFetchingNextPage}
-        cursorRef={exercisesQuery.cursorRef}
-        hasCursor={exercisesQuery.hasNextPage}
+        isEmpty={trainingsQuery.trainings.length === 0}
+        isPending={trainingsQuery.isPending}
+        isPendingNext={trainingsQuery.isFetchingNextPage}
+        cursorRef={trainingsQuery.cursorRef}
+        hasCursor={trainingsQuery.hasNextPage}
         renderList={() =>
-          exercisesQuery.exercises.map((exercises) => (
-            <BoardItem key={exercises.id} exercises={exercises} />
+          trainingsQuery.trainings.map((training) => (
+            <TrainingItem key={training.id} training={training} />
           ))
         }
       />

@@ -2,8 +2,8 @@ import { ApiSchemas } from "@/shared/api/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
 import { useDeleteBoard } from "../model/use-delete-board";
 import { useUpdateFavorite } from "../model/use-update-favorite";
-import { ExercisessListItem } from "../ui/boards-list-item";
-import { ExercisesFavoriteToggle } from "../ui/boards-favorite-toggle";
+import { ExercisesListItem } from "../ui/exercoses-list-item/exercoses-list-item";
+import { ExercisesFavoriteToggle } from "../../../shared/ui/kit/favorite-toggle";
 
 export function BoardItem({
   exercises,
@@ -14,9 +14,9 @@ export function BoardItem({
   const updateFavorite = useUpdateFavorite();
 
   return (
-    <ExercisessListItem
+    <ExercisesListItem
       key={exercises.id}
-      exercises={exercises}
+      exercise={exercises}
       rightActions={
         <ExercisesFavoriteToggle
           isFavorite={updateFavorite.isOptimisticFavorite(exercises)}

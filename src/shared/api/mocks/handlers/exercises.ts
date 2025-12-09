@@ -15,8 +15,8 @@ function randomDate() {
   ).toISOString();
 }
 
-// Функция для генерации случайного названия доски
-function generateBoardName() {
+// Функция для генерации случайного названия упражнения
+function generateExerciseName() {
   const bodyParts = [
     "Жим",
     "Тяга",
@@ -48,39 +48,97 @@ function generateBoardName() {
     "с медболом",
   ];
 
-  const randomAdjective =
-    bodyParts[Math.floor(Math.random() * bodyParts.length)];
-
-  const randomEquipment =
-    equipment[Math.floor(Math.random() * equipment.length)];
-
-  return `${randomAdjective} ${randomEquipment}`;
-}
-
-function generateType() {
-  const exerciseTypes = [
-    "Грудных",
-    "Спины",
-    "Плеч",
-    "Бицепса",
-    "Трицепса",
-    "Ног",
-    "Квадрицепса",
-    "Ягодичных",
-    "Икроножных",
-    "Пресса",
-    "Трапеций",
-    "Предплечий",
-    "Бедренных",
+  const targets = [
+    "груди",
+    "спины",
+    "ног",
+    "плеч",
+    "рук",
+    "пресса",
+    "ягодиц",
+    "икр",
+    "бицепса",
+    "трицепса",
   ];
 
-  const randomTheme =
-    exerciseTypes[Math.floor(Math.random() * exerciseTypes.length)];
+  const randomBodyPart =
+    bodyParts[Math.floor(Math.random() * bodyParts.length)];
+  const randomEquipment =
+    equipment[Math.floor(Math.random() * equipment.length)];
+  const randomTarget = targets[Math.floor(Math.random() * targets.length)];
 
-  return randomTheme;
+  // Случайно выбираем один из форматов названия
+  const formats = [
+    `${randomBodyPart} ${randomEquipment}`,
+    `${randomBodyPart} для ${randomTarget}`,
+    `${randomBodyPart} ${randomEquipment} для ${randomTarget}`,
+  ];
+
+  return formats[Math.floor(Math.random() * formats.length)];
 }
-// Генерация 1000 случайных досок
-function generateRandomBoards(count: number): ApiSchemas["Exercise"][] {
+
+// Функция для генерации случайных мышечных групп
+function generateMuscleGroups(): string[] {
+  const allMuscleGroups = [
+    "Грудь",
+    "Спина",
+    "Ноги",
+    "Плечи",
+    "Бицепс",
+    "Трицепс",
+    "Пресс",
+    "Ягодицы",
+    "Икры",
+    "Предплечья",
+    "Трапеции",
+    "Широчайшие",
+    "Квадрицепс",
+    "Бицепс бедра",
+  ];
+
+  // Выбираем от 1 до 3 мышечных групп
+  const count = Math.floor(Math.random() * 3) + 1;
+  const shuffled = [...allMuscleGroups].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
+// Функция для генерации случайного описания
+function generateDescription(name: string): string {
+  const descriptions = [
+    `Базовое упражнение для развития целевых мышц.`,
+    `Эффективное упражнение для проработки мышечных групп.`,
+    `Популярное упражнение среди атлетов всех уровней.`,
+    `Отлично подходит для развития силы и мышечной массы.`,
+    `Рекомендуется выполнять с правильной техникой.`,
+    `Упражнение способствует улучшению силовых показателей.`,
+  ];
+
+  const randomDescription =
+    descriptions[Math.floor(Math.random() * descriptions.length)];
+  return `${name}. ${randomDescription} Важно соблюдать правильную технику выполнения.`;
+}
+
+// Функция для генерации случайной ссылки на видео
+function generateVideoUrl(): string {
+  const videoIds = [
+    "dQw4w9WgXcQ",
+    "9bZkp7q19f0",
+    "kJQP7kiw5Fk",
+    "OPf0YbXqDm0",
+    "CduA0TULnow",
+    "KYniUCGPGLs",
+    "n6P0SitRwy8",
+    "pRpeEdMmmQ0",
+    "7PCkvCPvDXk",
+    "wtHra9tFISY",
+  ];
+
+  const randomId = videoIds[Math.floor(Math.random() * videoIds.length)];
+  return `https://youtube.com/watch?v=${randomId}`;
+}
+
+// Генерация случайных упражнений
+function generateRandomExercises(count: number): ApiSchemas["Exercise"][] {
   const result: ApiSchemas["Exercise"][] = [];
 
   for (let i = 0; i < count; i++) {
@@ -90,25 +148,30 @@ function generateRandomBoards(count: number): ApiSchemas["Exercise"][] {
         new Date(createdAt).getTime() + Math.random() * 86400000 * 10,
         new Date().getTime(),
       ),
-    ).toISOString(); // Добавляем до 10 дней
+    ).toISOString();
+
+    const name = generateExerciseName();
+    const muscleGroups = generateMuscleGroups();
 
     result.push({
       id: crypto.randomUUID(),
-      name: generateBoardName(),
+      name,
+      favorite: Math.random() > 0.7, // Примерно 30% упражнений будут избранными
+      muscleGroups,
+      description: Math.random() > 0.3 ? generateDescription(name) : "", // 70% упражнений имеют описание
+      videoUrl: generateVideoUrl(),
       createdAt,
       updatedAt,
-      type: generateType(),
-      favorite: Math.random() > 0.7, // Примерно 30% досок будут избранными
     });
   }
 
   return result;
 }
 
-// Создаем 1000 случайных досок
-const exercises: ApiSchemas["Exercise"][] = generateRandomBoards(10);
+// Создаем случайные упражнения
+const exercises: ApiSchemas["Exercise"][] = generateRandomExercises(10);
 
-export const boardsHandlers = [
+export const exercisesHandlers = [
   http.get("/exercises", async (ctx) => {
     await verifyTokenOrThrow(ctx.request);
 
@@ -116,53 +179,43 @@ export const boardsHandlers = [
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
     const search = url.searchParams.get("search");
-    const isFavorite = url.searchParams.get("isFavorite");
-    // const sort = url.searchParams.get("sort");
+    const favorite = url.searchParams.get("favorite");
+    const muscleGroup = url.searchParams.get("muscleGroup");
 
-    let filteredBoards = [...exercises];
+    let filteredExercises = [...exercises];
 
     // Фильтрация по поиску
     if (search) {
-      filteredBoards = filteredBoards.filter((exercises) =>
-        exercises.name.toLowerCase().includes(search.toLowerCase()),
+      filteredExercises = filteredExercises.filter((exercise) =>
+        exercise.name.toLowerCase().includes(search.toLowerCase()),
       );
     }
 
     // Фильтрация по избранному
-    if (isFavorite !== null) {
-      const isFav = isFavorite === "true";
-      filteredBoards = filteredBoards.filter(
-        (exercises) => exercises.favorite === isFav,
+    if (favorite !== null) {
+      const isFavorite = favorite === "true";
+      filteredExercises = filteredExercises.filter(
+        (exercise) => exercise.favorite === isFavorite,
       );
     }
 
-    // Сортировка
-    // if (sort) {
-    //   filteredBoards.sort((a, b) => {
-    //     if (sort === "name") {
-    //       return a.name.localeCompare(b.name);
-    //     } else {
-    //       // Для дат (createdAt, updatedAt, lastOpenedAt)
-    //       return (
-    //         new Date(
-    //           b[sort as keyof ApiSchemas["Exercise"]].toString(),
-    //         ).getTime() -
-    //         new Date(
-    //           a[sort as keyof ApiSchemas["Exercise"]].toString(),
-    //         ).getTime()
-    //       );
-    //     }
-    //   });
-    // }
+    // Фильтрация по мышечной группе
+    if (muscleGroup) {
+      filteredExercises = filteredExercises.filter((exercise) =>
+        exercise.muscleGroups.some((group) =>
+          group.toLowerCase().includes(muscleGroup.toLowerCase()),
+        ),
+      );
+    }
 
-    const total = filteredBoards.length;
+    const total = filteredExercises.length;
     const totalPages = Math.ceil(total / limit);
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedBoards = filteredBoards.slice(startIndex, endIndex);
+    const paginatedExercises = filteredExercises.slice(startIndex, endIndex);
 
     return HttpResponse.json({
-      list: paginatedBoards,
+      list: paginatedExercises,
       total,
       totalPages,
     });
@@ -171,26 +224,30 @@ export const boardsHandlers = [
   http.get("/exercises/{exerciseId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { exerciseId } = params;
-    const exercis = exercises.find((exercises) => exercises.id === exerciseId);
+    const exercise = exercises.find((exercise) => exercise.id === exerciseId);
 
-    if (!exercises) {
-      return;
+    if (!exercise) {
+      return new HttpResponse(null, { status: 404 });
     }
 
-    return HttpResponse.json(exercis);
+    return HttpResponse.json(exercise);
   }),
 
   http.post("/exercises", async (ctx) => {
     await verifyTokenOrThrow(ctx.request);
 
+    const data = (await ctx.request.json()) as ApiSchemas["CreateExercise"];
     const now = new Date().toISOString();
+
     const exercise: ApiSchemas["Exercise"] = {
       id: crypto.randomUUID(),
-      name: "New Exercises",
+      name: data.name,
+      favorite: data.favorite || false,
+      muscleGroups: data.muscleGroups,
+      description: data.description || "",
+      videoUrl: data.videoUrl,
       createdAt: now,
       updatedAt: now,
-      favorite: false,
-      type: "cardio",
     };
 
     exercises.push(exercise);
@@ -200,28 +257,36 @@ export const boardsHandlers = [
   http.put("/exercises/{exerciseId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { exerciseId } = params;
-    const exercise = exercises.find((exercises) => exercises.id === exerciseId);
+    const exercise = exercises.find((exercise) => exercise.id === exerciseId);
 
     if (!exercise) {
-      return;
+      return new HttpResponse(null, { status: 404 });
     }
 
-    const data = (await request.json()) as ApiSchemas["RenameBoard"];
-    exercise.name = data.name;
+    const data = (await request.json()) as ApiSchemas["UpdateExercise"];
+
+    // Обновляем только переданные поля
+    if (data.name !== undefined) exercise.name = data.name;
+    if (data.favorite !== undefined) exercise.favorite = data.favorite;
+    if (data.muscleGroups !== undefined)
+      exercise.muscleGroups = data.muscleGroups;
+    if (data.description !== undefined) exercise.description = data.description;
+    if (data.videoUrl !== undefined) exercise.videoUrl = data.videoUrl;
+
     exercise.updatedAt = new Date().toISOString();
 
-    return HttpResponse.json(exercise, { status: 201 });
+    return HttpResponse.json(exercise);
   }),
 
   http.delete("/exercises/{exerciseId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { exerciseId } = params;
-    const index = exercises.findIndex(
-      (exercises) => exercises.id === exerciseId,
-    );
+    const index = exercises.findIndex((exercise) => exercise.id === exerciseId);
+
     await delay(1000);
+
     if (index === -1) {
-      return;
+      return new HttpResponse(null, { status: 404 });
     }
 
     exercises.splice(index, 1);

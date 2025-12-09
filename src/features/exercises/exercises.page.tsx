@@ -10,18 +10,12 @@ import {
 } from "./ui/exercises-list-layout";
 import { SideBar } from "../../shared/ui/kit/sidebar";
 import { BoardItem } from "./compose/board-item";
-import { useBoardsFilters } from "./model/use-boards-filters";
-import { useExercisesList } from "./model/use-boards-list";
-import { useDebouncedValue } from "@/shared/lib/react";
+import { useExercisesFetchList } from "@/shared/api/thunks/use-exercises-fetch-list";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();
 
-  const boardsFilters = useBoardsFilters();
-  const exercisesQuery = useExercisesList({
-    sort: boardsFilters.sort,
-    search: useDebouncedValue(boardsFilters.search, 300),
-  });
+  const exercisesQuery = useExercisesFetchList({});
 
   return (
     <ExercisesListLayout

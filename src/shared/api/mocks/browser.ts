@@ -1,10 +1,10 @@
 import { setupWorker } from "msw/browser";
-import { boardsHandlers } from "./handlers/boards";
 import { authHandlers } from "./handlers/auth";
-import { boardsHandlers as exercisesHandlers } from "./handlers/exercises";
+import { exercisesHandlers } from "./handlers/exercises";
+import { trainingsHandlers } from "./handlers/training";
 
 export const worker = setupWorker(
   ...authHandlers,
-  ...boardsHandlers,
   ...exercisesHandlers,
+  ...trainingsHandlers,
 );

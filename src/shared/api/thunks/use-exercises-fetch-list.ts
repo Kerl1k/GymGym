@@ -2,26 +2,29 @@ import { rqClient } from "@/shared/api/instance";
 import { keepPreviousData } from "@tanstack/query-core";
 import { RefCallback, useCallback } from "react";
 
-type UseTrainingListParams = {
+type UseExercisesListParams = {
   limit?: number;
+  isFavorite?: boolean;
   search?: string;
   sort?: "createdAt" | "updatedAt" | "lastOpenedAt" | "name";
 };
 
-export function useTrainingList({
+export function useExercisesFetchList({
   limit = 20,
+  isFavorite,
   search,
   sort,
-}: UseTrainingListParams) {
+}: UseExercisesListParams) {
   const { fetchNextPage, data, isFetchingNextPage, isPending, hasNextPage } =
     rqClient.useInfiniteQuery(
       "get",
-      "/trainings",
+      "/exercises",
       {
         params: {
           query: {
             page: 1,
             limit,
+            isFavorite,
             search,
             sort,
           },
@@ -60,11 +63,11 @@ export function useTrainingList({
     },
     [fetchNextPage],
   );
-  console.log(data);
-  const trainings = data?.pages.flatMap((page) => page.list) ?? [];
+
+  const exercises = data?.pages.flatMap((page) => page.list) ?? [];
 
   return {
-    trainings,
+    exercises,
     isFetchingNextPage,
     isPending,
     hasNextPage,

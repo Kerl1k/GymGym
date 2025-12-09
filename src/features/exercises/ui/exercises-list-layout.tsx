@@ -145,23 +145,3 @@ export function ExercisesListLayoutList({
 }) {
   return <div className="flex flex-col gap-2">{children}</div>;
 }
-
-export function ExercisesLayoutContentGroups({
-  groups,
-}: {
-  groups: {
-    title: string;
-    items: React.ReactNode;
-  }[];
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      {groups.map((group) => (
-        <div key={group.title}>
-          <div className="text-lg font-bold mb-2">{group.title}</div>
-          {group.items}
-        </div>
-      ))}
-    </div>
-  );
-}

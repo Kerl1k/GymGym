@@ -1,66 +1,42 @@
 # Schemas
 schemas:
-  TrainingExercise:
+  ExerciseForm:
     type: object
     required:
       - id
+      - exerciseId
       - name
       - type
-      - chill
-      - weight
-      - count
-      - approaches
+      - notes
     properties:
       id:
+        type: string
+      exerciseId:
         type: string
       name:
         type: string
       type:
+        type: array
+        items:
+          type: string
+      notes:
         type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
-      chill:
-        type: string
-      weight:
-        type: number
-        default: 15
-      count:
-        type: integer
-        default: 8
-      approaches:
-        type: integer
-        default: 1
 
   Training:
     type: object
     required:
       - id
       - name
-      - type
       - exercises
     properties:
       id:
         type: string
       name:
         type: string
-      type:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
       exercises:
         type: array
         items:
-          $ref: "#/schemas/TrainingExercise"
+          $ref: "#/schemas/ExerciseForm"
       createdAt:
         type: string
         format: date-time
@@ -72,43 +48,24 @@ schemas:
     type: object
     required:
       - name
-      - type
       - exercises
     properties:
       name:
         type: string
-      type:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
       exercises:
         type: array
         items:
-          $ref: "#/schemas/TrainingExercise"
+          $ref: "#/schemas/ExerciseForm"
 
   UpdateTraining:
     type: object
     properties:
       name:
         type: string
-      type:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
       exercises:
         type: array
         items:
-          $ref: "#/schemas/TrainingExercise"
+          $ref: "#/schemas/ExerciseForm"
 
   TrainingsList:
     type: object

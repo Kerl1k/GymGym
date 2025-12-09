@@ -1,0 +1,304 @@
+// training-create.module.scss
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 48rem;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.cardHeader {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 1.5rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+
+.closeButton {
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+}
+
+.closeIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.cardContent {
+  overflow-y: auto;
+  max-height: calc(90vh - 120px);
+  padding: 0;
+}
+
+.contentWrapper {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionIcon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.gridContainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input {
+  height: 3rem;
+}
+
+.textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.statsCard {
+  background-color: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.statsContent {
+  padding: 1rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.statItem {
+  text-align: center;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6b7280;
+}
+
+.exercisesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.exercisesIcon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.addExerciseButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.addIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.exercisesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.exerciseCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.exerciseCardContent {
+  padding: 1rem;
+}
+
+.exerciseHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.exerciseNumberContainer {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  background-color: #f3f4f6;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exerciseNumber {
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.exerciseInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.exerciseTitle {
+  font-weight: 600;
+  color: #111827;
+}
+
+.exerciseName {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6b7280;
+}
+
+.exerciseActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actionButton {
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+}
+
+.actionIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.exerciseForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.switchContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 1rem;
+}
+
+.switchLabel {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+}
+
+.switchDescription {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: #6b7280;
+}
+
+.footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  background-color: #f9fafb;
+}
+
+.footerContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.createIcon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.spinner {
+  height: 1rem;
+  width: 1rem;
+  animation: spin 1s linear infinite;
+  border-radius: 9999px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: currentColor;
+  border-top-color: transparent;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

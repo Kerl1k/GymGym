@@ -7,141 +7,137 @@ import { verifyTokenOrThrow } from "../session";
 function randomDate() {
   const start = new Date();
   start.setDate(start.getDate() - 30);
+
   const end = new Date();
+
   return new Date(
     start.getTime() + Math.random() * (end.getTime() - start.getTime()),
   ).toISOString();
 }
 
-// Функция для генерации случайного названия упражнения
-function generateExerciseName() {
-  const exercises = [
-    "Жим штанги лежа",
-    "Тяга верхнего блока",
-    "Разгибание ног в тренажере",
-    "Сгибание ног лежа",
-    "Подъем гантелей через стороны",
-    "Отжимания на брусьях",
-    "Приседания со штангой",
-    "Выпады с гантелями",
-    "Скручивания на пресс",
-    "Махи гантелями вперед",
-    "Тяга штанги к подбородку",
-    "Шраги со штангой",
-    "Пуловер с гантелью",
-    "Французский жим",
-    "Подъем штанги на бицепс",
-    "Жим ногами в тренажере",
-    "Гиперэкстензия",
-    "Планка",
-    "Бег на беговой дорожке",
-    "Велотренажер",
+// Список упражнений для моков
+const exerciseList = [
+  {
+    id: "1",
+    name: "Жим штанги лежа",
+    type: ["strength"],
+    notes: "Базовое упражнение для груди",
+  },
+  {
+    id: "2",
+    name: "Приседания со штангой",
+    type: ["strength", "legs"],
+    notes: "Основное упражнение для ног",
+  },
+  {
+    id: "3",
+    name: "Тяга штанги в наклоне",
+    type: ["strength", "back"],
+    notes: "Для развития мышц спины",
+  },
+  {
+    id: "4",
+    name: "Бег на беговой дорожке",
+    type: ["cardio"],
+    notes: "Кардионагрузка, 30 минут",
+  },
+  {
+    id: "5",
+    name: "Подтягивания широким хватом",
+    type: ["strength", "back"],
+    notes: "Упражнение с весом тела",
+  },
+  {
+    id: "6",
+    name: "Отжимания на брусьях",
+    type: ["strength", "chest", "triceps"],
+    notes: "Для груди и трицепсов",
+  },
+  {
+    id: "7",
+    name: "Скручивания на пресс",
+    type: ["strength", "abs"],
+    notes: "Упражнение на пресс",
+  },
+  {
+    id: "8",
+    name: "Выпады с гантелями",
+    type: ["strength", "legs"],
+    notes: "Для ягодиц и квадрицепсов",
+  },
+  {
+    id: "9",
+    name: "Становая тяга",
+    type: ["strength", "back", "legs"],
+    notes: "Комплексное упражнение",
+  },
+  {
+    id: "10",
+    name: "Жим гантелей сидя",
+    type: ["strength", "shoulders"],
+    notes: "Для дельтовидных мышц",
+  },
+];
+
+// Функция для генерации случайного названия тренировки
+function generateTrainingName() {
+  const prefixes = [
+    "Утренняя",
+    "Вечерняя",
+    "Интенсивная",
+    "Базовая",
+    "Специальная",
+    "Профильная",
+    "Домашняя",
+    "Заловая",
+    "Кардио",
+    "Силовая",
   ];
 
-  return exercises[Math.floor(Math.random() * exercises.length)];
-}
-
-// Функция для генерации типа тренировки
-function generateTrainingType() {
-  const types: ApiSchemas["Training"]["type"][] = [
-    "strength",
-    "cardio",
-    "flexibility",
-    "balance",
-    "yoga",
-    "pilates",
+  const targets = [
+    "на грудь",
+    "на спину",
+    "на ноги",
+    "на плечи",
+    "на руки",
+    "на всё тело",
+    "на выносливость",
+    "на силу",
+    "на массу",
+    "на рельеф",
   ];
-  return types[Math.floor(Math.random() * types.length)];
+
+  const times = [
+    "понедельника",
+    "вторника",
+    "среды",
+    "четверга",
+    "пятницы",
+    "субботы",
+    "воскресенья",
+    "начала недели",
+    "конца недели",
+  ];
+
+  const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  const randomTarget = targets[Math.floor(Math.random() * targets.length)];
+  const randomTime = times[Math.floor(Math.random() * times.length)];
+
+  return `${randomPrefix} тренировка ${randomTarget} для ${randomTime}`;
 }
 
-// Функция для генерации названия тренировки
-function generateTrainingName(type: string) {
-  const typeNames: Record<string, string[]> = {
-    strength: [
-      "Силовая тренировка на грудь",
-      "Тренировка спины и бицепса",
-      "Ноги и плечи",
-      "Фуллбади тренировка",
-      "Верх тела",
-      "Ниж тела",
-    ],
-    cardio: [
-      "Кардио сессия",
-      "Интервальный бег",
-      "Велотренировка",
-      "Кардио для выносливости",
-      "HIIT тренировка",
-    ],
-    flexibility: [
-      "Растяжка всего тела",
-      "Упражнения на гибкость",
-      "Мобильность суставов",
-    ],
-    balance: [
-      "Тренировка баланса",
-      "Упражнения на стабильность",
-      "Баланс и координация",
-    ],
-    yoga: [
-      "Утренняя йога",
-      "Йога для расслабления",
-      "Силовая йога",
-      "Хатха йога",
-    ],
-    pilates: [
-      "Пилатес для начинающих",
-      "Силовой пилатес",
-      "Пилатес на коврике",
-    ],
-  };
+// Функция для генерации случайных упражнений для тренировки
+function generateRandomExercises(): ApiSchemas["ExerciseForm"][] {
+  const count = Math.floor(Math.random() * 5) + 3; // От 3 до 7 упражнений
+  const shuffledExercises = [...exerciseList].sort(() => 0.5 - Math.random());
 
-  const names = typeNames[type] || ["Тренировка"];
-  return names[Math.floor(Math.random() * names.length)];
-}
-
-// Функция для генерации времени отдыха
-function generateChill() {
-  const chillTimes = ["30 сек", "45 сек", "1 мин", "1.5 мин", "2 мин", "3 мин"];
-  return chillTimes[Math.floor(Math.random() * chillTimes.length)];
-}
-
-// Функция для генерации веса
-function generateWeight() {
-  const weights = [10, 15, 20, 25, 30, 40, 50, 60, 70, 80];
-  return weights[Math.floor(Math.random() * weights.length)];
-}
-
-// Функция для генерации количества повторений
-function generateCount() {
-  const counts = [8, 10, 12, 15, 20];
-  return counts[Math.floor(Math.random() * counts.length)];
-}
-
-// Функция для генерации количества подходов
-function generateApproaches() {
-  const approaches = [3, 4, 5];
-  return approaches[Math.floor(Math.random() * approaches.length)];
-}
-
-// Функция для генерации упражнений для тренировки
-function generateTrainingExercises(
-  count: number = 5,
-): ApiSchemas["TrainingExercise"][] {
-  const exercises: ApiSchemas["TrainingExercise"][] = [];
-
-  for (let i = 0; i < count; i++) {
-    exercises.push({
-      id: crypto.randomUUID(),
-      name: generateExerciseName(),
-      type: generateTrainingType(),
-      chill: generateChill(),
-      weight: generateWeight(),
-      count: generateCount(),
-      approaches: generateApproaches(),
-    });
-  }
-
-  return exercises;
+  return shuffledExercises.slice(0, count).map((ex) => ({
+    id: crypto.randomUUID(),
+    exerciseId: ex.id,
+    name: ex.name,
+    type: ex.type,
+    notes: ex.notes,
+  }));
 }
 
 // Генерация случайных тренировок
@@ -149,7 +145,6 @@ function generateRandomTrainings(count: number): ApiSchemas["Training"][] {
   const result: ApiSchemas["Training"][] = [];
 
   for (let i = 0; i < count; i++) {
-    const type = generateTrainingType();
     const createdAt = randomDate();
     const updatedAt = new Date(
       Math.min(
@@ -160,9 +155,8 @@ function generateRandomTrainings(count: number): ApiSchemas["Training"][] {
 
     result.push({
       id: crypto.randomUUID(),
-      name: generateTrainingName(type),
-      type: type,
-      exercises: generateTrainingExercises(3 + Math.floor(Math.random() * 4)), // 3-6 упражнений
+      name: generateTrainingName(),
+      exercises: generateRandomExercises(),
       createdAt,
       updatedAt,
     });
@@ -171,10 +165,10 @@ function generateRandomTrainings(count: number): ApiSchemas["Training"][] {
   return result;
 }
 
-// Создаем тренировки
-const trainings: ApiSchemas["Training"][] = generateRandomTrainings(10);
+// Создаем моковые тренировки
+const trainings: ApiSchemas["Training"][] = generateRandomTrainings(15);
 
-export const trainingHandlers = [
+export const trainingsHandlers = [
   http.get("/trainings", async (ctx) => {
     await verifyTokenOrThrow(ctx.request);
 
@@ -193,10 +187,10 @@ export const trainingHandlers = [
       );
     }
 
-    // Фильтрация по типу
+    // Фильтрация по типу (если есть упражнения такого типа)
     if (type) {
-      filteredTrainings = filteredTrainings.filter(
-        (training) => training.type === type,
+      filteredTrainings = filteredTrainings.filter((training) =>
+        training.exercises.some((exercise) => exercise.type.includes(type)),
       );
     }
 
@@ -216,7 +210,7 @@ export const trainingHandlers = [
   http.get("/trainings/{trainingId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { trainingId } = params;
-    const training = trainings.find((training) => training.id === trainingId);
+    const training = trainings.find((t) => t.id === trainingId);
 
     if (!training) {
       return new HttpResponse(null, { status: 404 });
@@ -231,21 +225,12 @@ export const trainingHandlers = [
     const data = (await ctx.request.json()) as ApiSchemas["CreateTraining"];
     const now = new Date().toISOString();
 
-    // Проверяем, что exercises есть и это массив
-    if (!data.exercises || !Array.isArray(data.exercises)) {
-      return new HttpResponse(
-        JSON.stringify({ error: "Exercises must be an array" }),
-        { status: 400 },
-      );
-    }
-
     const training: ApiSchemas["Training"] = {
       id: crypto.randomUUID(),
       name: data.name,
-      type: data.type,
-      exercises: data.exercises.map((exercise) => ({
-        ...exercise,
-        id: exercise.id || crypto.randomUUID(),
+      exercises: data.exercises.map((ex) => ({
+        ...ex,
+        id: crypto.randomUUID(), // Генерируем новые ID для упражнений
       })),
       createdAt: now,
       updatedAt: now,
@@ -258,7 +243,7 @@ export const trainingHandlers = [
   http.put("/trainings/{trainingId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { trainingId } = params;
-    const training = trainings.find((training) => training.id === trainingId);
+    const training = trainings.find((t) => t.id === trainingId);
 
     if (!training) {
       return new HttpResponse(null, { status: 404 });
@@ -268,11 +253,11 @@ export const trainingHandlers = [
 
     // Обновляем только переданные поля
     if (data.name !== undefined) training.name = data.name;
-    if (data.type !== undefined) training.type = data.type;
     if (data.exercises !== undefined) {
-      training.exercises = data.exercises.map((exercise) => ({
-        ...exercise,
-        id: exercise.id || crypto.randomUUID(),
+      // Обновляем ID упражнений при необходимости
+      training.exercises = data.exercises.map((ex) => ({
+        ...ex,
+        id: ex.id || crypto.randomUUID(),
       }));
     }
 
@@ -284,7 +269,7 @@ export const trainingHandlers = [
   http.delete("/trainings/{trainingId}", async ({ params, request }) => {
     await verifyTokenOrThrow(request);
     const { trainingId } = params;
-    const index = trainings.findIndex((training) => training.id === trainingId);
+    const index = trainings.findIndex((t) => t.id === trainingId);
 
     await delay(1000);
 

@@ -7,19 +7,16 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 import { MoreHorizontalIcon } from "lucide-react";
+import { ApiSchemas } from "@/shared/api/schema";
 
 interface exercisessListItemProps {
-  exercises: {
-    id: string;
-    name: string;
-    type: string;
-  };
+  training: ApiSchemas["Training"];
   rightActions?: React.ReactNode;
   menuActions?: React.ReactNode;
 }
 
 export function ExercisessListItem({
-  exercises,
+  training,
   rightActions,
   menuActions,
 }: exercisessListItemProps) {
@@ -31,14 +28,14 @@ export function ExercisessListItem({
           variant="link"
           className="text-left justify-start h-auto p-0"
         >
-          <Link to={href(ROUTES.BOARD, { boardId: exercises.id })}>
+          <Link to={href(ROUTES.HOME, { boardId: training.id })}>
             <span className="text-lg font-medium truncate block">
-              {exercises.name}
+              {training.name}
             </span>
           </Link>
         </Button>
         <div className="flex gap-4 text-sm text-gray-500 mt-1">
-          {exercises.type}
+          {training.exercises.length} упражнений
         </div>
       </div>
       <div className="flex items-center gap-2">

@@ -5,24 +5,24 @@ schemas:
     required:
       - id
       - name
-      - type
       - favorite
+      - muscleGroups
+      - videoUrl
     properties:
       id:
         type: string
       name:
         type: string
-      type:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
       favorite:
         type: boolean
+      muscleGroups:
+        type: array
+        items:
+          type: string
+      description:
+        type: string
+      videoUrl:
+        type: string
       createdAt:
         type: string
         format: date-time
@@ -34,32 +34,38 @@ schemas:
     type: object
     required:
       - name
-      - type
+      - muscleGroups
+      - videoUrl
     properties:
       name:
         type: string
-      type:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
       favorite:
         type: boolean
         default: false
+      muscleGroups:
+        type: array
+        items:
+          type: string
+      description:
+        type: string
+      videoUrl:
+        type: string
 
   UpdateExercise:
     type: object
     properties:
       name:
         type: string
-      type:
-        type: string
       favorite:
         type: boolean
+      muscleGroups:
+        type: array
+        items:
+          type: string
+      description:
+        type: string
+      videoUrl:
+        type: string
 
   ExercisesList:
     type: object
@@ -95,24 +101,17 @@ getAllExercises:
       schema:
         type: integer
         default: 10
-    - name: type
-      in: query
-      required: false
-      schema:
-        type: string
-        enum:
-          - cardio
-          - strength
-          - flexibility
-          - balance
-          - yoga
-          - pilates
     - name: favorite
       in: query
       required: false
       schema:
         type: boolean
     - name: search
+      in: query
+      required: false
+      schema:
+        type: string
+    - name: muscleGroup
       in: query
       required: false
       schema:
