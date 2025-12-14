@@ -1,5 +1,5 @@
-import { publicRqClient } from "@/shared/api/instance";
-import { ApiSchemas } from "@/shared/api/schema";
+import { publicRqClient } from "@/entities/instance";
+import { ApiSchemas } from "@/shared/schema";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
 import { useNavigate } from "react-router-dom";

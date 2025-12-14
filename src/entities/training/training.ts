@@ -1,7 +1,7 @@
 import { delay, HttpResponse } from "msw";
-import { http } from "../http";
-import { ApiSchemas } from "../../schema";
-import { verifyTokenOrThrow } from "../session";
+import { http } from "../../shared/schema/http";
+import { verifyTokenOrThrow } from "../../shared/schema/session";
+import { ApiSchemas } from "@/shared/schema";
 
 // Функция для генерации случайной даты в пределах последних 30 дней
 function randomDate() {

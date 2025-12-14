@@ -1,6 +1,3 @@
-// features/training-active/active-training.tsx
-"use client";
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -18,9 +15,17 @@ import {
   SkipForwardIcon,
   RotateCcwIcon,
 } from "lucide-react";
+import { ROUTES } from "@/shared/model/routes";
+import { useTrainingFetch } from "@/entities/training-active/use-training-active";
+import { useOpen } from "@/shared/lib/useOpen";
+import { ChangeModal } from "./ChangeModal";
 
 function ActiveTraining() {
   const navigate = useNavigate();
+  const { close, isOpen, open } = useOpen();
+
+  const data = useTrainingFetch();
+  console.log(data);
   const [training, setTraining] = useState(mockTraining);
   const [isResting, setIsResting] = useState(false);
   const [restTime, setRestTime] = useState(90);
@@ -115,7 +120,7 @@ function ActiveTraining() {
       endTime: new Date().toISOString(),
     }));
 
-    navigate(`/training/${training.id}/results`);
+    navigate(ROUTES.HOME);
   };
 
   // Когда отдых закончен
@@ -128,6 +133,8 @@ function ActiveTraining() {
       }));
     }
   }, [isResting, restTime]);
+
+  console.log(currentExercise);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-6">
@@ -206,6 +213,7 @@ function ActiveTraining() {
               onUpdateWeight={(newWeight) =>
                 updateWeight(currentExercise.id, newWeight)
               }
+              open={open}
             />
 
             {/* Таймер отдыха */}
@@ -281,6 +289,11 @@ function ActiveTraining() {
           </div>
         </div>
       </div>
+      <ChangeModal
+        currentExercise={currentExercise}
+        close={close}
+        isOpen={isOpen}
+      />
     </div>
   );
 }

@@ -1,13 +1,13 @@
 import { ROUTES } from "@/shared/model/routes";
 import { Button } from "@/shared/ui/kit/button";
-import { Link, href } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 import { MoreHorizontalIcon } from "lucide-react";
-import { ApiSchemas } from "@/shared/api/schema";
+import { ApiSchemas } from "@/shared/schema";
 
 interface exercisessListItemProps {
   training: ApiSchemas["Training"];
@@ -28,7 +28,7 @@ export function ExercisessListItem({
           variant="link"
           className="text-left justify-start h-auto p-0"
         >
-          <Link to={href(ROUTES.HOME, { boardId: training.id })}>
+          <Link to={ROUTES.HOME}>
             <span className="text-lg font-medium truncate block">
               {training.name}
             </span>

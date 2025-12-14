@@ -1,11 +1,11 @@
-import { ApiSchemas } from "../../schema";
-import { http } from "../http";
-import { delay, HttpResponse } from "msw";
+import { ApiSchemas } from "@/shared/schema";
+import { http } from "@/shared/schema/http";
 import {
   createRefreshTokenCookie,
   generateTokens,
   verifyToken,
-} from "../session";
+} from "@/shared/schema/session";
+import { delay, HttpResponse } from "msw";
 
 const mockUsers: ApiSchemas["User"][] = [
   {

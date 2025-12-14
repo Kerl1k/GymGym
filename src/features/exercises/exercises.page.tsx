@@ -10,7 +10,7 @@ import {
 } from "./ui/exercises-list-layout";
 import { SideBar } from "../../shared/ui/kit/sidebar";
 import { BoardItem } from "./compose/board-item";
-import { useExercisesFetchList } from "@/shared/api/thunks/use-exercises-fetch-list";
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();

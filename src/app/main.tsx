@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-import { enableMocking } from "@/shared/api/mocks";
+import { enableMocking } from "@/shared/schema";
 
 enableMocking().then(() => {
   createRoot(document.getElementById("root")!).render(

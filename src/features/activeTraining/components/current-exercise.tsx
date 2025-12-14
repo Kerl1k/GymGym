@@ -18,11 +18,13 @@ import {
 interface CurrentExerciseProps {
   exercise: TrainingExercise;
   onUpdateWeight: (weight: number) => void;
+  open: () => void;
 }
 
 export function CurrentExercise({
   exercise,
   onUpdateWeight,
+  open,
 }: CurrentExerciseProps) {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [tempWeight, setTempWeight] = useState(exercise.weight);
@@ -57,6 +59,7 @@ export function CurrentExercise({
             {exercise.type === "yoga" && "🧘 Йога"}
             {exercise.type === "pilates" && "🏋️ Пилатес"}
           </Badge>
+          <Button onClick={open}>Изменить</Button>
         </div>
       </CardHeader>
 

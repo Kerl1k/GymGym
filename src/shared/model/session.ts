@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { createGStore } from "create-gstore";
-import { publicFetchClient } from "../api/instance";
+import { publicFetchClient } from "../../entities/instance";
 
 type Session = {
   userId: string;

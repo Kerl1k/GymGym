@@ -1,4 +1,4 @@
-import { rqClient } from "@/shared/api/instance";
+import { rqClient } from "@/entities/instance";
 import { keepPreviousData } from "@tanstack/query-core";
 import { RefCallback, useCallback } from "react";
 

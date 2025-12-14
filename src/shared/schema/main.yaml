@@ -1,0 +1,105 @@
+openapi: 3.0.0
+info:
+  title: Gym Application API
+  description: API for gym and exercises management
+  version: 1.0.0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /auth/login:
+    post:
+      $ref: "./endpoints/auth.yaml#/login"
+
+  /auth/register:
+    post:
+      $ref: "./endpoints/auth.yaml#/register"
+
+  /auth/refresh:
+    post:
+      $ref: "./endpoints/auth.yaml#/refresh"
+
+  /exercises:
+    get:
+      $ref: "./endpoints/exercises.yaml#/getAllExercises"
+    post:
+      $ref: "./endpoints/exercises.yaml#/createExercise"
+
+  /exercises/{exerciseId}:
+    get:
+      $ref: "./endpoints/exercises.yaml#/getExerciseById"
+    put:
+      $ref: "./endpoints/exercises.yaml#/updateExercise"
+    delete:
+      $ref: "./endpoints/exercises.yaml#/deleteExercise"
+
+  /trainings:
+    get:
+      $ref: "./endpoints/training.yaml#/getAllTrainings"
+    post:
+      $ref: "./endpoints/training.yaml#/createTraining"
+
+  /trainings/{trainingId}:
+    get:
+      $ref: "./endpoints/training.yaml#/getTrainingById"
+    put:
+      $ref: "./endpoints/training.yaml#/updateTraining"
+    delete:
+      $ref: "./endpoints/training.yaml#/deleteTraining"
+
+  # Активные тренировки (CRUD + операции)
+  /active-trainings:
+    get:
+      $ref: "./endpoints/training-active.yaml#/getActiveTrainings"
+    post:
+      $ref: "./endpoints/training-active.yaml#/createActiveTraining"
+
+  /active-trainings/{trainingId}:
+    get:
+      $ref: "./endpoints/training-active.yaml#/getActiveTrainingById"
+    put:
+      $ref: "./endpoints/training-active.yaml#/updateActiveTraining"
+    delete:
+      $ref: "./endpoints/training-active.yaml#/deleteActiveTraining"
+
+  # Операции с тренировочным процессом
+  /active-trainings/{trainingId}/start:
+    post:
+      $ref: "./endpoints/training-active.yaml#/startActiveTraining"
+
+  /active-trainings/{trainingId}/pause:
+    post:
+      $ref: "./endpoints/training-active.yaml#/pauseActiveTraining"
+
+  /active-trainings/{trainingId}/resume:
+    post:
+      $ref: "./endpoints/training-active.yaml#/resumeActiveTraining"
+
+  /active-trainings/{trainingId}/complete:
+    post:
+      $ref: "./endpoints/training-active.yaml#/completeActiveTraining"
+
+  /active-trainings/{trainingId}/cancel:
+    post:
+      $ref: "./endpoints/training-active.yaml#/cancelActiveTraining"
+
+  # Управление упражнениями в активной тренировке
+  /active-trainings/{trainingId}/exercises:
+    post:
+      $ref: "./endpoints/training-active.yaml#/addExerciseToActiveTraining"
+
+  /active-trainings/{trainingId}/exercises/{exerciseId}:
+    put:
+      $ref: "./endpoints/training-active.yaml#/updateExerciseInActiveTraining"
+    delete:
+      $ref: "./endpoints/training-active.yaml#/removeExerciseFromActiveTraining"
+
+  # История тренировок
+  /training-history:
+    get:
+      $ref: "./endpoints/training-active.yaml#/getTrainingHistory"

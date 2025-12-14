@@ -1,5 +1,5 @@
-import { rqClient } from "@/shared/api/instance";
-import { ApiSchemas } from "@/shared/api/schema";
+import { rqClient } from "@/entities/instance";
+import { ApiSchemas } from "@/shared/schema";
 
 import { useQueryClient } from "@tanstack/react-query";
 

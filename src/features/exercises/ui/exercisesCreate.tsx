@@ -7,7 +7,7 @@ import { Textarea } from "@/shared/ui/kit/Textarea";
 import { Badge } from "@/shared/ui/kit/badge";
 import { XIcon, PlusIcon, InfoIcon } from "lucide-react";
 import { FC, useState } from "react";
-import { useCreateExercises } from "@/shared/api/thunks/use-create-exercises";
+import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
 import { TogleAddFavorite } from "@/shared/ui/kit/togleAddFavorite";
 
 type ExercisesCreateProps = {

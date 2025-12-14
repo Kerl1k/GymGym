@@ -1,4 +1,4 @@
-import { ApiSchemas } from "@/shared/api/schema";
+import { ApiSchemas } from "@/shared/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
 import { useDeleteBoard } from "../model/use-delete-board";
 import { useUpdateFavorite } from "../model/use-update-favorite";

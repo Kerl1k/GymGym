@@ -1,0 +1,392 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+.notFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 1.125rem;
+  color: #ef4444;
+}
+
+// Header
+.header {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.statItem {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+// Exercises list
+.exercisesList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.exerciseCard {
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.exerciseContent {
+  padding: 1.5rem;
+}
+
+// Exercise header
+.exerciseHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.exerciseTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.exerciseNumber {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: #3b82f6;
+  color: white;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.exerciseName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.exerciseTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.tag {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+}
+
+.exerciseActions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.actionButton {
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+}
+
+.actionIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+// Custom sets toggle
+.customSetsToggle {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.toggleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.toggleLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.toggleDescription {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+// Sets section
+.setsSection {
+  margin-bottom: 1.5rem;
+}
+
+.uniformSets {
+  background-color: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.uniformFields {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.fieldLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.fieldIcon {
+  height: 1rem;
+  width: 1rem;
+  color: #6b7280;
+}
+
+.fieldInput {
+  height: 2.5rem;
+}
+
+// Custom sets
+.customSets {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.setsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.setItem {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #d1d5db;
+  }
+}
+
+.setHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.setNumber {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.setIcon {
+  height: 1rem;
+  width: 1rem;
+  color: #6b7280;
+}
+
+.setActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.removeButton {
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+}
+
+.removeIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+.setFields {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.setField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.setFieldLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.setInput {
+  height: 2.5rem;
+  font-size: 0.875rem;
+
+  &:disabled {
+    background-color: #f9fafb;
+    color: #6b7280;
+  }
+}
+
+.setNotes {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  min-height: 4rem;
+}
+
+.addSetButton {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.addIcon {
+  height: 1rem;
+  width: 1rem;
+}
+
+// Exercise notes
+.exerciseNotes {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.notesLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.notesTextarea {
+  min-height: 5rem;
+  font-size: 0.875rem;
+}
+
+// Add exercise button
+.addExerciseButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+
+  &:hover {
+    border-color: #9ca3af;
+  }
+}
+
+.addExerciseIcon {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+// Footer
+.footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+}
+
+.saveButton {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}

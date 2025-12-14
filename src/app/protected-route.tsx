@@ -2,7 +2,7 @@ import { ROUTES } from "@/shared/model/routes";
 import { Outlet, redirect } from "react-router-dom";
 import { useSession } from "@/shared/model/session";
 import { Navigate } from "react-router-dom";
-import { enableMocking } from "@/shared/api/mocks";
+import { enableMocking } from "@/shared/schema";
 
 export function ProtectedRoute() {
   const { session } = useSession();

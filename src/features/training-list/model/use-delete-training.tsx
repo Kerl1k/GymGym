@@ -1,4 +1,4 @@
-import { rqClient } from "@/shared/api/instance";
+import { rqClient } from "@/entities/instance";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function useDeleteTraining() {

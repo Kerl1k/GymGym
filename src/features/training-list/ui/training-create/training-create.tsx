@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@/shared/ui/kit/select";
 import { Textarea } from "@/shared/ui/kit/Textarea";
-import { Switch } from "@/shared/ui/kit/switch";
 import {
   XIcon,
   PlusIcon,
@@ -22,42 +21,38 @@ import {
   LayersIcon,
 } from "lucide-react";
 import { FC, useState } from "react";
-import { useCreateTraining } from "../../../../shared/api/thunks/use-exercises-create-";
-import { useExercisesFetchList } from "@/shared/api/thunks/use-exercises-fetch-list";
+import { useCreateTraining } from "@/entities/training/use-training-create";
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import styles from "./training-create.module.scss";
 import { cn } from "@/shared/lib/css";
+import { ApiSchemas } from "@/shared/schema";
 
 type TrainingCreateProps = {
   close: () => void;
 };
 
-// Тип для упражнения
-type ExerciseForm = {
-  id: string;
-  exerciseId: string;
-  name: string;
-  type: string;
-  notes: string;
-};
+type ExerciseForm = Pick<
+  ApiSchemas["Training"]["exercises"][0],
+  "id" | "name" | "notes" | "type"
+>;
 
 export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
   const { exercises: exercisesList, isPending: isLoading } =
     useExercisesFetchList({});
-  const { isPending } = useCreateTraining();
+  const { create, isPending } = useCreateTraining();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<ApiSchemas["Training"]>({
     name: "",
-    description: "",
-    favorite: false,
+    id: Date.now().toString(),
     exercises: [
       {
         id: "1",
-        exerciseId: "",
         name: "",
-        type: "strength",
+        type: ["strength"],
         notes: "",
+        exerciseId: "",
       },
-    ] as ExerciseForm[],
+    ],
   });
 
   const handleFormChange = (
@@ -86,7 +81,6 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
   const handleExerciseSelect = (index: number, exerciseId: string) => {
     const selectedExercise = exercisesList.find((ex) => ex.id === exerciseId);
     if (selectedExercise) {
-      handleExerciseChange(index, "exerciseId", exerciseId);
       handleExerciseChange(index, "name", selectedExercise.name);
     }
   };
@@ -100,7 +94,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
           id: Date.now().toString(),
           exerciseId: "",
           name: "",
-          type: "strength",
+          type: ["strength"],
           notes: "",
         },
       ],
@@ -144,9 +138,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
 
   const createTraining = () => {
     if (!form.name || isPending) return;
-
-    console.log("Создаем тренировку:", form);
-    // Здесь будет вызов API для создания тренировки
+    create(form);
     close();
   };
 
@@ -196,7 +188,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                 <Label htmlFor="description" className="mb-2 block">
                   Описание тренировки
                 </Label>
-                <Textarea
+                {/* <Textarea
                   id="description"
                   placeholder="Опишите цели, особенности, рекомендации..."
                   value={form.description}
@@ -205,7 +197,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                   }
                   className={styles.textarea}
                   rows={2}
-                />
+                /> */}
               </div>
             </div>
 
@@ -299,20 +291,19 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
                           ) : (
                             <Select
-                              value={exercise.exerciseId}
+                              defaultValue="empty"
+                              value={exercise.name}
                               onValueChange={(value) =>
                                 handleExerciseSelect(index, value)
                               }
                             >
                               <SelectTrigger className={styles.input}>
-                                <SelectValue placeholder="Выберите упражнение (опционально)" />
+                                <SelectValue defaultValue={"empty"} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="empty">
+                                <SelectItem value={exercise.name}>
                                   <div className="flex items-center justify-between">
-                                    <span className="text-gray-400">
-                                      Не выбрано
-                                    </span>
+                                    <span>{exercise.name}</span>
                                   </div>
                                 </SelectItem>
                                 {exercisesList.map((ex) => (
@@ -363,13 +354,13 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                     Тренировка появится в разделе "Избранное"
                   </p>
                 </div>
-                <Switch
+                {/* <Switch
                   id="favorite"
                   checked={form.favorite}
                   onCheckedChange={(checked) =>
                     handleFormChange("favorite", checked)
                   }
-                />
+                /> */}
               </div>
             </div>
           </div>

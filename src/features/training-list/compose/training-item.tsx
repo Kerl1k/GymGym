@@ -1,4 +1,4 @@
-import { ApiSchemas } from "@/shared/api/schema";
+import { ApiSchemas } from "@/shared/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -16,6 +16,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
+import { href, Link } from "react-router-dom";
+import { ROUTES } from "@/shared/model/routes";
 
 export function TrainingItem({
   training,
@@ -63,7 +65,11 @@ export function TrainingItem({
             <DropdownMenuContent align="end">
               <DropdownMenuItem className="gap-2">
                 <PlayIcon className="h-4 w-4" />
-                Начать тренировку
+                <Link
+                  to={href(ROUTES.START_TRAINING, { trainingId: training.id })}
+                >
+                  Начать тренировку
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" className="gap-2">
                 <TrashIcon className="h-4 w-4" />
