@@ -12,8 +12,10 @@ export function useTrainingFetch() {
     };
   }
 
+  if (!data.list[0]) return { data: null, isLoading: isPending };
+
   return {
-    data,
+    data: data.list[0],
     isLoading: isPending,
   };
 }

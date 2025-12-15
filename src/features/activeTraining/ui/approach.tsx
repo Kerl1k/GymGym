@@ -1,5 +1,5 @@
 import { ApiSchemas } from "@/shared/schema";
-import styles from "../training-start.module.scss";
+import styles from "./training-start.module.scss";
 import { Input } from "@/shared/ui/kit/inputLogin";
 import { Label } from "@/shared/ui/kit/label";
 import {
@@ -15,17 +15,15 @@ import { FC } from "react";
 import { Button } from "@/shared/ui/kit/button";
 
 type Props = {
-  exercise: ApiSchemas["ActiveExercise"];
-  activeTraining: ApiSchemas["ActiveTraining"] | null;
+  activeTraining: ApiSchemas["ActiveExercise"] | null;
   setActiveTraining: React.Dispatch<
-    React.SetStateAction<ApiSchemas["ActiveTraining"] | null>
+    React.SetStateAction<ApiSchemas["ActiveExercise"] | null>
   >;
-  exerciseIndex: number;
 };
 
 interface TrainingSet {
   setId: string;
-  exerciseId: string;
+  activeTrainingId: string;
   setNumber: number;
   weight: number;
   reps: number;
@@ -34,54 +32,44 @@ interface TrainingSet {
   completedAt?: string;
   notes: string;
 }
-const Approach: FC<Props> = ({
-  exercise,
-  activeTraining,
-  setActiveTraining,
-  exerciseIndex,
-}) => {
+const Approach: FC<Props> = ({ activeTraining, setActiveTraining }) => {
   const handleSetChange = (
-    exerciseIndex: number,
     setIndex: number,
     field: keyof TrainingSet,
     value: number | string,
   ) => {
     if (!activeTraining) return;
 
-    setActiveTraining((prev) => {
-      if (!prev) return prev;
-
-      const newExercises = [...prev.exercises];
-      newExercises[exerciseIndex].sets[setIndex] = {
-        ...newExercises[exerciseIndex].sets[setIndex],
+    setActiveTraining(() => {
+      const newactiveTrainings = activeTraining;
+      newactiveTrainings.sets[setIndex] = {
+        ...newactiveTrainings.sets[setIndex],
         [field]: value,
       };
 
       return {
-        ...prev,
-        exercises: newExercises,
+        ...newactiveTrainings,
         updatedAt: new Date().toISOString(),
       };
     });
   };
 
-  const addSet = (exerciseIndex: number) => {
+  const addSet = () => {
     if (!activeTraining) return;
 
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
-      const newExercises = [...prev.exercises];
-      const exercise = newExercises[exerciseIndex];
-      const newSetNumber = exercise.sets.length + 1;
+      let newactiveTrainings = activeTraining;
+      const newSetNumber = activeTraining.sets.length + 1;
 
-      newExercises[exerciseIndex] = {
-        ...exercise,
+      newactiveTrainings = {
+        ...activeTraining,
         sets: [
-          ...exercise.sets,
+          ...activeTraining.sets,
           {
             setId: crypto.randomUUID(),
-            exerciseId: exercise.exerciseId,
+            exerciseId: activeTraining.exerciseId,
             setNumber: newSetNumber,
             weight: 0,
             reps: 10,
@@ -94,26 +82,25 @@ const Approach: FC<Props> = ({
 
       return {
         ...prev,
-        exercises: newExercises,
+        activeTrainings: newactiveTrainings,
         updatedAt: new Date().toISOString(),
       };
     });
   };
 
-  const removeSet = (exerciseIndex: number, setIndex: number) => {
+  const removeSet = (setIndex: number) => {
     if (!activeTraining) return;
 
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
-      const newExercises = [...prev.exercises];
-      const exercise = newExercises[exerciseIndex];
+      let newactiveTrainings = activeTraining;
 
-      if (exercise.sets.length <= 1) return prev;
+      if (activeTraining.sets.length <= 1) return prev;
 
-      newExercises[exerciseIndex] = {
-        ...exercise,
-        sets: exercise.sets
+      newactiveTrainings = {
+        ...activeTraining,
+        sets: activeTraining.sets
           .filter((_, i) => i !== setIndex)
           .map((set, index) => ({
             ...set,
@@ -122,15 +109,13 @@ const Approach: FC<Props> = ({
       };
 
       return {
-        ...prev,
-        exercises: newExercises, // Исправлено
+        ...newactiveTrainings,
         updatedAt: new Date().toISOString(),
       };
     });
   };
 
   const updateAllSets = (
-    exerciseIndex: number,
     field: "weight" | "reps" | "restTime",
     value: number,
   ) => {
@@ -139,25 +124,24 @@ const Approach: FC<Props> = ({
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
-      const newExercises = [...prev.exercises]; // Исправлено
-      newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.map(
-        (set) => ({
-          ...set,
-          [field]: value,
-        }),
-      );
+      const newactiveTrainings = activeTraining;
+      newactiveTrainings.sets = newactiveTrainings.sets.map((set) => ({
+        ...set,
+        [field]: value,
+      }));
 
       return {
-        ...prev,
-        exercises: newExercises, // Исправлено
+        ...newactiveTrainings,
         updatedAt: new Date().toISOString(),
       };
     });
   };
 
+  if (!activeTraining) return null;
+
   return (
     <div className={styles.setsSection}>
-      {!exercise.useCustomSets ? (
+      {!activeTraining.useCustomSets ? (
         // Режим одинаковых подходов
         <div className={styles.uniformSets}>
           <div className={styles.uniformFields}>
@@ -168,9 +152,9 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.weight || 0}
+                value={activeTraining.sets[0]?.weight || 0}
                 onChange={(e) =>
-                  updateAllSets(exerciseIndex, "weight", Number(e.target.value))
+                  updateAllSets("weight", Number(e.target.value))
                 }
                 className={styles.fieldInput}
                 min="0"
@@ -185,10 +169,8 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.reps || 10}
-                onChange={(e) =>
-                  updateAllSets(exerciseIndex, "reps", Number(e.target.value))
-                }
+                value={activeTraining.sets[0]?.reps || 10}
+                onChange={(e) => updateAllSets("reps", Number(e.target.value))}
                 className={styles.fieldInput}
                 min="1"
               />
@@ -201,18 +183,18 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets.length}
+                value={activeTraining.sets.length}
                 onChange={(e) => {
                   const newCount = Number(e.target.value);
-                  const currentCount = exercise.sets.length;
+                  const currentCount = activeTraining.sets.length;
 
                   if (newCount > currentCount) {
                     for (let i = currentCount; i < newCount; i++) {
-                      addSet(exerciseIndex);
+                      addSet();
                     }
                   } else if (newCount < currentCount) {
                     for (let i = currentCount - 1; i >= newCount; i--) {
-                      removeSet(exerciseIndex, i);
+                      removeSet(i);
                     }
                   }
                 }}
@@ -228,13 +210,9 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.restTime || 60}
+                value={activeTraining.sets[0]?.restTime || 60}
                 onChange={(e) =>
-                  updateAllSets(
-                    exerciseIndex,
-                    "restTime",
-                    Number(e.target.value),
-                  )
+                  updateAllSets("restTime", Number(e.target.value))
                 }
                 className={styles.fieldInput}
                 min="0"
@@ -246,7 +224,7 @@ const Approach: FC<Props> = ({
         // Режим разных подходов
         <div className={styles.customSets}>
           <div className={styles.setsList}>
-            {exercise.sets.map((set, setIndex) => (
+            {activeTraining.sets.map((set, setIndex) => (
               <div key={set.setId} className={styles.setItem}>
                 <div className={styles.setHeader}>
                   <div className={styles.setNumber}>
@@ -257,8 +235,8 @@ const Approach: FC<Props> = ({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeSet(exerciseIndex, setIndex)}
-                      disabled={exercise.sets.length <= 1}
+                      onClick={() => removeSet(setIndex)}
+                      disabled={activeTraining.sets.length <= 1}
                       className={styles.removeButton}
                     >
                       <TrashIcon className={styles.removeIcon} />
@@ -274,7 +252,6 @@ const Approach: FC<Props> = ({
                       value={set.weight}
                       onChange={(e) =>
                         handleSetChange(
-                          exerciseIndex,
                           setIndex,
                           "weight",
                           Number(e.target.value),
@@ -293,7 +270,6 @@ const Approach: FC<Props> = ({
                       value={set.reps}
                       onChange={(e) =>
                         handleSetChange(
-                          exerciseIndex,
                           setIndex,
                           "reps",
                           Number(e.target.value),
@@ -311,7 +287,6 @@ const Approach: FC<Props> = ({
                       value={set.restTime}
                       onChange={(e) =>
                         handleSetChange(
-                          exerciseIndex,
                           setIndex,
                           "restTime",
                           Number(e.target.value),
@@ -327,7 +302,7 @@ const Approach: FC<Props> = ({
           </div>
 
           <Button
-            onClick={() => addSet(exerciseIndex)}
+            onClick={() => addSet()}
             variant="outline"
             className={styles.addSetButton}
           >

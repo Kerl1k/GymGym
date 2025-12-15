@@ -1,13 +1,14 @@
-// features/training-active/components/set-tracker.tsx
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Button } from "@/shared/ui/kit/button";
-import { TrainingExercise } from "../types";
 import { CheckIcon } from "lucide-react";
+import { ApiSchemas } from "@/shared/schema";
 
 interface SetTrackerProps {
-  exercise: TrainingExercise;
+  exercise:
+    | (ApiSchemas["ActiveExercise"] & {
+        completedSets?: number;
+      })
+    | ApiSchemas["ActiveTraining"]["exercises"][0];
   onCompleteSet: () => void;
   trainingStatus: string;
 }
@@ -17,9 +18,9 @@ export function SetTracker({
   onCompleteSet,
   trainingStatus,
 }: SetTrackerProps) {
-  const sets = Array.from({ length: exercise.approaches }, (_, i) => ({
+  const sets = Array.from({ length: exercise.sets.length }, (_, i) => ({
     number: i + 1,
-    completed: i < exercise.completedSets,
+    completed: i < exercise.sets.length,
   }));
 
   return (
@@ -41,9 +42,7 @@ export function SetTracker({
               <div className="text-sm text-gray-600 mb-1">
                 Подход {set.number}
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-2">
-                {exercise.count} × {exercise.weight} кг
-              </div>
+              <div className="text-2xl font-bold text-gray-900 mb-2"></div>
               <div
                 className={`text-sm font-medium ${
                   set.completed ? "text-green-600" : "text-gray-500"
@@ -60,12 +59,12 @@ export function SetTracker({
           size="lg"
           className="w-full gap-2"
           disabled={
-            trainingStatus !== "in-progress" ||
-            exercise.completedSets >= exercise.approaches
+            trainingStatus !== "in-progress" &&
+            exercise.completedSets >= exercise.completedSets
           }
         >
           <CheckIcon className="h-5 w-5" />
-          {exercise.completedSets >= exercise.approaches
+          {exercise.completedSets >= exercise.sets.length
             ? "Все подходы выполнены"
             : `Завершить подход ${exercise.completedSets + 1}`}
         </Button>

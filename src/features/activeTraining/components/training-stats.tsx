@@ -1,19 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { TrainingSession } from "../types";
 import { ClockIcon, TrendingUpIcon, AwardIcon, TargetIcon } from "lucide-react";
+import { TrainingExercise } from "../ui/ActiveTraining.page";
 interface TrainingStatsProps {
-  training: TrainingSession;
+  training: TrainingExercise;
 }
 
 export function TrainingStats({ training }: TrainingStatsProps) {
   // Рассчитываем статистику
   const totalExercises = training.exercises.length;
   const totalSets = training.exercises.reduce(
-    (sum, ex) => sum + ex.approaches,
+    (sum, ex) => sum + ex.sets.length,
     0,
   );
   const completedSets = training.exercises.reduce(
-    (sum, ex) => sum + ex.completedSets,
+    (sum, ex) => sum + ex.sets.length,
     0,
   );
 
@@ -75,7 +75,7 @@ export function TrainingStats({ training }: TrainingStatsProps) {
             </div>
             <div className="bg-white p-2 rounded border text-center">
               <div className="text-lg font-bold text-gray-900">
-                {training.exercises.filter((ex) => ex.completedSets > 0).length}
+                {training.exercises.filter((ex) => ex.sets.length > 0).length}
               </div>
               <div className="text-xs text-gray-600">В работе</div>
             </div>

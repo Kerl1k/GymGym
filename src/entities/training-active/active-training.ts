@@ -171,6 +171,7 @@ function generateRandomExercise(): ApiSchemas["ActiveExercise"] {
     muscleGroups,
     type,
     useCustomSets: false,
+    completedSets: 0,
     sets,
     notes:
       Math.random() > 0.5
@@ -500,7 +501,8 @@ export const activeTrainingsHandlers = [
         exerciseId: data.exerciseId,
         name: data.name,
         muscleGroups: data.muscleGroups || ["strength"],
-        type: (data.type as any) || "strength",
+        type: "strength",
+        completedSets: 0,
         useCustomSets: false,
         sets:
           data.sets?.map((set, index) => ({

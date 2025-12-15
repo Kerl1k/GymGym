@@ -1,11 +1,7 @@
-// features/training-active/components/current-exercise.tsx
-"use client";
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Button } from "@/shared/ui/kit/button";
 import { Badge } from "@/shared/ui/kit/badge";
-import { TrainingExercise } from "../types";
 import {
   WeightIcon,
   RepeatIcon,
@@ -14,23 +10,44 @@ import {
   CheckIcon,
   XIcon,
 } from "lucide-react";
+import { ApiSchemas } from "@/shared/schema";
+import { TrainingExercise } from "../ui/ActiveTraining.page";
 
 interface CurrentExerciseProps {
-  exercise: TrainingExercise;
-  onUpdateWeight: (weight: number) => void;
+  exercise: ApiSchemas["ActiveExercise"];
+  setTraining: (value: React.SetStateAction<TrainingExercise>) => void;
   open: () => void;
 }
 
 export function CurrentExercise({
   exercise,
-  onUpdateWeight,
+  setTraining,
   open,
 }: CurrentExerciseProps) {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
-  const [tempWeight, setTempWeight] = useState(exercise.weight);
 
-  const handleWeightSubmit = () => {
-    onUpdateWeight(tempWeight);
+  const currentSets = exercise.completedSets;
+
+  const [tempWeight, setTempWeight] = useState(
+    exercise.sets[currentSets].weight ?? 0,
+  );
+
+  const updateWeight = () => {
+    console.log(tempWeight, currentSets, exercise);
+    setTraining((prev) => ({
+      ...prev,
+      exercises: prev.exercises.map((ex) => {
+        if (ex.id === exercise.id) {
+          return {
+            ...ex,
+            sets: ex.sets.map((set, index) =>
+              index === currentSets ? { ...set, weight: tempWeight } : set,
+            ),
+          };
+        }
+        return ex;
+      }),
+    }));
     setIsEditingWeight(false);
   };
 
@@ -45,6 +62,8 @@ export function CurrentExercise({
     };
     return colors[type] || "bg-gray-100 text-gray-800 border-gray-200";
   };
+
+  if (!exercise.sets) return null;
 
   return (
     <Card className="border-primary/20">
@@ -75,11 +94,7 @@ export function CurrentExercise({
 
               {isEditingWeight ? (
                 <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={handleWeightSubmit}
-                  >
+                  <Button size="sm" variant="ghost" onClick={updateWeight}>
                     <CheckIcon className="h-3 w-3" />
                   </Button>
                   <Button
@@ -87,7 +102,7 @@ export function CurrentExercise({
                     variant="ghost"
                     onClick={() => {
                       setIsEditingWeight(false);
-                      setTempWeight(exercise.weight);
+                      setTempWeight(exercise.sets[currentSets].weight ?? 0);
                     }}
                   >
                     <XIcon className="h-3 w-3" />
@@ -118,7 +133,7 @@ export function CurrentExercise({
               </div>
             ) : (
               <div className="text-3xl font-bold text-gray-900">
-                {exercise.weight}{" "}
+                {exercise.sets[currentSets].weight}{" "}
                 <span className="text-gray-500 text-xl">кг</span>
               </div>
             )}
@@ -131,11 +146,11 @@ export function CurrentExercise({
               <span className="font-medium">Повторения</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">
-              {exercise.count}{" "}
+              {exercise.sets[currentSets].reps}{" "}
               <span className="text-gray-500 text-xl">раз</span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
-              {exercise.approaches} подходов
+              {exercise.sets.length} подходов
             </div>
           </div>
 
@@ -146,7 +161,7 @@ export function CurrentExercise({
               <span className="font-medium">Отдых</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">
-              {exercise.chill}
+              {exercise.sets[currentSets].restTime}
             </div>
             <div className="text-sm text-gray-500 mt-1">между подходами</div>
           </div>
@@ -157,14 +172,14 @@ export function CurrentExercise({
           <div className="flex items-center justify-between text-sm text-gray-600">
             <span>Прогресс упражнения</span>
             <span>
-              {exercise.completedSets}/{exercise.approaches} подходов
+              {exercise.completedSets}/{exercise.sets.length} подходов
             </span>
           </div>
           <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-green-500 transition-all duration-300"
               style={{
-                width: `${(exercise.completedSets / exercise.approaches) * 100}%`,
+                width: `${(exercise.completedSets / exercise.sets.length) * 100}%`,
               }}
             />
           </div>

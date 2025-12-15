@@ -66,7 +66,7 @@ export function TrainingItem({
               <DropdownMenuItem className="gap-2">
                 <PlayIcon className="h-4 w-4" />
                 <Link
-                  to={href(ROUTES.START_TRAINING, { trainingId: training.id })}
+                  to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}
                 >
                   Начать тренировку
                 </Link>
