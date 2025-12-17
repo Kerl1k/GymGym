@@ -64,74 +64,9 @@ function generateTrainingName() {
   return formats[Math.floor(Math.random() * formats.length)];
 }
 
-// Функция для генерации случайного описания тренировки
-function generateTrainingDescription(name: string): string {
-  const descriptions = [
-    `Эффективная тренировка для достижения ваших фитнес-целей.`,
-    `Комплекс упражнений для всестороннего развития.`,
-    `Тренировка направлена на улучшение силовых показателей и выносливости.`,
-    `Отличный выбор для поддержания формы и здоровья.`,
-    `Программа тренировок, проверенная временем и атлетами.`,
-    `Индивидуально подобранный комплекс упражнений.`,
-  ];
-
-  const randomDescription =
-    descriptions[Math.floor(Math.random() * descriptions.length)];
-  return `${name}. ${randomDescription} Рекомендуется выполнять с правильной техникой и под контролем тренера.`;
-}
-
 // Функция для генерации случайного упражнения
-function generateRandomExercise(): ApiSchemas["ActiveExercise"] {
-  const exerciseTypes = [
-    "strength",
-    "cardio",
-    "flexibility",
-    "balance",
-    "yoga",
-    "pilates",
-  ] as const;
-  const strengthExercises = [
-    "Жим лежа",
-    "Подтягивания",
-    "Приседания",
-    "Становая тяга",
-    "Армейский жим",
-    "Тяга штанги в наклоне",
-    "Разведение гантелей",
-    "Французский жим",
-    "Подъем штанги на бицепс",
-    "Жим ногами",
-    "Сгибание ног",
-    "Разгибание ног",
-    "Подъем на носки",
-  ];
-  const cardioExercises = [
-    "Беговая дорожка",
-    "Велотренажер",
-    "Гребной тренажер",
-    "Скакалка",
-    "Эллипс",
-    "Степпер",
-    "Берпи",
-    "Прыжки на месте",
-  ];
-
-  const type = exerciseTypes[Math.floor(Math.random() * exerciseTypes.length)];
-  let name: string;
-
-  switch (type) {
-    case "strength":
-      name =
-        strengthExercises[Math.floor(Math.random() * strengthExercises.length)];
-      break;
-    case "cardio":
-      name =
-        cardioExercises[Math.floor(Math.random() * cardioExercises.length)];
-      break;
-    default:
-      name = `${type} упражнение`;
-  }
-
+function generateRandomExercise(): ApiSchemas["ActiveTraining"]["exercises"][0] {
+  const exerciseName = generateTrainingName();
   const muscleGroups = [
     "strength",
     "chest",
@@ -145,116 +80,49 @@ function generateRandomExercise(): ApiSchemas["ActiveExercise"] {
     .sort(() => Math.random() - 0.5)
     .slice(0, Math.floor(Math.random() * 3) + 1);
 
-  const setsCount = Math.floor(Math.random() * 4) + 3; // 3-6 подходов
+  const setsCount = Math.floor(Math.random() * 4) + 1; // 3-6 подходов
 
   const sets = Array.from({ length: setsCount }, (_, index) => ({
-    setId: crypto.randomUUID(),
-    exerciseId: "", // Будет заполнено позже
-    setNumber: index + 1,
-    weight: type === "strength" ? Math.floor(Math.random() * 100) + 20 : 0,
-    reps:
-      type === "strength"
-        ? Math.floor(Math.random() * 15) + 5
-        : type === "cardio"
-          ? Math.floor(Math.random() * 20) + 10
-          : 0,
-    restTime: type === "strength" ? 60 : type === "cardio" ? 30 : 90,
-    completed: Math.random() > 0.5,
-    completedAt: Math.random() > 0.5 ? randomDate() : "",
-    notes: Math.random() > 0.7 ? "Требуется обратить внимание на технику" : "",
+    id: index + 1,
+    weight: Math.floor(Math.random() * 100) + 20,
+    repeatCount: Math.floor(Math.random() * 15) + 5,
   }));
 
   return {
     id: crypto.randomUUID(),
-    exerciseId: crypto.randomUUID(),
-    name,
+    name: exerciseName,
+    favorite: Math.random() > 0.7,
+    description: `Упражнение для развития ${muscleGroups.join(", ")}`,
     muscleGroups,
-    type,
+    restTime: 60,
     useCustomSets: false,
     completedSets: 0,
     sets,
-    notes:
-      Math.random() > 0.5
-        ? `Упражнение для развития ${muscleGroups.join(", ")}`
-        : "",
   };
 }
 
-// Функция для генерации случайных активных тренировок
-function generateRandomActiveTrainings(
-  count: number,
-): ApiSchemas["ActiveTraining"][] {
-  const result: ApiSchemas["ActiveTraining"][] = [];
-  const statuses: Array<ApiSchemas["ActiveTraining"]["status"]> = [
-    "draft",
-    "in_progress",
-    "completed",
-    "cancelled",
-  ];
+// Функция для генерации случайных активных тренировок (по одной тренировке с массивом упражнений)
+function generateRandomActiveTraining(): ApiSchemas["ActiveTraining"] {
+  const dateStart = randomDate();
 
-  for (let i = 0; i < count; i++) {
-    const createdAt = randomDate();
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
+  const exercisesCount = Math.floor(Math.random() * 4) + 3;
+  const exercises = Array.from({ length: exercisesCount }, () =>
+    generateRandomExercise(),
+  );
 
-    let startedAt: string | undefined;
-    let completedAt: string | undefined;
-    let time: number | undefined;
-
-    if (status !== "draft") {
-      startedAt = new Date(
-        new Date(createdAt).getTime() + Math.random() * 86400000,
-      ).toISOString();
-    }
-
-    if (status === "completed" || status === "cancelled") {
-      completedAt = new Date(
-        new Date(startedAt || createdAt).getTime() +
-          Math.random() * 3600000 +
-          1800000,
-      ).toISOString();
-      time = Math.floor(Math.random() * 90) + 30; // 30-120 минут
-    }
-
-    const exercisesCount = Math.floor(Math.random() * 8) + 3; // 3-10 упражнений
-    const exercises = Array.from({ length: exercisesCount }, () => {
-      const exercise = generateRandomExercise();
-      // Обновляем exerciseId в подходах
-      exercise.sets = exercise.sets.map((set) => ({
-        ...set,
-        exerciseId: exercise.id,
-      }));
-      return exercise;
-    });
-
-    const name = generateTrainingName();
-
-    result.push({
-      id: crypto.randomUUID(),
-      name,
-      description: Math.random() > 0.3 ? generateTrainingDescription(name) : "",
-      exercises,
-      time,
-      status,
-      startedAt,
-      completedAt,
-      createdAt,
-      updatedAt: new Date(
-        Math.min(
-          new Date(completedAt || startedAt || createdAt).getTime() +
-            Math.random() * 86400000,
-          new Date().getTime(),
-        ),
-      ).toISOString(),
-    });
-  }
-
-  return result;
+  return {
+    id: crypto.randomUUID(),
+    dateStart,
+    exercises: exercises,
+  };
 }
 
 // Создаем случайные активные тренировки
 // eslint-disable-next-line prefer-const
-let activeTrainings: ApiSchemas["ActiveTraining"][] =
-  generateRandomActiveTrainings(1);
+let activeTrainings: ApiSchemas["ActiveTraining"][] = Array.from(
+  { length: 1 },
+  () => generateRandomActiveTraining(),
+);
 
 export const activeTrainingsHandlers = [
   http.get("/active-trainings", async (ctx) => {
@@ -263,26 +131,26 @@ export const activeTrainingsHandlers = [
     const url = new URL(ctx.request.url);
     const page = Number(url.searchParams.get("page") || 1);
     const limit = Number(url.searchParams.get("limit") || 10);
-    const status = url.searchParams.get("status");
-    const search = url.searchParams.get("search");
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
 
     await delay(300);
 
     let filteredTrainings = [...activeTrainings];
 
-    // Фильтрация по статусу
-    if (status) {
+    // Фильтрация по дате начала
+    if (startDate) {
+      const start = new Date(startDate);
       filteredTrainings = filteredTrainings.filter(
-        (training) => training.status === status,
+        (training) => new Date(training.dateStart) >= start,
       );
     }
 
-    // Фильтрация по поиску
-    if (search) {
+    // Фильтрация по дате окончания
+    if (endDate) {
+      const end = new Date(endDate);
       filteredTrainings = filteredTrainings.filter(
-        (training) =>
-          training.name.toLowerCase().includes(search.toLowerCase()) ||
-          training.description?.toLowerCase().includes(search.toLowerCase()),
+        (training) => new Date(training.dateStart) <= end,
       );
     }
 
@@ -306,29 +174,20 @@ export const activeTrainingsHandlers = [
       (await ctx.request.json()) as ApiSchemas["CreateActiveTraining"];
     const now = new Date().toISOString();
 
-    // Генерируем ID для упражнений и подходов если они не предоставлены
+    // Убедимся, что у упражнений есть ID
     const exercisesWithIds = data.exercises.map((exercise) => ({
       ...exercise,
       id: exercise.id || crypto.randomUUID(),
-      exerciseId: exercise.exerciseId || crypto.randomUUID(),
-      sets: exercise.sets.map((set) => ({
+      sets: exercise.sets.map((set, index) => ({
         ...set,
-        setId: set.setId || crypto.randomUUID(),
-        exerciseId: exercise.id || crypto.randomUUID(),
+        id: set.id || index + 1,
       })),
     }));
 
     const training: ApiSchemas["ActiveTraining"] = {
       id: crypto.randomUUID(),
-      name: data.name,
-      description: data.description || "",
-      exercises: exercisesWithIds,
-      time: undefined,
-      status: data.status || "draft",
-      startedAt: data.status === "in_progress" ? now : undefined,
-      completedAt: undefined,
-      createdAt: now,
-      updatedAt: now,
+      dateStart: data.dateStart || now,
+      exercises: exercisesWithIds, // Массив упражнений
     };
 
     activeTrainings.push(training);
@@ -352,6 +211,44 @@ export const activeTrainingsHandlers = [
     }
 
     return HttpResponse.json(training);
+  }),
+
+  http.put("/active-trainings/{trainingId}", async ({ params, request }) => {
+    await verifyTokenOrThrow(request);
+    const { trainingId } = params;
+
+    const data = (await request.json()) as ApiSchemas["UpdateActiveTraining"];
+
+    await delay(400);
+
+    const trainingIndex = activeTrainings.findIndex(
+      (training) => training.id === trainingId,
+    );
+
+    if (trainingIndex === -1) {
+      return new HttpResponse(null, { status: 404 });
+    }
+
+    const updatedTraining = {
+      ...activeTrainings[trainingIndex],
+      ...data,
+    };
+
+    // Обновляем ID подходов если нужно и есть упражнения
+    if (data.exercises) {
+      updatedTraining.exercises = data.exercises.map((exercise) => ({
+        ...exercise,
+        id: exercise.id || crypto.randomUUID(),
+        sets: exercise.sets.map((set, setIndex) => ({
+          ...set,
+          id: set.id || setIndex + 1,
+        })),
+      }));
+    }
+
+    activeTrainings[trainingIndex] = updatedTraining;
+
+    return HttpResponse.json(updatedTraining);
   }),
 
   http.delete("/active-trainings/{trainingId}", async ({ params, request }) => {
@@ -389,17 +286,21 @@ export const activeTrainingsHandlers = [
       }
 
       const training = activeTrainings[trainingIndex];
+      const now = new Date().toISOString();
 
-      const data = (await request.json()) as { time?: number };
+      // Обновляем тренировку
+      const updatedTraining: ApiSchemas["ActiveTraining"] = {
+        ...training,
+        dateStart: now,
+        exercises: training.exercises.map((exercise) => ({
+          ...exercise,
+          completedSets: 0,
+        })),
+      };
 
-      training.status = "in_progress";
-      training.startedAt = new Date().toISOString();
-      if (data.time !== undefined) {
-        training.time = data.time;
-      }
-      training.updatedAt = new Date().toISOString();
+      activeTrainings[trainingIndex] = updatedTraining;
 
-      return HttpResponse.json(training);
+      return HttpResponse.json(updatedTraining);
     },
   ),
 
@@ -419,27 +320,25 @@ export const activeTrainingsHandlers = [
         return new HttpResponse(null, { status: 404 });
       }
 
+      const data = (await request.json()) as {
+        completedSets: number;
+        notes?: string;
+      };
+
       const training = activeTrainings[trainingIndex];
-
-      const data = (await request.json()) as { time: number; notes?: string };
-
-      training.status = "completed";
-      training.completedAt = new Date().toISOString();
-      training.time = data.time;
-      training.updatedAt = new Date().toISOString();
 
       // Создаем запись в истории тренировок
       const historyEntry: ApiSchemas["TrainingHistory"] = {
         id: training.id,
-        name: training.name,
-        description: training.description || "",
-        exercises: training.exercises,
-        time: data.time,
-        status: "completed",
-        startedAt: training.startedAt!,
-        completedAt: training.completedAt,
-        notes: data.notes || "",
+        dateStart: training.dateStart,
+        exercises: training.exercises.map((exercise) => ({
+          ...exercise,
+          completedSets: data.completedSets || exercise.completedSets,
+        })),
       };
+
+      // Удаляем из активных тренировок
+      activeTrainings.splice(trainingIndex, 1);
 
       return HttpResponse.json(historyEntry);
     },
@@ -461,107 +360,74 @@ export const activeTrainingsHandlers = [
         return new HttpResponse(null, { status: 404 });
       }
 
-      const training = activeTrainings[trainingIndex];
+      // Просто удаляем тренировку при отмене
+      activeTrainings.splice(trainingIndex, 1);
 
-      training.status = "cancelled";
-      training.completedAt = new Date().toISOString();
-      training.updatedAt = new Date().toISOString();
-
-      return HttpResponse.json(training);
+      return;
     },
   ),
 
-  http.post(
-    "/active-trainings/{trainingId}/exercises",
-    async ({ params, request }) => {
-      await verifyTokenOrThrow(request);
-      const { trainingId } = params;
+  // Эндпоинт для получения истории тренировок
+  http.get("/training-history", async (ctx) => {
+    await verifyTokenOrThrow(ctx.request);
 
-      await delay(400);
+    const url = new URL(ctx.request.url);
+    const page = Number(url.searchParams.get("page") || 1);
+    const limit = Number(url.searchParams.get("limit") || 10);
+    const startDate = url.searchParams.get("startDate");
+    const endDate = url.searchParams.get("endDate");
 
-      const trainingIndex = activeTrainings.findIndex(
-        (training) => training.id === trainingId,
+    await delay(300);
+
+    // Для моков создаем фиктивные завершенные тренировки
+    const historyEntries: ApiSchemas["TrainingHistory"][] = Array.from(
+      { length: 15 },
+      () => {
+        // Генерируем от 3 до 6 упражнений
+        const exercisesCount = Math.floor(Math.random() * 4) + 3;
+        const exercises = Array.from({ length: exercisesCount }, () => {
+          const exercise = generateRandomExercise();
+          return {
+            ...exercise,
+            completedSets: exercise.sets.length, // Все подходы выполнены
+          };
+        });
+
+        return {
+          id: crypto.randomUUID(),
+          dateStart: randomDate(),
+          exercises: exercises, // Массив упражнений
+        };
+      },
+    );
+
+    let filteredEntries = [...historyEntries];
+
+    // Фильтрация по дате
+    if (startDate) {
+      const start = new Date(startDate);
+      filteredEntries = filteredEntries.filter(
+        (entry) => new Date(entry.dateStart) >= start,
       );
+    }
 
-      if (trainingIndex === -1) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      const data = (await request.json()) as {
-        exerciseId: string;
-        name: string;
-        muscleGroups?: string[];
-        type?: string;
-        sets?: ApiSchemas["TrainingSet"][];
-        notes?: string;
-      };
-
-      const newExercise: ApiSchemas["ActiveExercise"] = {
-        id: crypto.randomUUID(),
-        exerciseId: data.exerciseId,
-        name: data.name,
-        muscleGroups: data.muscleGroups || ["strength"],
-        type: "strength",
-        completedSets: 0,
-        useCustomSets: false,
-        sets:
-          data.sets?.map((set, index) => ({
-            ...set,
-            setId: set.setId || crypto.randomUUID(),
-            exerciseId: data.exerciseId,
-            setNumber: index + 1,
-          })) ||
-          Array.from({ length: 3 }, (_, index) => ({
-            setId: crypto.randomUUID(),
-            exerciseId: data.exerciseId,
-            setNumber: index + 1,
-            weight: 0,
-            reps: 10,
-            restTime: 60,
-            completed: false,
-            completedAt: "",
-            notes: "",
-          })),
-        notes: data.notes || "",
-      };
-
-      const training = activeTrainings[trainingIndex];
-      training.exercises.push(newExercise);
-      training.updatedAt = new Date().toISOString();
-
-      return HttpResponse.json(training);
-    },
-  ),
-
-  http.delete(
-    "/active-trainings/{trainingId}/exercises/{exerciseId}",
-    async ({ params, request }) => {
-      await verifyTokenOrThrow(request);
-      const { trainingId, exerciseId } = params;
-
-      await delay(300);
-
-      const trainingIndex = activeTrainings.findIndex(
-        (training) => training.id === trainingId,
+    if (endDate) {
+      const end = new Date(endDate);
+      filteredEntries = filteredEntries.filter(
+        (entry) => new Date(entry.dateStart) <= end,
       );
+    }
 
-      if (trainingIndex === -1) {
-        return new HttpResponse(null, { status: 404 });
-      }
+    const total = filteredEntries.length;
+    const totalPages = Math.ceil(total / limit);
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedEntries = filteredEntries.slice(startIndex, endIndex);
 
-      const training = activeTrainings[trainingIndex];
-      const exerciseIndex = training.exercises.findIndex(
-        (exercise) => exercise.id === exerciseId,
-      );
-
-      if (exerciseIndex === -1) {
-        return new HttpResponse(null, { status: 404 });
-      }
-
-      training.exercises.splice(exerciseIndex, 1);
-      training.updatedAt = new Date().toISOString();
-
-      return HttpResponse.json(training);
-    },
-  ),
+    return HttpResponse.json({
+      list: paginatedEntries,
+      total,
+      totalPages,
+    });
+  }),
 ];

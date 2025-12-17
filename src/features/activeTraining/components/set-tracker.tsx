@@ -4,23 +4,14 @@ import { CheckIcon } from "lucide-react";
 import { ApiSchemas } from "@/shared/schema";
 
 interface SetTrackerProps {
-  exercise:
-    | (ApiSchemas["ActiveExercise"] & {
-        completedSets?: number;
-      })
-    | ApiSchemas["ActiveTraining"]["exercises"][0];
+  exercise: ApiSchemas["ActiveTraining"]["exercises"][0];
   onCompleteSet: () => void;
-  trainingStatus: string;
 }
 
-export function SetTracker({
-  exercise,
-  onCompleteSet,
-  trainingStatus,
-}: SetTrackerProps) {
+export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
   const sets = Array.from({ length: exercise.sets.length }, (_, i) => ({
     number: i + 1,
-    completed: i < exercise.sets.length,
+    completed: i < exercise.completedSets,
   }));
 
   return (
@@ -54,15 +45,7 @@ export function SetTracker({
           ))}
         </div>
 
-        <Button
-          onClick={onCompleteSet}
-          size="lg"
-          className="w-full gap-2"
-          disabled={
-            trainingStatus !== "in-progress" &&
-            exercise.completedSets >= exercise.completedSets
-          }
-        >
+        <Button onClick={onCompleteSet} size="lg" className="w-full gap-2">
           <CheckIcon className="h-5 w-5" />
           {exercise.completedSets >= exercise.sets.length
             ? "Все подходы выполнены"

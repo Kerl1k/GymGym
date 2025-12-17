@@ -72,13 +72,8 @@ paths:
     post:
       $ref: "./endpoints/training-active.yaml#/startActiveTraining"
 
-  /active-trainings/{trainingId}/pause:
-    post:
-      $ref: "./endpoints/training-active.yaml#/pauseActiveTraining"
-
-  /active-trainings/{trainingId}/resume:
-    post:
-      $ref: "./endpoints/training-active.yaml#/resumeActiveTraining"
+  # /active-trainings/{trainingId}/pause: - УДАЛЕНО (больше не используется)
+  # /active-trainings/{trainingId}/resume: - УДАЛЕНО (больше не используется)
 
   /active-trainings/{trainingId}/complete:
     post:
@@ -88,16 +83,9 @@ paths:
     post:
       $ref: "./endpoints/training-active.yaml#/cancelActiveTraining"
 
-  # Управление упражнениями в активной тренировке
-  /active-trainings/{trainingId}/exercises:
-    post:
-      $ref: "./endpoints/training-active.yaml#/addExerciseToActiveTraining"
-
-  /active-trainings/{trainingId}/exercises/{exerciseId}:
-    put:
-      $ref: "./endpoints/training-active.yaml#/updateExerciseInActiveTraining"
-    delete:
-      $ref: "./endpoints/training-active.yaml#/removeExerciseFromActiveTraining"
+  # Управление упражнениями в активной тренировке - УДАЛЕНО (упражнение теперь встроено в тренировку)
+  # /active-trainings/{trainingId}/exercises:
+  # /active-trainings/{trainingId}/exercises/{exerciseId}:
 
   # История тренировок
   /training-history:

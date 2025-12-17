@@ -9,10 +9,11 @@ import { Badge } from "@/shared/ui/kit/badge";
 import styles from "./training-start.module.scss";
 import Approach from "./approach";
 import { ApiSchemas } from "@/shared/schema";
+
 type ChangeModalProps = {
   close: () => void;
   isOpen: boolean;
-  currentExercise: ApiSchemas["ActiveExercise"];
+  currentExercise: ApiSchemas["ActiveTraining"]["exercises"][0];
 };
 
 export const ChangeModal: FC<ChangeModalProps> = ({
@@ -21,7 +22,7 @@ export const ChangeModal: FC<ChangeModalProps> = ({
   currentExercise,
 }) => {
   const [activeTraining, setActiveTraining] = useState<
-    ApiSchemas["ActiveExercise"] | null
+    ApiSchemas["ActiveTraining"]["exercises"][0] | null
   >(null);
 
   const toggleCustomSets = () => {
@@ -109,7 +110,7 @@ export const ChangeModal: FC<ChangeModalProps> = ({
                   Заметки к упражнению
                 </Label>
                 <Textarea
-                  value={currentExercise.notes}
+                  value={currentExercise.description}
                   onChange={(e) => updateExerciseNotes(e.target.value)}
                   placeholder="Заметки по технике, ощущения..."
                   className={styles.notesTextarea}

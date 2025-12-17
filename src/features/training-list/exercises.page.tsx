@@ -13,6 +13,9 @@ import { TrainingItem } from "./compose/training-item";
 import { useBoardsFilters } from "./model/use-boards-filters";
 import { useTrainingList } from "./model/use-boards-list";
 import { useDebouncedValue } from "@/shared/lib/react";
+import { ExercisesListLayoutFilters } from "./ui/exercises-filter";
+import { BoardsSortSelect } from "./model/use-sort-exersises";
+import { SearchInput } from "@/shared/ui/kit/search";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();
@@ -22,10 +25,36 @@ const ExercisesPage = () => {
     sort: boardsFilters.sort,
     search: useDebouncedValue(boardsFilters.search, 300),
   });
-  console.log(trainingsQuery);
+
+  const itemsSort = [
+    { value: "createdAt", label: "По дате создания" },
+    { value: "updatedAt", label: "По дате обновления" },
+    { value: "lastOpenedAt", label: "По дате открытия" },
+    { value: "name", label: "По имени" },
+  ];
+
   return (
     <ExercisesListLayout
       sidebar={<SideBar />}
+      filters={
+        <ExercisesListLayoutFilters
+          sort={
+            <BoardsSortSelect
+              value={boardsFilters.sort}
+              onValueChange={boardsFilters.setSort}
+              items={itemsSort}
+            />
+          }
+          filters={
+            <SearchInput
+              value={boardsFilters.search}
+              onChange={boardsFilters.setSearch}
+              placeholder="Введите название тренирвоки"
+            />
+          }
+          actions={<div>chto to takoe</div>}
+        />
+      }
       header={
         <ExercisesListLayoutHeader
           title="Тренировки"

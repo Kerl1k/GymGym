@@ -1,198 +1,125 @@
 # Schemas
 schemas:
-  # Общие схемы для подходов
+  # Схема для подхода
   TrainingSet:
     type: object
     required:
-      - setId
-      - exerciseId
-      - setNumber
+      - id
+      - weight
+      - repeatCount
     properties:
-      setId:
-        type: string
-        format: uuid
-        example: "5922f4f1-7989-4e02-80b0-77ecee62a25b"
-      exerciseId:
-        type: string
-        format: uuid
-        example: "10"
-      setNumber:
+      id:
         type: integer
-        minimum: 1
-        maximum: 20
         example: 1
       weight:
         type: number
         minimum: 0
         maximum: 1000
         example: 103
-      reps:
+      repeatCount:
         type: integer
         minimum: 1
         maximum: 100
         example: 10
+
+  # Схема упражнения
+  Exercise:
+    type: object
+    required:
+      - id
+      - name
+      - favorite
+      - muscleGroups
+      - restTime
+      - useCustomSets
+      - completedSets
+      - sets
+    properties:
+      id:
+        type: string
+        format: uuid
+        example: "10"
+      name:
+        type: string
+        example: "Скручивания на пресс"
+      favorite:
+        type: boolean
+        example: false
+      description:
+        type: string
+        example: "Упражнение на пресс"
+      muscleGroups:
+        type: array
+        items:
+          type: string
+        example: ["strength", "abs"]
       restTime:
         type: integer
         minimum: 0
         maximum: 600
         description: "Время отдыха в секундах"
         example: 60
-      completed:
-        type: boolean
-        default: false
-      completedAt:
-        type: string
-        format: date-time
-      notes:
-        type: string
-        maxLength: 500
-        example: ""
-
-  # Общая схема упражнения (для активной тренировки)
-  ActiveExercise:
-    type: object
-    required:
-      - id
-      - exerciseId
-      - name
-      - muscleGroups
-      - type
-      - useCustomSets
-      - sets
-    properties:
-      id:
-        type: string
-        format: uuid
-        example: "b1ae9b23-3aeb-45de-b828-185ff1cc9240"
-      exerciseId:
-        type: string
-        format: uuid
-        example: "7"
-      name:
-        type: string
-        example: "Скручивания на пресс"
-      muscleGroups:
-        type: array
-        items:
-          type: string
-        example: ["strength", "abs"]
-      type:
-        type: string
-        enum:
-          - strength
-          - cardio
-          - flexibility
-          - balance
-          - yoga
-          - pilates
-        example: "strength"
       useCustomSets:
         type: boolean
         default: false
         example: false
+      completedSets:
+        type: integer
+        minimum: 0
+        description: "Количество выполненных подходов"
+        example: 3
       sets:
         type: array
         items:
           $ref: "#/schemas/TrainingSet"
-      notes:
-        type: string
-        maxLength: 1000
-        example: "Упражнение на пресс"
 
   # Основная схема активной тренировки
   ActiveTraining:
     type: object
     required:
       - id
-      - name
+      - dateStart
       - exercises
     properties:
       id:
         type: string
         format: uuid
-      name:
+        example: "5922f4f1-7989-4e02-80b0-77ecee62a25b"
+      dateStart:
         type: string
-        example: "Силовая тренировка на грудь"
-      description:
-        type: string
-        example: "Тренировка для развития грудных мышц"
+        format: date-time
+        example: "2024-01-15T10:30:00Z"
       exercises:
         type: array
         items:
-          $ref: "#/schemas/ActiveExercise"
-      time:
-        type: number
-        minimum: 0
-        maximum: 1440
-        description: "Время выполнения в минутах"
-        example: 45
-      status:
-        type: string
-        enum:
-          - draft
-          - in_progress
-          - completed
-          - cancelled
-        default: "draft"
-      startedAt:
-        type: string
-        format: date-time
-      completedAt:
-        type: string
-        format: date-time
-      createdAt:
-        type: string
-        format: date-time
-      updatedAt:
-        type: string
-        format: date-time
+          $ref: "#/schemas/Exercise"
 
   # Для создания новой активной тренировки
   CreateActiveTraining:
     type: object
     required:
-      - name
+      - dateStart
       - exercises
     properties:
-      name:
+      dateStart:
         type: string
-      description:
-        type: string
+        format: date-time
       exercises:
         type: array
         items:
-          $ref: "#/schemas/ActiveExercise"
-      status:
-        type: string
-        enum:
-          - draft
-          - in_progress
-          - completed
-          - cancelled
-        default: "draft"
+          $ref: "#/schemas/Exercise"
 
   # Для обновления активной тренировки
   UpdateActiveTraining:
     type: object
     properties:
-      name:
+      dateStart:
         type: string
-      description:
-        type: string
+        format: date-time
       exercises:
         type: array
         items:
-          $ref: "#/schemas/ActiveExercise"
-      time:
-        type: number
-        minimum: 0
-      status:
-        type: string
-        enum:
-          - draft
-          - in_progress
-          - completed
-          - cancelled
+          $ref: "#/schemas/Exercise"
 
   # Для ответа со списком активных тренировок
   ActiveTrainingsList:
@@ -211,7 +138,7 @@ schemas:
       totalPages:
         type: integer
 
-  # Для старта тренировки (из training-start.yaml)
+  # Для старта тренировки
   StartTrainingRequest:
     type: object
     required:
@@ -220,21 +147,17 @@ schemas:
       trainingId:
         type: string
         format: uuid
-      time:
-        type: number
-        minimum: 0
-        description: "Планируемое время в минутах"
 
   # Для завершения тренировки
   CompleteTrainingRequest:
     type: object
     required:
-      - time
+      - completedSets
     properties:
-      time:
-        type: number
+      completedSets:
+        type: integer
         minimum: 0
-        description: "Фактическое время выполнения в минутах"
+        description: "Количество выполненных подходов"
       notes:
         type: string
 
@@ -243,38 +166,19 @@ schemas:
     type: object
     required:
       - id
-      - name
-      - time
-      - status
-      - completedAt
+      - dateStart
+      - exercises
     properties:
       id:
         type: string
         format: uuid
-      name:
+      dateStart:
         type: string
-      description:
-        type: string
+        format: date-time
       exercises:
         type: array
         items:
-          $ref: "#/schemas/ActiveExercise"
-      time:
-        type: number
-        description: "Время выполнения в минутах"
-      status:
-        type: string
-        enum:
-          - completed
-          - cancelled
-      startedAt:
-        type: string
-        format: date-time
-      completedAt:
-        type: string
-        format: date-time
-      notes:
-        type: string
+          $ref: "#/schemas/Exercise"
 
 # Endpoints
 
@@ -296,21 +200,18 @@ getActiveTrainings:
       schema:
         type: integer
         default: 10
-    - name: status
+    - name: startDate
       in: query
       required: false
       schema:
         type: string
-        enum:
-          - draft
-          - in_progress
-          - completed
-          - cancelled
-    - name: search
+        format: date
+    - name: endDate
       in: query
       required: false
       schema:
         type: string
+        format: date
   responses:
     "200":
       description: List of active trainings
@@ -428,12 +329,6 @@ startActiveTraining:
       schema:
         type: string
         format: uuid
-  requestBody:
-    required: false
-    content:
-      application/json:
-        schema:
-          $ref: "#/schemas/StartTrainingRequest"
   responses:
     "200":
       description: Training started successfully
@@ -441,60 +336,12 @@ startActiveTraining:
         application/json:
           schema:
             $ref: "#/schemas/ActiveTraining"
-    "400":
-      description: Invalid input
     "401":
       description: Unauthorized
     "404":
       description: Training not found
     "409":
       description: Training already started
-
-pauseActiveTraining:
-  summary: Pause an active training
-  security:
-    - bearerAuth: []
-  parameters:
-    - name: trainingId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  responses:
-    "200":
-      description: Training paused successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/schemas/ActiveTraining"
-    "401":
-      description: Unauthorized
-    "404":
-      description: Training not found
-
-resumeActiveTraining:
-  summary: Resume a paused training
-  security:
-    - bearerAuth: []
-  parameters:
-    - name: trainingId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  responses:
-    "200":
-      description: Training resumed successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/schemas/ActiveTraining"
-    "401":
-      description: Unauthorized
-    "404":
-      description: Training not found
 
 completeActiveTraining:
   summary: Complete an active training
@@ -549,143 +396,6 @@ cancelActiveTraining:
       description: Unauthorized
     "404":
       description: Training not found
-
-## Управление упражнениями в активной тренировке
-addExerciseToActiveTraining:
-  summary: Add exercise to active training
-  security:
-    - bearerAuth: []
-  parameters:
-    - name: trainingId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          type: object
-          required:
-            - exerciseId
-            - name
-          properties:
-            exerciseId:
-              type: string
-              format: uuid
-            name:
-              type: string
-            muscleGroups:
-              type: array
-              items:
-                type: string
-            type:
-              type: string
-            sets:
-              type: array
-              items:
-                $ref: "#/schemas/TrainingSet"
-              default: []
-            notes:
-              type: string
-  responses:
-    "200":
-      description: Exercise added successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/schemas/ActiveTraining"
-    "400":
-      description: Invalid input
-    "401":
-      description: Unauthorized
-    "404":
-      description: Training not found
-
-removeExerciseFromActiveTraining:
-  summary: Remove exercise from active training
-  security:
-    - bearerAuth: []
-  parameters:
-    - name: trainingId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: exerciseId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  responses:
-    "200":
-      description: Exercise removed successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/schemas/ActiveTraining"
-    "401":
-      description: Unauthorized
-    "404":
-      description: Training or exercise not found
-
-updateExerciseInActiveTraining:
-  summary: Update exercise in active training
-  security:
-    - bearerAuth: []
-  parameters:
-    - name: trainingId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: exerciseId
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-  requestBody:
-    required: true
-    content:
-      application/json:
-        schema:
-          type: object
-          properties:
-            name:
-              type: string
-            muscleGroups:
-              type: array
-              items:
-                type: string
-            type:
-              type: string
-            useCustomSets:
-              type: boolean
-            sets:
-              type: array
-              items:
-                $ref: "#/schemas/TrainingSet"
-            notes:
-              type: string
-  responses:
-    "200":
-      description: Exercise updated successfully
-      content:
-        application/json:
-          schema:
-            $ref: "#/schemas/ActiveTraining"
-    "400":
-      description: Invalid input
-    "401":
-      description: Unauthorized
-    "404":
-      description: Training or exercise not found
 
 ## История тренировок
 getTrainingHistory:

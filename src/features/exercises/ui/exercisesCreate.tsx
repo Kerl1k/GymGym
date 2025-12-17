@@ -156,20 +156,6 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({ close }) => {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="videoUrl" className="mb-2 block">
-                Ссылка на видео
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  id="videoUrl"
-                  placeholder="https://youtube.com/..."
-                  value={form.videoUrl}
-                  onChange={(e) => handleChange("videoUrl", e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
             <TogleAddFavorite
               favorite={form.favorite}
               handleChange={() => handleChange("favorite", !form.favorite)}

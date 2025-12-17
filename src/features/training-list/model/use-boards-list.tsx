@@ -5,7 +5,7 @@ import { RefCallback, useCallback } from "react";
 type UseTrainingListParams = {
   limit?: number;
   search?: string;
-  sort?: "createdAt" | "updatedAt" | "lastOpenedAt" | "name";
+  sort?: string;
 };
 
 export function useTrainingList({

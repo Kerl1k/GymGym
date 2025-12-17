@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "api": "npx openapi-typescript ./src/shared/api/schema/main.yaml -o ./src/shared/api/schema/generated.ts"
+    "api": "npx openapi-typescript ./src/shared/schema/main.yaml -o ./src/shared/schema/generated.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.0.1",
