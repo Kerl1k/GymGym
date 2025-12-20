@@ -5,7 +5,7 @@ const ActiveTraining = () => {
   const { data } = useTrainingFetch();
 
   if (data === null) {
-    return <>sosal</>;
+    return <>Идет загрузка тренировки</>;
   }
 
   return <ActiveTrainingContent data={data} />;

@@ -15,7 +15,6 @@ import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
 }> = ({ data }) => {
-  console.log(data);
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
   const [training, setTraining] = useState(data);
@@ -63,7 +62,6 @@ export const ActiveTrainingContent: FC<{
       return {
         ...prev,
         exercises: updatedExercises,
-        status: "resting",
       };
     });
   };
@@ -145,11 +143,12 @@ export const ActiveTrainingContent: FC<{
                           {exercise.name}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {exercise.sets.length} × много повторений
+                          {exercise.sets.length} ×{" "}
+                          {exercise.sets.reduce(
+                            (sum, set) => sum + set.weight,
+                            0,
+                          )}
                         </div>
-                      </div>
-                      <div className="text-lg font-bold text-gray-900">
-                        {exercise.sets.length} кг
                       </div>
                     </div>
                   ))}

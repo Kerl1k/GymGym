@@ -105,7 +105,7 @@ function generateRandomExercise(): ApiSchemas["ActiveTraining"]["exercises"][0] 
 function generateRandomActiveTraining(): ApiSchemas["ActiveTraining"] {
   const dateStart = randomDate();
 
-  const exercisesCount = Math.floor(Math.random() * 4) + 3;
+  const exercisesCount = 3;
   const exercises = Array.from({ length: exercisesCount }, () =>
     generateRandomExercise(),
   );

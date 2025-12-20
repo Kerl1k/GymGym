@@ -1,0 +1,795 @@
+.profilePage {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+}
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loader {
+  font-size: 1.2rem;
+  color: #666;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Шапка профиля */
+.profileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+}
+
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.userName {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.userEmail {
+  font-size: 1rem;
+  color: #718096;
+  margin: 0;
+}
+
+.userTags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.profileActions {
+  display: flex;
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: column;
+  }
+}
+
+.editButton,
+.settingsButton {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.editButton {
+  background: #4299e1;
+  color: white;
+  border: none;
+
+  &:hover {
+    background: #3182ce;
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+  }
+}
+
+.settingsButton {
+  background: transparent;
+  color: #4a5568;
+  border: 2px solid #e2e8f0;
+
+  &:hover {
+    border-color: #cbd5e0;
+    background: #f7fafc;
+  }
+}
+
+/* Статистика */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.statCard {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Основной контент */
+.contentGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.leftColumn,
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Общие стили секций */
+.section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin: 0;
+}
+
+.sectionCount {
+  background: #4299e1;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.viewAllButton,
+.addGoalButton {
+  background: transparent;
+  color: #4299e1;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #ebf8ff;
+  }
+}
+
+.sectionHint {
+  font-size: 0.85rem;
+  color: #a0aec0;
+  font-style: italic;
+}
+
+/* Избранные упражнения */
+.exercisesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.exerciseCard {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: #4299e1;
+  }
+}
+
+.exerciseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.exerciseName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+}
+
+.favoriteButton {
+  background: transparent;
+  border: none;
+  color: #f6ad55;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.exerciseMuscles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.muscleTag {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.exerciseDescription {
+  font-size: 0.9rem;
+  color: #718096;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.exerciseActions {
+  display: flex;
+  gap: 8px;
+}
+
+.viewButton,
+.addButton {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.viewButton {
+  background: #edf2f7;
+  color: #4a5568;
+  border: none;
+
+  &:hover {
+    background: #e2e8f0;
+  }
+}
+
+.addButton {
+  background: #48bb78;
+  color: white;
+  border: none;
+
+  &:hover {
+    background: #38a169;
+  }
+}
+
+/* История тренировок */
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: #4299e1;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.historyDate {
+  flex-shrink: 0;
+  width: 160px;
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.9rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+.historyContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historyExercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.exerciseTag {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.moreExercises {
+  background: #4299e1;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.historyStats {
+  display: flex;
+  gap: 16px;
+}
+
+.stat {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+.repeatButton {
+  flex-shrink: 0;
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #3182ce;
+  }
+}
+
+/* Цели */
+.goalsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.goalItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: #48bb78;
+  }
+}
+
+.goalCheckbox {
+  input[type="checkbox"] {
+    display: none;
+
+    &:checked + label {
+      background: #48bb78;
+      border-color: #48bb78;
+
+      &::after {
+        content: "✓";
+        color: white;
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  label {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #cbd5e0;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+}
+
+.goalText {
+  flex: 1;
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.goalProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 120px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78, #38a169);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4a5568;
+  min-width: 36px;
+}
+
+/* Тренировки */
+.workoutsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workoutCard {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.3s ease;
+
+  &:hover {
+    border-color: #f6ad55;
+  }
+}
+
+.workoutHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.workoutName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0;
+  flex: 1;
+}
+
+.workoutFavorite {
+  background: transparent;
+  border: none;
+  color: #f6ad55;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+.workoutExercises {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.workoutExercise {
+  background: #edf2f7;
+  color: #4a5568;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+}
+
+.startWorkoutButton {
+  width: 100%;
+  background: #4299e1;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #3182ce;
+  }
+}
+
+.comingSoon {
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.comingSoonContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #a0aec0;
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+    max-width: 200px;
+  }
+}
+
+.exploreButton {
+  background: #edf2f7;
+  color: #4a5568;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+    background: #e2e8f0;
+  }
+}
+
+/* График прогресса */
+.progressChart {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.chartPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: 200px;
+}
+
+.chartBars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 140px;
+  width: 100%;
+  padding: 0 20px;
+}
+
+.chartBar {
+  flex: 1;
+  background: linear-gradient(0deg, #4299e1, #667eea);
+  border-radius: 4px 4px 0 0;
+  min-height: 10px;
+  transition: height 0.3s ease;
+}
+
+.chartLabels {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+
+  span {
+    font-size: 0.75rem;
+    color: #718096;
+    font-weight: 500;
+    text-align: center;
+    width: 24px;
+  }
+}
+
+.chartStats {
+  display: flex;
+  justify-content: space-around;
+  border-top: 2px solid #e2e8f0;
+  padding-top: 16px;
+}
+
+.chartStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.chartStatValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+.chartStatLabel {
+  font-size: 0.85rem;
+  color: #718096;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .profilePage {
+    padding: 10px;
+  }
+
+  .profileHeader {
+    padding: 20px;
+  }
+
+  .section {
+    padding: 20px;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .exercisesGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .historyItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .historyDate {
+    width: 100%;
+  }
+}

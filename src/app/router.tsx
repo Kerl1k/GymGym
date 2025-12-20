@@ -35,6 +35,10 @@ export const router = createBrowserRouter([
             lazy: () =>
               import("@/features/activeTraining/ui/ActiveTraining.page"),
           },
+          {
+            path: ROUTES.PROFILE,
+            lazy: () => import("@/features/profile/profile.page"),
+          },
         ],
       },
 

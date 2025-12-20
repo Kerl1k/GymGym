@@ -9,10 +9,7 @@ interface SetTrackerProps {
 }
 
 export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
-  const sets = Array.from({ length: exercise.sets.length }, (_, i) => ({
-    number: i + 1,
-    completed: i < exercise.completedSets,
-  }));
+  const currentActive = exercise.completedSets;
 
   return (
     <Card>
@@ -21,25 +18,27 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {sets.map((set) => (
+          {exercise.sets.map((set, index) => (
             <div
-              key={set.number}
+              key={set.id}
               className={`p-4 rounded-xl text-center ${
-                set.completed
+                index < currentActive
                   ? "bg-green-50 border-2 border-green-200"
                   : "bg-white border-2 border-gray-200"
               }`}
             >
               <div className="text-sm text-gray-600 mb-1">
-                Подход {set.number}
+                Подход {index + 1}
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-2"></div>
+              <div className="text-2xl font-bold text-gray-900 mb-2">
+                Вес {set.weight}
+              </div>
               <div
                 className={`text-sm font-medium ${
-                  set.completed ? "text-green-600" : "text-gray-500"
+                  index < currentActive ? "text-green-600" : "text-gray-500"
                 }`}
               >
-                {set.completed ? "✓ Выполнен" : "Ожидает"}
+                {index < currentActive ? "✓ Выполнен" : "Ожидает"}
               </div>
             </div>
           ))}

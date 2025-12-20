@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Button } from "@/shared/ui/kit/button";
-import { Badge } from "@/shared/ui/kit/badge";
 import {
   WeightIcon,
   RepeatIcon,
@@ -11,13 +10,18 @@ import {
   XIcon,
 } from "lucide-react";
 import { ApiSchemas } from "@/shared/schema";
-import { TrainingExercise } from "../ui/ActiveTraining.page";
 
-interface CurrentExerciseProps {
-  exercise: ApiSchemas["ActiveExercise"];
-  setTraining: (value: React.SetStateAction<TrainingExercise>) => void;
+type CurrentExerciseProps = {
+  exercise: ApiSchemas["ActiveTraining"]["exercises"][0];
+  setTraining: React.Dispatch<
+    React.SetStateAction<{
+      id: string;
+      dateStart: string;
+      exercises: ApiSchemas["ActiveTraining"]["exercises"];
+    }>
+  >;
   open: () => void;
-}
+};
 
 export function CurrentExercise({
   exercise,
@@ -33,34 +37,27 @@ export function CurrentExercise({
   );
 
   const updateWeight = () => {
-    console.log(tempWeight, currentSets, exercise);
     setTraining((prev) => ({
       ...prev,
       exercises: prev.exercises.map((ex) => {
         if (ex.id === exercise.id) {
           return {
             ...ex,
-            sets: ex.sets.map((set, index) =>
-              index === currentSets ? { ...set, weight: tempWeight } : set,
-            ),
+            sets: ex.sets.map((set, index) => {
+              if (index === currentSets) {
+                return {
+                  ...set,
+                  weight: tempWeight,
+                };
+              }
+              return set;
+            }),
           };
         }
         return ex;
       }),
     }));
     setIsEditingWeight(false);
-  };
-
-  const getTypeColor = (type: string) => {
-    const colors: Record<string, string> = {
-      strength: "bg-red-100 text-red-800 border-red-200",
-      cardio: "bg-blue-100 text-blue-800 border-blue-200",
-      flexibility: "bg-green-100 text-green-800 border-green-200",
-      balance: "bg-purple-100 text-purple-800 border-purple-200",
-      yoga: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      pilates: "bg-pink-100 text-pink-800 border-pink-200",
-    };
-    return colors[type] || "bg-gray-100 text-gray-800 border-gray-200";
   };
 
   if (!exercise.sets) return null;
@@ -70,14 +67,6 @@ export function CurrentExercise({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl md:text-2xl">{exercise.name}</CardTitle>
-          <Badge variant="outline" className={getTypeColor(exercise.type)}>
-            {exercise.type === "strength" && "💪 Силовая"}
-            {exercise.type === "cardio" && "🏃 Кардио"}
-            {exercise.type === "flexibility" && "🤸 Гибкость"}
-            {exercise.type === "balance" && "⚖️ Баланс"}
-            {exercise.type === "yoga" && "🧘 Йога"}
-            {exercise.type === "pilates" && "🏋️ Пилатес"}
-          </Badge>
           <Button onClick={open}>Изменить</Button>
         </div>
       </CardHeader>
@@ -146,7 +135,7 @@ export function CurrentExercise({
               <span className="font-medium">Повторения</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">
-              {exercise.sets[currentSets].reps}{" "}
+              {exercise.sets[currentSets].repeatCount}{" "}
               <span className="text-gray-500 text-xl">раз</span>
             </div>
             <div className="text-sm text-gray-500 mt-1">
@@ -161,7 +150,7 @@ export function CurrentExercise({
               <span className="font-medium">Отдых</span>
             </div>
             <div className="text-3xl font-bold text-gray-900">
-              {exercise.sets[currentSets].restTime}
+              {exercise.restTime}
             </div>
             <div className="text-sm text-gray-500 mt-1">между подходами</div>
           </div>

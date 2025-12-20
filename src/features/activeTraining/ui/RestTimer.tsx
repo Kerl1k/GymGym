@@ -15,7 +15,7 @@ export const RestTimer: FC<RestTimeProps> = ({
   isResting,
   setIsResting,
 }) => {
-  const restTime = currentRestTime | 90;
+  const restTime = currentRestTime === 0 ? 90 : currentRestTime;
 
   const skipRest = () => {
     setIsResting(false);
