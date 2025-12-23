@@ -20,7 +20,7 @@ const ExercisesPage = () => {
     <ExercisesListLayout
       header={
         <ExercisesListLayoutHeader
-          title="упражнения"
+          title="Упражнения"
           description="Здесь вы можете просматривать и управлять своими упражнениями"
           actions={
             <Button onClick={open}>

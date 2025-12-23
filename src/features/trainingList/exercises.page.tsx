@@ -15,7 +15,6 @@ import { useDebouncedValue } from "@/shared/lib/react";
 import { ExercisesListLayoutFilters } from "./ui/exercises-filter";
 import { TrainingSortSelect } from "../../entities/training/use-training-sort";
 import { SearchInput } from "@/shared/ui/kit/search";
-import { Switch } from "@/shared/ui/kit/switch";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();
@@ -54,7 +53,6 @@ const ExercisesPage = () => {
           actions={
             <div className="flex gap-5">
               <StarIcon />
-              <Switch />
             </div>
           }
         />

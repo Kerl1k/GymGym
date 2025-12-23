@@ -22,7 +22,7 @@ import {
 import { FC, useEffect, useState } from "react";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
-import styles from "./training-create.module.scss";
+import styles from "./exercises-create.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
 import { useChangeTraining } from "@/entities/training/use-training-change";
