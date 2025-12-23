@@ -181,10 +181,12 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         }}
       >
         {/* Информация об упражнении */}
-        <Card className="p-4 bg-gray-50 sticky top-0 z-10">
-          <div className="flex items-start justify-between">
+        <Card className="p-3 sm:p-4 bg-gray-50 sticky top-0 z-10">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div>
-              <h3 className="font-semibold text-lg">{currentExercise.name}</h3>
+              <h3 className="font-semibold text-base sm:text-lg">
+                {currentExercise.name}
+              </h3>
               {currentExercise.muscleGroups && (
                 <div className="flex flex-wrap gap-1 mt-1">
                   {currentExercise.muscleGroups.map((group, index) => (
@@ -202,13 +204,13 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         </Card>
 
         {/* Список сетов */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {sets.length > 1 && (
-            <div className="flex items-center justify-between">
-              <h4 className="font-medium">Сеты</h4>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <h4 className="font-medium text-sm sm:text-base">Сеты</h4>
               {isMultipleSets && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-xs sm:text-sm text-gray-500">
                     {sets.length}/{10}
                   </span>
                   <Button
@@ -217,7 +219,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                     size="sm"
                     onClick={handleAddSet}
                     disabled={sets.length >= 10}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-xs sm:text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     Добавить сет
@@ -228,15 +230,17 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
           )}
 
           {sets.map((set, index) => (
-            <Card key={index} className="p-4">
-              <div className="flex items-center justify-between mb-4">
+            <Card key={index} className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="font-semibold text-blue-700">
+                  <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="font-semibold text-blue-700 text-sm sm:text-base">
                       {index + 1}
                     </span>
                   </div>
-                  <span className="font-medium">Сет {index + 1}</span>
+                  <span className="font-medium text-sm sm:text-base">
+                    Сет {index + 1}
+                  </span>
                 </div>
 
                 {isMultipleSets && sets.length > 1 && (
@@ -252,25 +256,25 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {/* Вес */}
                 <div className="space-y-2">
                   <Label
                     htmlFor={`weight-${index}`}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-sm sm:text-base"
                   >
                     <Dumbbell className="w-4 h-4" />
                     Вес (кг)
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleDecrement(index, "weight")}
-                      className="w-10 h-10"
+                      className="w-8 sm:w-10 h-8 sm:h-10"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
                     </Button>
 
                     <Input
@@ -283,7 +287,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         handleSetChange(index, "weight", e.target.value)
                       }
                       placeholder="0"
-                      className="text-center"
+                      className="text-center text-sm sm:text-base"
                     />
 
                     <Button
@@ -291,9 +295,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => handleIncrement(index, "weight")}
-                      className="w-10 h-10"
+                      className="w-8 sm:w-10 h-8 sm:h-10"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
                     </Button>
                   </div>
 
@@ -305,7 +309,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         onClick={() =>
                           handleSetChange(index, "weight", weight.toString())
                         }
-                        className={`px-2 py-1 text-xs rounded ${set.weight === weight ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                        className={`px-1 sm:px-2 py-1 text-xs rounded ${set.weight === weight ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
                       >
                         {weight}кг
                       </button>
@@ -317,20 +321,20 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                 <div className="space-y-2">
                   <Label
                     htmlFor={`reps-${index}`}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-sm sm:text-base"
                   >
                     <Repeat className="w-4 h-4" />
                     Повторения
                   </Label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
                       onClick={() => handleDecrement(index, "repeatCount")}
-                      className="w-10 h-10"
+                      className="w-8 sm:w-10 h-8 sm:h-10"
                     >
-                      <Minus className="w-4 h-4" />
+                      <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
                     </Button>
 
                     <Input
@@ -342,7 +346,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         handleSetChange(index, "repeatCount", e.target.value)
                       }
                       placeholder="0"
-                      className="text-center"
+                      className="text-center text-sm sm:text-base"
                     />
 
                     <Button
@@ -350,9 +354,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => handleIncrement(index, "repeatCount")}
-                      className="w-10 h-10"
+                      className="w-8 sm:w-10 h-8 sm:h-10"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
                     </Button>
                   </div>
 
@@ -370,7 +374,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                               reps.toString(),
                             )
                           }
-                          className={`px-2 py-1 text-xs rounded ${set.repeatCount === reps ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                          className={`px-1 sm:px-2 py-1 text-xs rounded ${set.repeatCount === reps ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
                         >
                           {reps} раз
                         </button>
@@ -384,21 +388,23 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         </div>
 
         {/* Статистика */}
-        <Card className="p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
+        <Card className="p-3 sm:p-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-sm text-gray-500">Сеты</div>
-              <div className="text-xl font-bold">{sets.length}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Сеты</div>
+              <div className="text-lg sm:text-xl font-bold">{sets.length}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Повторения</div>
-              <div className="text-xl font-bold">
+              <div className="text-xs sm:text-sm text-gray-500">Повторения</div>
+              <div className="text-lg sm:text-xl font-bold">
                 {sets.reduce((total, set) => total + (set.repeatCount || 0), 0)}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Общий объем</div>
-              <div className="text-xl font-bold">
+              <div className="text-xs sm:text-sm text-gray-500">
+                Общий объем
+              </div>
+              <div className="text-lg sm:text-xl font-bold">
                 {totalVolume.toFixed(1)} кг
               </div>
             </div>
@@ -407,13 +413,18 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       </div>
 
       {/* Кнопки действий (фиксированные внизу) */}
-      <div className="sticky bottom bg-white pt-4 border-t">
-        <div className="flex items-center justify-between">
-          <Button type="button" variant="outline" onClick={close}>
+      <div className="sticky bottom bg-white pt-3 sm:pt-4 border-t">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={close}
+            className="text-sm sm:text-base w-full sm:w-auto"
+          >
             Отмена
           </Button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
@@ -421,6 +432,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                 // Очистить все поля
                 setSets([{ id: 0, weight: null, repeatCount: null }]);
               }}
+              className="text-sm sm:text-base flex-1 sm:flex-none"
             >
               Очистить
             </Button>
@@ -428,7 +440,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
             <Button
               type="button"
               onClick={handleSave}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 text-sm sm:text-base flex-1 sm:flex-none"
             >
               <Save className="w-4 h-4" />
               Сохранить

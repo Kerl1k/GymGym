@@ -22,7 +22,7 @@ import { PenIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
-import { TrainingCreate } from "../ui/training-create/exercises-create";
+import { TrainingCreate } from "../ui/training-create/training-create";
 import { useState } from "react";
 
 export function TrainingItem({
@@ -41,19 +41,19 @@ export function TrainingItem({
 
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow duration-200 border-gray-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+      <CardHeader className="pb-2 sm:pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
-              <PlayIcon className="w-5 h-5 text-primary" />
+            <div className="flex-shrink-0 w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
+              <PlayIcon className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
                 {training.name}
               </CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center text-xs text-gray-500">
-                  <ClockIcon className="w-3 h-3 mr-1" />
+                <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                  <ClockIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
                   <span>
                     {training?.createdAt &&
                       new Date(training?.createdAt).toLocaleDateString(
@@ -79,19 +79,22 @@ export function TrainingItem({
               <Link
                 to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}
               >
-                <DropdownMenuItem className="gap-2">
+                <DropdownMenuItem className="gap-2 text-sm sm:text-base">
                   <PlayIcon className="h-4 w-4" />
                   Начать тренировку
                 </DropdownMenuItem>
               </Link>
-              <DropdownMenuItem onClick={() => open()} className="gap-2">
+              <DropdownMenuItem
+                onClick={() => open()}
+                className="gap-2 text-sm sm:text-base"
+              >
                 <PenIcon className="h-4 w-4" />
                 Изменить
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => openDelete()}
                 variant="destructive"
-                className="gap-2"
+                className="gap-2 text-sm sm:text-base"
               >
                 <TrashIcon className="h-4 w-4" />
                 Удалить
@@ -102,8 +105,8 @@ export function TrainingItem({
       </CardHeader>
 
       <CardContent className="pt-0">
-        <div className="mb-3">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+        <div className="mb-2 sm:mb-3">
+          <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-gray-700 mb-2">
             <LayersIcon className="w-4 h-4" />
             <span>Упражнения ({training.exercises.length})</span>
           </div>
@@ -115,20 +118,23 @@ export function TrainingItem({
             ).map((exercise, index) => (
               <div
                 key={exercise.id}
-                className="flex items-center justify-between p-3 bg-gray-50/50 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-2 sm:p-3 bg-gray-50/50 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-white border border-gray-200 rounded-md flex items-center justify-center text-sm font-medium text-gray-600">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex-shrink-0 w-6 sm:w-8 h-6 sm:h-8 bg-white border border-gray-200 rounded-md flex items-center justify-center text-xs sm:text-sm font-medium text-gray-600">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="text-sm sm:text-base font-medium text-gray-900">
                       {exercise.name}
                     </div>
                   </div>
                 </div>
 
-                <Badge variant="secondary" className="text-xs capitalize">
+                <Badge
+                  variant="secondary"
+                  className="text-xs sm:text-sm capitalize"
+                >
                   {exercise.type}
                 </Badge>
               </div>
@@ -138,7 +144,7 @@ export function TrainingItem({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full"
+                  className="w-full text-sm sm:text-base"
                   onClick={() => setShowAllExercises(!showAllExercises)}
                 >
                   {showAllExercises
@@ -152,7 +158,11 @@ export function TrainingItem({
 
         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
           <Link to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}>
-            <Button size="lg" variant="outline" className="gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              className="gap-2 text-sm sm:text-base w-full sm:w-auto"
+            >
               <PlayIcon className="w-3 h-3" />
               Начать
             </Button>

@@ -2,17 +2,17 @@ import { Button } from "@/shared/ui/kit/button";
 import { PlusIcon, StarIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
-import { TrainingCreate } from "./ui/training-create/exercises-create";
+import { TrainingCreate } from "./ui/training-create/training-create";
 import {
   ExercisesListLayout,
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
-} from "./ui/exercises-list-layout";
+} from "./ui/training-list-layout";
 import { TrainingItem } from "./compose/training-item";
 import { useTrainingsFilters } from "../../entities/training/use-training-filters";
 import { useTrainingList } from "../../entities/training/use-training-fetch";
 import { useDebouncedValue } from "@/shared/lib/react";
-import { ExercisesListLayoutFilters } from "./ui/exercises-filter";
+import { ExercisesListLayoutFilters } from "./ui/training-filter";
 import { TrainingSortSelect } from "../../entities/training/use-training-sort";
 import { SearchInput } from "@/shared/ui/kit/search";
 

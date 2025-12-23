@@ -11,9 +11,9 @@ export function ExercisesListLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto p-2 sm:p-4 md:p-6">
       <div className="flex gap-4">
-        <div className="flex-1  p-4 flex flex-col gap-6">
+        <div className="flex-1 p-2 sm:p-4 flex flex-col gap-4 sm:gap-6">
           {header}
           {filters}
           {children}
@@ -33,10 +33,14 @@ export function ExercisesListLayoutHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
       <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        {description && <p className="text-gray-500">{description}</p>}
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
+        {description && (
+          <p className="text-sm sm:text-base text-gray-500 mt-1">
+            {description}
+          </p>
+        )}
       </div>
 
       <div className="flex gap-2">{actions}</div>
@@ -54,9 +58,9 @@ export function ExercisesListLayoutFilters({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
       {filters && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="text-sm text-gray-500 whitespace-nowrap">
             Filter by
           </div>
@@ -64,7 +68,7 @@ export function ExercisesListLayoutFilters({
         </div>
       )}
       {sort && (
-        <div className="flex items-center gap-2 ">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="text-sm text-gray-500 whitespace-nowrap">Sort by</div>
           {sort}
         </div>
@@ -92,8 +96,12 @@ export function ExercisesListLayoutContent({
   renderList?: () => React.ReactNode;
 }) {
   return (
-    <div>
-      {isPending && <div className="text-center py-10">Загрузка...</div>}
+    <div className="space-y-4">
+      {isPending && (
+        <div className="text-center py-6 sm:py-10 text-sm sm:text-base">
+          Загрузка...
+        </div>
+      )}
       {renderList && (
         <ExercisesListLayoutList>{renderList?.()}</ExercisesListLayoutList>
       )}
@@ -101,15 +109,17 @@ export function ExercisesListLayoutContent({
       {!isPending && children}
 
       {isEmpty && !isPending && (
-        <div className="text-center py-10">Доски не найдены</div>
+        <div className="text-center py-6 sm:py-10 text-sm sm:text-base">
+          Доски не найдены
+        </div>
       )}
 
       {hasCursor && (
-        <div ref={cursorRef} className="text-center py-8">
+        <div ref={cursorRef} className="text-center py-4 sm:py-8">
           {isPendingNext && (
             <div className="flex flex-col gap-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-8 sm:h-10 w-full" />
+              <Skeleton className="h-8 sm:h-10 w-full" />
             </div>
           )}
         </div>
@@ -143,10 +153,12 @@ export function ExercisesLayoutContentGroups({
   }[];
 }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 sm:gap-3">
       {groups.map((group) => (
         <div key={group.title}>
-          <div className="text-lg font-bold mb-2">{group.title}</div>
+          <div className="text-base sm:text-lg font-bold mb-2">
+            {group.title}
+          </div>
           {group.items}
         </div>
       ))}

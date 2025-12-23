@@ -14,29 +14,23 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Подходы</CardTitle>
+        <CardTitle className="text-lg sm:text-xl">Подходы</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mb-6">
           {exercise.sets.map((set, index) => (
             <div
               key={set.id}
-              className={`p-4 rounded-xl text-center ${
-                index < currentActive
-                  ? "bg-green-50 border-2 border-green-200"
-                  : "bg-white border-2 border-gray-200"
-              }`}
+              className={`p-3 sm:p-4 rounded-xl text-center ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-white border-2 border-gray-200"}`}
             >
-              <div className="text-sm text-gray-600 mb-1">
+              <div className="text-xs sm:text-sm text-gray-600 mb-1">
                 Подход {index + 1}
               </div>
-              <div className="text-2xl font-bold text-gray-900 mb-2">
+              <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
                 Вес {set.weight}
               </div>
               <div
-                className={`text-sm font-medium ${
-                  index < currentActive ? "text-green-600" : "text-gray-500"
-                }`}
+                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-600" : "text-gray-500"}`}
               >
                 {index < currentActive ? "✓ Выполнен" : "Ожидает"}
               </div>
@@ -44,7 +38,11 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
           ))}
         </div>
 
-        <Button onClick={onCompleteSet} size="lg" className="w-full gap-2">
+        <Button
+          onClick={onCompleteSet}
+          size="lg"
+          className="w-full gap-2 text-base sm:text-lg"
+        >
           <CheckIcon className="h-5 w-5" />
           {exercise.completedSets >= exercise.sets.length
             ? "Все подходы выполнены"

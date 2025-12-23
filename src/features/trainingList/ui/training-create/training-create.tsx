@@ -22,7 +22,7 @@ import {
 import { FC, useEffect, useState } from "react";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
-import styles from "./exercises-create.module.scss";
+import styles from "./training-create.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
 import { useChangeTraining } from "@/entities/training/use-training-change";
@@ -163,7 +163,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     <div className={styles.modalOverlay}>
       <Card className={styles.modalCard}>
         <CardHeader className={styles.cardHeader}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className={styles.cardTitle}>
               Создание новой тренировки
             </CardTitle>
@@ -185,7 +185,10 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               <h3 className={styles.sectionTitle}>Основная информация</h3>
 
               <div className={styles.formGroup}>
-                <Label htmlFor="name" className="mb-2 block">
+                <Label
+                  htmlFor="name"
+                  className="mb-2 block text-sm sm:text-base"
+                >
                   Название тренировки *
                 </Label>
                 <Input
@@ -197,7 +200,10 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="description" className="mb-2 block">
+                <Label
+                  htmlFor="description"
+                  className="mb-2 block text-sm sm:text-base"
+                >
                   Описание тренировки
                 </Label>
                 <Textarea
@@ -298,7 +304,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                       <div className={styles.exerciseForm}>
                         {/* Выбор упражнения */}
                         <div>
-                          <Label className="mb-2 block">Упражнение</Label>
+                          <Label className="mb-2 block text-sm sm:text-base">
+                            Упражнение
+                          </Label>
                           {isLoading ? (
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
                           ) : (
@@ -332,7 +340,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
                         {/* Примечания к упражнению */}
                         <div>
-                          <Label className="mb-2 block text-sm">
+                          <Label className="mb-2 block text-sm sm:text-base">
                             Примечания
                           </Label>
                           <Textarea
@@ -359,10 +367,15 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
             <div className={styles.section}>
               <div className={styles.switchContainer}>
                 <div>
-                  <Label htmlFor="favorite" className={styles.switchLabel}>
+                  <Label
+                    htmlFor="favorite"
+                    className={`${styles.switchLabel} text-sm sm:text-base`}
+                  >
                     Добавить в избранное
                   </Label>
-                  <p className={styles.switchDescription}>
+                  <p
+                    className={`${styles.switchDescription} text-xs sm:text-sm`}
+                  >
                     Тренировка появится в разделе "Избранное"
                   </p>
                 </div>
@@ -383,7 +396,12 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
             <div className={styles.footerText}></div>
 
             <div className={styles.actions}>
-              <Button variant="ghost" onClick={close} disabled={isPending}>
+              <Button
+                variant="ghost"
+                onClick={close}
+                disabled={isPending}
+                className="text-sm sm:text-base"
+              >
                 Отмена
               </Button>
 

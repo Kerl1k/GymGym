@@ -32,7 +32,7 @@ export const RestTimer: FC<RestTimeProps> = ({
   return (
     <Card className="border-amber-200 bg-amber-50">
       <CardHeader>
-        <CardTitle className="text-amber-800 flex items-center gap-2">
+        <CardTitle className="text-amber-800 flex items-center gap-2 text-lg sm:text-xl">
           <RotateCcwIcon className="h-5 w-5" />
           Отдых
         </CardTitle>
@@ -47,7 +47,7 @@ export const RestTimer: FC<RestTimeProps> = ({
         <Button
           onClick={skipRest}
           variant="outline"
-          className="mt-4 w-full gap-2"
+          className="mt-4 w-full gap-2 text-sm sm:text-base"
         >
           <SkipForwardIcon className="h-4 w-4" />
           Пропустить отдых
