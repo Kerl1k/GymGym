@@ -12,11 +12,11 @@ export function AppHeader() {
 
   return (
     <header className="bg-background border-b border-border/40 shadow-sm py-3 px-4 mb-6 sticky top-0">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap">
         <Link to={ROUTES.HOME}>
           <div className="text-xl font-semibold">Gym note</div>
         </Link>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-2 flex-wrap">
           <Button variant="ghost" className="justify-start" asChild>
             <Link to={ROUTES.HOME}>Упражнения</Link>
           </Button>
