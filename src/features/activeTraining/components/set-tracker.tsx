@@ -21,16 +21,16 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
           {exercise.sets.map((set, index) => (
             <div
               key={set.id}
-              className={`p-3 sm:p-4 rounded-xl text-center ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-white border-2 border-gray-200"}`}
+              className={`p-3 sm:p-4 rounded-xl text-center ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-card border-2 border-border"}`}
             >
-              <div className="text-xs sm:text-sm text-gray-600 mb-1">
+              <div className="text-xs sm:text-sm text-muted-foreground mb-1">
                 Подход {index + 1}
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              <div className="text-xl sm:text-2xl font-bold text-foreground mb-2">
                 Вес {set.weight}
               </div>
               <div
-                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-600" : "text-gray-500"}`}
+                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-600" : "text-muted-foreground"}`}
               >
                 {index < currentActive ? "✓ Выполнен" : "Ожидает"}
               </div>

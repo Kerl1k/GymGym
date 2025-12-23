@@ -10,7 +10,7 @@
   justify-content: center;
   height: 100vh;
   font-size: 1.125rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .notFound {
@@ -19,20 +19,20 @@
   justify-content: center;
   height: 100vh;
   font-size: 1.125rem;
-  color: #ef4444;
+  color: var(--destructive);
 }
 
 // Header
 .header {
   padding: 1.5rem 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 1.5rem;
 }
 
 .title {
   font-size: 1.875rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--foreground);
   margin-bottom: 1rem;
 }
 
@@ -50,12 +50,12 @@
 .statValue {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground);
 }
 
 .statLabel {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 // Exercises list
@@ -66,11 +66,11 @@
 }
 
 .exerciseCard {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--border);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   }
 }
@@ -114,7 +114,7 @@
 .exerciseName {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground);
   margin-bottom: 0.5rem;
 }
 
@@ -148,7 +148,7 @@
 
 // Custom sets toggle
 .customSetsToggle {
-  background-color: #f9fafb;
+  background-color: var(--muted);
   border-radius: 0.5rem;
   padding: 1rem;
   margin-bottom: 1.5rem;
@@ -164,12 +164,12 @@
 .toggleLabel {
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--muted-foreground);
 }
 
 .toggleDescription {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
   margin: 0;
 }
 
@@ -179,7 +179,7 @@
 }
 
 .uniformSets {
-  background-color: #f9fafb;
+  background-color: var(--muted);
   border-radius: 0.5rem;
   padding: 1rem;
 }
@@ -210,13 +210,13 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--muted-foreground);
 }
 
 .fieldIcon {
   height: 1rem;
   width: 1rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .fieldInput {
@@ -237,13 +237,13 @@
 }
 
 .setItem {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 1rem;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--border);
   }
 }
 
@@ -259,13 +259,13 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #374151;
+  color: var(--muted-foreground);
 }
 
 .setIcon {
   height: 1rem;
   width: 1rem;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .setActions {
@@ -304,7 +304,7 @@
 .setFieldLabel {
   font-size: 0.75rem;
   font-weight: 500;
-  color: #6b7280;
+  color: var(--muted-foreground);
 }
 
 .setInput {
@@ -312,8 +312,8 @@
   font-size: 0.875rem;
 
   &:disabled {
-    background-color: #f9fafb;
-    color: #6b7280;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
   }
 }
 
@@ -340,14 +340,14 @@
 .exerciseNotes {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
 }
 
 .notesLabel {
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--muted-foreground);
   margin-bottom: 0.5rem;
 }
 
@@ -364,10 +364,10 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
-  border: 2px dashed #d1d5db;
+  border: 2px dashed var(--border);
 
   &:hover {
-    border-color: #9ca3af;
+    border-color: var(--border);
   }
 }
 
@@ -380,7 +380,7 @@
 .footer {
   margin-top: 2rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: center;
 }

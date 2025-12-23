@@ -37,7 +37,7 @@ export function ExercisesListLayoutHeader({
       <div>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
         {description && (
-          <p className="text-sm sm:text-base text-gray-500 mt-1">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             {description}
           </p>
         )}
@@ -61,7 +61,7 @@ export function ExercisesListLayoutFilters({
     <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
       {filters && (
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="text-sm text-gray-500 whitespace-nowrap">
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
             Filter by
           </div>
           {filters}
@@ -69,7 +69,9 @@ export function ExercisesListLayoutFilters({
       )}
       {sort && (
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="text-sm text-gray-500 whitespace-nowrap">Sort by</div>
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
+            Sort by
+          </div>
           {sort}
         </div>
       )}
@@ -98,7 +100,7 @@ export function ExercisesListLayoutContent({
   return (
     <div className="space-y-4">
       {isPending && (
-        <div className="text-center py-6 sm:py-10 text-sm sm:text-base">
+        <div className="text-center py-6 sm:py-10 text-sm sm:text-base text-muted-foreground">
           Загрузка...
         </div>
       )}
@@ -109,7 +111,7 @@ export function ExercisesListLayoutContent({
       {!isPending && children}
 
       {isEmpty && !isPending && (
-        <div className="text-center py-6 sm:py-10 text-sm sm:text-base">
+        <div className="text-center py-6 sm:py-10 text-sm sm:text-base text-muted-foreground">
           Доски не найдены
         </div>
       )}
@@ -156,7 +158,7 @@ export function ExercisesLayoutContentGroups({
     <div className="flex flex-col gap-2 sm:gap-3">
       {groups.map((group) => (
         <div key={group.title}>
-          <div className="text-base sm:text-lg font-bold mb-2">
+          <div className="text-base sm:text-lg font-bold mb-2 text-foreground">
             {group.title}
           </div>
           {group.items}

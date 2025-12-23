@@ -4,7 +4,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Card } from "@/shared/ui/kit/card";
-import { Plus, Minus, X, Dumbbell, Repeat, Save } from "lucide-react";
+import { Plus, Minus, X, Dumbbell, Repeat, Save, Clock } from "lucide-react";
 import { FC, useState, useEffect, useRef } from "react";
 
 type SetData = {
@@ -34,6 +34,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     { id: 0, weight: null, repeatCount: null },
   ]);
   const [isMultipleSets, setIsMultipleSets] = useState(true);
+  const [restTime, setRestTime] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,10 +55,17 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       setIsMultipleSets(true);
     }
 
+    // Initialize restTime from currentExercise if no initialData
+    if (!initialData) {
+      setRestTime(currentExercise.restTime || 90);
+    } else {
+      setRestTime(currentExercise.restTime || null);
+    }
+
     if (contentRef.current && isOpen) {
       contentRef.current.scrollTop = 0;
     }
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, currentExercise.restTime]);
 
   const handleAddSet = () => {
     if (sets.length < 10) {
@@ -96,6 +104,25 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     if (currentValue > 0) {
       newSets[index] = { ...newSets[index], [field]: currentValue - 1 };
       setSets(newSets);
+    }
+  };
+
+  const handleRestTimeChange = (value: string) => {
+    const numValue = value === "" ? null : Number(value);
+    setRestTime(numValue);
+  };
+
+  const handleRestTimeIncrement = () => {
+    if (restTime !== null) {
+      setRestTime(restTime + 5);
+    } else {
+      setRestTime(90);
+    }
+  };
+
+  const handleRestTimeDecrement = () => {
+    if (restTime !== null && restTime > 0) {
+      setRestTime(restTime - 5);
     }
   };
 
@@ -147,7 +174,10 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
             }
           });
 
-          return { ...ex, sets: updatedSets };
+          // Обновляем время отдыха если оно было изменено
+          const updatedRestTime = restTime !== null ? restTime : ex.restTime;
+
+          return { ...ex, sets: updatedSets, restTime: updatedRestTime };
         }
         return ex;
       }),
@@ -163,6 +193,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
   const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
   const repPresets = [5, 8, 10, 12, 15, 20];
+  const restTimePresets = [30, 45, 60, 75, 90, 120, 150, 180];
 
   return (
     <Modal
@@ -181,7 +212,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         }}
       >
         {/* Информация об упражнении */}
-        <Card className="p-3 sm:p-4 bg-gray-50 sticky top-0 z-10">
+        <Card className="p-3 sm:p-4 bg-muted sticky top-0 z-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div>
               <h3 className="font-semibold text-base sm:text-lg">
@@ -199,6 +230,55 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                   ))}
                 </div>
               )}
+              <div className="flex items-center gap-2 mt-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Время отдыха:
+                </span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRestTimeDecrement}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Minus className="w-3 h-3" />
+                  </Button>
+
+                  <Input
+                    type="number"
+                    min="0"
+                    value={restTime === null ? "" : restTime}
+                    onChange={(e) => handleRestTimeChange(e.target.value)}
+                    placeholder="90"
+                    className="w-16 text-center text-sm"
+                  />
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRestTimeIncrement}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Plus className="w-3 h-3" />
+                  </Button>
+                </div>
+                <span className="text-sm text-muted-foreground">сек</span>
+              </div>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {restTimePresets.map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => handleRestTimeChange(time.toString())}
+                    className={`px-2 py-1 text-xs rounded ${restTime === time ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
+                  >
+                    {time}с
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </Card>
@@ -210,7 +290,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
               <h4 className="font-medium text-sm sm:text-base">Сеты</h4>
               {isMultipleSets && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs sm:text-sm text-gray-500">
+                  <span className="text-xs sm:text-sm text-muted-foreground">
                     {sets.length}/{10}
                   </span>
                   <Button
@@ -233,8 +313,8 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
             <Card key={index} className="p-3 sm:p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3 sm:mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <span className="font-semibold text-blue-700 text-sm sm:text-base">
+                  <div className="w-6 sm:w-8 h-6 sm:h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="font-semibold text-primary text-sm sm:text-base">
                       {index + 1}
                     </span>
                   </div>
@@ -309,7 +389,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         onClick={() =>
                           handleSetChange(index, "weight", weight.toString())
                         }
-                        className={`px-1 sm:px-2 py-1 text-xs rounded ${set.weight === weight ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                        className={`px-1 sm:px-2 py-1 text-xs rounded ${set.weight === weight ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
                       >
                         {weight}кг
                       </button>
@@ -374,7 +454,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                               reps.toString(),
                             )
                           }
-                          className={`px-1 sm:px-2 py-1 text-xs rounded ${set.repeatCount === reps ? "bg-blue-500 text-white" : "bg-gray-100 hover:bg-gray-200"}`}
+                          className={`px-1 sm:px-2 py-1 text-xs rounded ${set.repeatCount === reps ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
                         >
                           {reps} раз
                         </button>
@@ -391,17 +471,21 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         <Card className="p-3 sm:p-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-center">
             <div>
-              <div className="text-xs sm:text-sm text-gray-500">Сеты</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                Сеты
+              </div>
               <div className="text-lg sm:text-xl font-bold">{sets.length}</div>
             </div>
             <div>
-              <div className="text-xs sm:text-sm text-gray-500">Повторения</div>
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                Повторения
+              </div>
               <div className="text-lg sm:text-xl font-bold">
                 {sets.reduce((total, set) => total + (set.repeatCount || 0), 0)}
               </div>
             </div>
             <div>
-              <div className="text-xs sm:text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 Общий объем
               </div>
               <div className="text-lg sm:text-xl font-bold">
@@ -413,7 +497,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       </div>
 
       {/* Кнопки действий (фиксированные внизу) */}
-      <div className="sticky bottom bg-white pt-3 sm:pt-4 border-t">
+      <div className="sticky bottom bg-card pt-3 sm:pt-4 border-t">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <Button
             type="button"

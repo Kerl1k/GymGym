@@ -30,9 +30,9 @@ export const RestTimer: FC<RestTimeProps> = ({
   }, [isResting, restTime, setIsResting]);
 
   return (
-    <Card className="border-amber-200 bg-amber-50">
+    <Card className="border-border bg-card">
       <CardHeader>
-        <CardTitle className="text-amber-800 flex items-center gap-2 text-lg sm:text-xl">
+        <CardTitle className="text-primary flex items-center gap-2 text-lg sm:text-xl">
           <RotateCcwIcon className="h-5 w-5" />
           Отдых
         </CardTitle>

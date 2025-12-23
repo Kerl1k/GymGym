@@ -187,7 +187,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               <div className={styles.formGroup}>
                 <Label
                   htmlFor="name"
-                  className="mb-2 block text-sm sm:text-base"
+                  className="mb-2 block text-sm sm:text-base text-foreground"
                 >
                   Название тренировки *
                 </Label>
@@ -202,7 +202,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               <div>
                 <Label
                   htmlFor="description"
-                  className="mb-2 block text-sm sm:text-base"
+                  className="mb-2 block text-sm sm:text-base text-foreground"
                 >
                   Описание тренировки
                 </Label>
@@ -304,7 +304,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                       <div className={styles.exerciseForm}>
                         {/* Выбор упражнения */}
                         <div>
-                          <Label className="mb-2 block text-sm sm:text-base">
+                          <Label className="mb-2 block text-sm sm:text-base text-foreground">
                             Упражнение
                           </Label>
                           {isLoading ? (
@@ -340,7 +340,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
                         {/* Примечания к упражнению */}
                         <div>
-                          <Label className="mb-2 block text-sm sm:text-base">
+                          <Label className="mb-2 block text-sm sm:text-base text-foreground">
                             Примечания
                           </Label>
                           <Textarea
@@ -369,12 +369,12 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                 <div>
                   <Label
                     htmlFor="favorite"
-                    className={`${styles.switchLabel} text-sm sm:text-base`}
+                    className={`${styles.switchLabel} text-sm sm:text-base text-foreground`}
                   >
                     Добавить в избранное
                   </Label>
                   <p
-                    className={`${styles.switchDescription} text-xs sm:text-sm`}
+                    className={`${styles.switchDescription} text-xs sm:text-sm text-muted-foreground`}
                   >
                     Тренировка появится в разделе "Избранное"
                   </p>

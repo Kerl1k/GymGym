@@ -43,25 +43,25 @@ export function Timer({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, onComplete]);
+  }, [isRunning, onComplete, setTimeLeft]);
 
   return (
     <div className="text-center">
       <div className="mb-4">
-        <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-2">
+        <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground mb-2">
           {minutes.toString().padStart(2, "0")}:
           {seconds.toString().padStart(2, "0")}
         </div>
-        <div className="text-sm sm:text-base text-gray-600">
+        <div className="text-sm sm:text-base text-muted-foreground">
           Отдых до следующего подхода
         </div>
       </div>
 
       {/* Прогресс бар */}
       <div className="mb-6">
-        <div className="h-2 sm:h-3 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
           <div
-            className="h-full bg-amber-500 transition-all duration-1000"
+            className="h-full bg-primary transition-all duration-1000"
             style={{ width: `${progress}%` }}
           />
         </div>

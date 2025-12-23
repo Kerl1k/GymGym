@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import styles from "./profile.module.scss";
 import { trainingHistory as w, workouts as er } from "../mockData";
+import { Link } from "react-router-dom";
+import { ROUTES } from "@/shared/model/routes";
 
 export const Profile = () => {
   const [userData] = useState({
@@ -149,7 +151,9 @@ export const Profile = () => {
                       </span>
                     </div>
                   </div>
-                  <button className={styles.repeatButton}>Подробнее</button>
+                  <button className={styles.repeatButton}>
+                    <Link to={ROUTES.TEST}>Подробнее</Link>
+                  </button>
                 </div>
               ))}
             </div>

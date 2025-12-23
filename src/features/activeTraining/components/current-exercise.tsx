@@ -29,11 +29,15 @@ export function CurrentExercise({
   open,
 }: CurrentExerciseProps) {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
+  const [isEditingReps, setIsEditingReps] = useState(false);
 
   const currentSets = exercise.completedSets;
 
   const [tempWeight, setTempWeight] = useState(
     exercise.sets[currentSets].weight ?? 0,
+  );
+  const [tempReps, setTempReps] = useState(
+    exercise.sets[currentSets].repeatCount ?? 0,
   );
 
   const updateWeight = () => {
@@ -60,6 +64,30 @@ export function CurrentExercise({
     setIsEditingWeight(false);
   };
 
+  const updateReps = () => {
+    setTraining((prev) => ({
+      ...prev,
+      exercises: prev.exercises.map((ex) => {
+        if (ex.id === exercise.id) {
+          return {
+            ...ex,
+            sets: ex.sets.map((set, index) => {
+              if (index === currentSets) {
+                return {
+                  ...set,
+                  repeatCount: tempReps,
+                };
+              }
+              return set;
+            }),
+          };
+        }
+        return ex;
+      }),
+    }));
+    setIsEditingReps(false);
+  };
+
   if (!exercise.sets) return null;
 
   return (
@@ -78,9 +106,9 @@ export function CurrentExercise({
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6">
           {/* Вес */}
-          <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200">
+          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-gray-600">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <WeightIcon className="h-4 w-4" />
                 <span className="font-medium text-sm sm:text-base">Вес</span>
               </div>
@@ -125,47 +153,108 @@ export function CurrentExercise({
                   type="number"
                   value={tempWeight}
                   onChange={(e) => setTempWeight(Number(e.target.value))}
-                  className="w-16 sm:w-20 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold text-center"
+                  className="w-16 sm:w-30 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
                   min="0"
                   step="0.5"
                 />
-                <span className="text-gray-500 text-sm sm:text-base">кг</span>
+                <span className="text-muted-foreground text-sm sm:text-base">
+                  {" "}
+                  кг
+                </span>
               </div>
             ) : (
-              <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
                 {exercise.sets[currentSets].weight}
-                <span className="text-gray-500 text-lg sm:text-xl">кг</span>
+                <span className="text-muted-foreground text-lg sm:text-xl">
+                  {" "}
+                  кг
+                </span>
               </div>
             )}
           </div>
 
           {/* Повторения */}
-          <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200">
-            <div className="flex items-center gap-2 text-gray-600 mb-2">
-              <RepeatIcon className="h-4 w-4" />
-              <span className="font-medium text-sm sm:text-base">
-                Повторения
-              </span>
+          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <RepeatIcon className="h-4 w-4" />
+                <span className="font-medium text-sm sm:text-base">
+                  Повторения
+                </span>
+              </div>
+
+              {isEditingReps ? (
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={updateReps}
+                    className="p-1"
+                  >
+                    <CheckIcon className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      setIsEditingReps(false);
+                      setTempReps(exercise.sets[currentSets].repeatCount ?? 0);
+                    }}
+                    className="p-1"
+                  >
+                    <XIcon className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsEditingReps(true)}
+                  className="p-1"
+                >
+                  <EditIcon className="h-3 w-3" />
+                </Button>
+              )}
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {exercise.sets[currentSets].repeatCount}
-              <span className="text-gray-500 text-lg sm:text-xl">раз</span>
-            </div>
-            <div className="text-xs sm:text-sm text-gray-500 mt-1">
+
+            {isEditingReps ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={tempReps}
+                  onChange={(e) => setTempReps(Number(e.target.value))}
+                  className="w-16 sm:w-20 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
+                  min="0"
+                />
+                <span className="text-muted-foreground text-sm sm:text-base">
+                  {" "}
+                  раз
+                </span>
+              </div>
+            ) : (
+              <div className="text-2xl sm:text-3xl font-bold text-foreground">
+                {exercise.sets[currentSets].repeatCount}
+                <span className="text-muted-foreground text-lg sm:text-xl">
+                  {" "}
+                  раз
+                </span>
+              </div>
+            )}
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
               {exercise.sets.length} подходов
             </div>
           </div>
 
           {/* Отдых */}
-          <div className="bg-white p-3 sm:p-4 rounded-xl border border-gray-200">
-            <div className="flex items-center gap-2 text-gray-600 mb-2">
+          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
+            <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <ClockIcon className="h-4 w-4" />
               <span className="font-medium text-sm sm:text-base">Отдых</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+            <div className="text-2xl sm:text-3xl font-bold text-foreground">
               {exercise.restTime}
             </div>
-            <div className="text-xs sm:text-sm text-gray-500 mt-1">
+            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
               между подходами
             </div>
           </div>
@@ -173,15 +262,15 @@ export function CurrentExercise({
 
         {/* Прогресс упражнения */}
         <div className="space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-gray-600 gap-1">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
             <span>Прогресс упражнения</span>
             <span>
               {exercise.completedSets}/{exercise.sets.length} подходов
             </span>
           </div>
-          <div className="h-2 sm:h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-green-500 transition-all duration-300"
+              className="h-full bg-primary transition-all duration-300"
               style={{
                 width: `${(exercise.completedSets / exercise.sets.length) * 100}%`,
               }}

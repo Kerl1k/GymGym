@@ -105,7 +105,7 @@ export const ActiveTrainingContent: FC<{
 
   if (training === undefined && training["exercises"] === 0) return null;
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 sm:p-5 md:p-6 lg:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-background p-4 sm:p-5 md:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 sm:mb-8">
           <ActiveTrainingHeader
@@ -114,7 +114,7 @@ export const ActiveTrainingContent: FC<{
             indexCurrentExercise={indexCurrentExercise}
           />
           <div className="space-y-2 sm:space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-gray-600 gap-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
               <span>Прогресс тренировки</span>
               <span>
                 {Math.round(progress)}% ({completedSets}/{totalSets} подходов)
@@ -141,7 +141,7 @@ export const ActiveTrainingContent: FC<{
                 isResting={isResting}
               />
             )}
-            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3">
+            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
               Трекер подходов
             </h3>
             <SetTracker
@@ -165,16 +165,16 @@ export const ActiveTrainingContent: FC<{
                   .map((exercise, index) => (
                     <div
                       key={exercise.id}
-                      className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-gray-200 bg-white"
+                      className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-border bg-card"
                     >
-                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-gray-600">
+                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-muted-foreground">
                         {indexCurrentExercise + index + 2}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium text-gray-900 truncate">
+                        <div className="font-medium text-foreground truncate">
                           {exercise.name}
                         </div>
-                        <div className="text-sm sm:text-base text-gray-600">
+                        <div className="text-sm sm:text-base text-muted-foreground">
                           {exercise.sets.length} ×
                           {exercise.sets.reduce(
                             (sum, set) => sum + set.weight,

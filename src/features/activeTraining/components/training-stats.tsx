@@ -42,51 +42,51 @@ export function TrainingStats({ training }: TrainingStatsProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-2 sm:gap-3">
-          <div className="bg-blue-50 p-2 sm:p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-700 mb-1">
+          <div className="bg-muted p-2 sm:p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-primary mb-1">
               <TargetIcon className="h-4 w-4" />
               <span className="text-sm font-medium">Прогресс</span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">
+            <div className="text-xl sm:text-2xl font-bold text-foreground">
               {Math.round((completedSets / totalSets) * 100)}%
             </div>
-            <div className="text-xs text-gray-600">
+            <div className="text-xs text-muted-foreground">
               {completedSets} / {totalSets} подходов
             </div>
           </div>
 
-          <div className="bg-amber-50 p-2 sm:p-3 rounded-lg">
-            <div className="flex items-center gap-2 text-amber-700 mb-1">
+          <div className="bg-muted p-2 sm:p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-primary mb-1">
               <ClockIcon className="h-4 w-4" />
               <span className="text-sm font-medium">Осталось</span>
             </div>
-            <div className="text-xl sm:text-2xl font-bold text-gray-900">
+            <div className="text-xl sm:text-2xl font-bold text-foreground">
               {estimateRemainingTime()} мин
             </div>
-            <div className="text-xs text-gray-600">ориентировочно</div>
+            <div className="text-xs text-muted-foreground">ориентировочно</div>
           </div>
         </div>
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
             <AwardIcon className="h-4 w-4" />
             <span>Упражнения</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-white p-2 rounded border text-center">
-              <div className="text-lg font-bold text-gray-900">
+            <div className="bg-card p-2 rounded border text-center">
+              <div className="text-lg font-bold text-foreground">
                 {totalExercises}
               </div>
-              <div className="text-xs text-gray-600">Всего</div>
+              <div className="text-xs text-muted-foreground">Всего</div>
             </div>
-            <div className="bg-white p-2 rounded border text-center">
-              <div className="text-lg font-bold text-gray-900">
+            <div className="bg-card p-2 rounded border text-center">
+              <div className="text-lg font-bold text-foreground">
                 {
                   training.exercises.filter(
                     (ex) => ex.sets.length > ex.completedSets,
                   ).length
                 }
               </div>
-              <div className="text-xs text-gray-600">Осталось</div>
+              <div className="text-xs text-muted-foreground">Осталось</div>
             </div>
           </div>
         </div>

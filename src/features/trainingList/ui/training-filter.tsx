@@ -11,7 +11,7 @@ export function ExercisesListLayoutFilters({
     <div className="flex items-center gap-4">
       {filters && (
         <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-500 whitespace-nowrap">
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
             Filter by
           </div>
           {filters}
@@ -19,7 +19,9 @@ export function ExercisesListLayoutFilters({
       )}
       {sort && (
         <div className="flex items-center gap-2 ">
-          <div className="text-sm text-gray-500 whitespace-nowrap">Sort by</div>
+          <div className="text-sm text-muted-foreground whitespace-nowrap">
+            Sort by
+          </div>
           {sort}
         </div>
       )}

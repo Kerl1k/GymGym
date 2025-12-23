@@ -88,7 +88,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden pb-0">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="text-xl">
@@ -108,7 +108,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
         <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="space-y-6 py-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 Основная информация
               </h3>
 
@@ -175,7 +175,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
           </div>
         </CardContent>
 
-        <div className="border-t p-6 bg-gray-50">
+        <div className="border-t p-6 bg-muted">
           <div className="flex items-center justify-between">
             <Button variant="ghost" onClick={close} disabled={isPending}>
               Отмена

@@ -40,7 +40,7 @@ export function TrainingItem({
   } = useOpen();
 
   return (
-    <Card className="mb-4 hover:shadow-md transition-shadow duration-200 border-gray-200">
+    <Card className="mb-4 hover:shadow-md transition-shadow duration-200 border-border">
       <CardHeader className="pb-2 sm:pb-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -48,11 +48,11 @@ export function TrainingItem({
               <PlayIcon className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">
+              <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
                 {training.name}
               </CardTitle>
               <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                   <ClockIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
                   <span>
                     {training?.createdAt &&
@@ -106,7 +106,7 @@ export function TrainingItem({
 
       <CardContent className="pt-0">
         <div className="mb-2 sm:mb-3">
-          <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-gray-700 mb-2">
+          <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-muted-foreground mb-2">
             <LayersIcon className="w-4 h-4" />
             <span>Упражнения ({training.exercises.length})</span>
           </div>
@@ -118,14 +118,14 @@ export function TrainingItem({
             ).map((exercise, index) => (
               <div
                 key={exercise.id}
-                className="flex items-center justify-between p-2 sm:p-3 bg-gray-50/50 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg border border-border hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex-shrink-0 w-6 sm:w-8 h-6 sm:h-8 bg-white border border-gray-200 rounded-md flex items-center justify-center text-xs sm:text-sm font-medium text-gray-600">
+                  <div className="flex-shrink-0 w-6 sm:w-8 h-6 sm:h-8 bg-background border border-border rounded-md flex items-center justify-center text-xs sm:text-sm font-medium text-muted-foreground">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="text-sm sm:text-base font-medium text-gray-900">
+                    <div className="text-sm sm:text-base font-medium text-foreground">
                       {exercise.name}
                     </div>
                   </div>
@@ -156,7 +156,7 @@ export function TrainingItem({
           </div>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-2 border-t border-border">
           <Link to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}>
             <Button
               size="lg"
