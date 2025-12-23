@@ -3,7 +3,6 @@ import { createBrowserRouter } from "react-router-dom";
 import { App } from "./app";
 import { Providers } from "./providers";
 import { protectedLoader, ProtectedRoute } from "./protected-route";
-import { AppHeader } from "@/features/header";
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +16,6 @@ export const router = createBrowserRouter([
         loader: protectedLoader,
         element: (
           <>
-            <AppHeader />
             <ProtectedRoute />
           </>
         ),

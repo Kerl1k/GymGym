@@ -17,36 +17,38 @@ const ExercisesPage = () => {
   const exercisesQuery = useExercisesFetchList({});
 
   return (
-    <ExercisesListLayout
-      header={
-        <ExercisesListLayoutHeader
-          title="Упражнения"
-          description="Здесь вы можете просматривать и управлять своими упражнениями"
-          actions={
-            <Button onClick={open}>
-              <PlusIcon />
-              Создать упражнение
-            </Button>
+    <div className="container mx-auto p-4 sm:p-6 animate-fade-in">
+      <ExercisesListLayout
+        header={
+          <ExercisesListLayoutHeader
+            title="Упражнения"
+            description="Здесь вы можете просматривать и управлять своими упражнениями"
+            actions={
+              <Button onClick={open} className="hover-lift">
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Создать упражнение
+              </Button>
+            }
+          />
+        }
+      >
+        <ExercisesListLayoutContent
+          isEmpty={exercisesQuery.exercises.length === 0}
+          isPending={exercisesQuery.isPending}
+          isPendingNext={exercisesQuery.isFetchingNextPage}
+          cursorRef={exercisesQuery.cursorRef}
+          hasCursor={exercisesQuery.hasNextPage}
+          renderList={() =>
+            exercisesQuery.exercises.map((exercises) => (
+              <ExerciseItem key={exercises.id} exercises={exercises} />
+            ))
           }
         />
-      }
-    >
-      <ExercisesListLayoutContent
-        isEmpty={exercisesQuery.exercises.length === 0}
-        isPending={exercisesQuery.isPending}
-        isPendingNext={exercisesQuery.isFetchingNextPage}
-        cursorRef={exercisesQuery.cursorRef}
-        hasCursor={exercisesQuery.hasNextPage}
-        renderList={() =>
-          exercisesQuery.exercises.map((exercises) => (
-            <ExerciseItem key={exercises.id} exercises={exercises} />
-          ))
-        }
-      />
-      <Modal close={close} isOpen={isOpen} title="Создание упражнения">
-        <ExercisesCreate close={close} />
-      </Modal>
-    </ExercisesListLayout>
+        <Modal close={close} isOpen={isOpen} title="Создание упражнения">
+          <ExercisesCreate close={close} />
+        </Modal>
+      </ExercisesListLayout>
+    </div>
   );
 };
 

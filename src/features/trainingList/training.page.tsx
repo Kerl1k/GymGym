@@ -16,7 +16,7 @@ import { ExercisesListLayoutFilters } from "./ui/training-filter";
 import { TrainingSortSelect } from "../../entities/training/use-training-sort";
 import { SearchInput } from "@/shared/ui/kit/search";
 
-const ExercisesPage = () => {
+const TrainingPage = () => {
   const { close, isOpen, open } = useOpen();
 
   const trainingsFilters = useTrainingsFilters();
@@ -33,60 +33,62 @@ const ExercisesPage = () => {
   ];
 
   return (
-    <ExercisesListLayout
-      filters={
-        <ExercisesListLayoutFilters
-          sort={
-            <TrainingSortSelect
-              value={trainingsFilters.sort}
-              onValueChange={trainingsFilters.setSort}
-              items={itemsSort}
-            />
-          }
-          filters={
-            <SearchInput
-              value={trainingsFilters.search}
-              onChange={trainingsFilters.setSearch}
-              placeholder="Введите название тренирвоки"
-            />
-          }
-          actions={
-            <div className="flex gap-5">
-              <StarIcon />
-            </div>
-          }
-        />
-      }
-      header={
-        <ExercisesListLayoutHeader
-          title="Тренировки"
-          description="Здесь можно создавать и выбирать тренировки"
-          actions={
-            <Button onClick={open}>
-              <PlusIcon />
-              Создать тренировку
-            </Button>
-          }
-        />
-      }
-    >
-      <ExercisesListLayoutContent
-        isEmpty={trainingsQuery.trainings.length === 0}
-        isPending={trainingsQuery.isPending}
-        isPendingNext={trainingsQuery.isFetchingNextPage}
-        cursorRef={trainingsQuery.cursorRef}
-        hasCursor={trainingsQuery.hasNextPage}
-        renderList={() =>
-          trainingsQuery.trainings.map((training) => (
-            <TrainingItem key={training.id} training={training} />
-          ))
+    <div className="container mx-auto p-4 sm:p-6 animate-fade-in">
+      <ExercisesListLayout
+        filters={
+          <ExercisesListLayoutFilters
+            sort={
+              <TrainingSortSelect
+                value={trainingsFilters.sort}
+                onValueChange={trainingsFilters.setSort}
+                items={itemsSort}
+              />
+            }
+            filters={
+              <SearchInput
+                value={trainingsFilters.search}
+                onChange={trainingsFilters.setSearch}
+                placeholder="Поиск тренировок..."
+              />
+            }
+            actions={
+              <div className="flex gap-2">
+                <StarIcon className="w-5 h-5 text-yellow-500" />
+              </div>
+            }
+          />
         }
-      />
-      <Modal close={close} isOpen={isOpen} title="Создание упражнения">
-        <TrainingCreate close={close} />
-      </Modal>
-    </ExercisesListLayout>
+        header={
+          <ExercisesListLayoutHeader
+            title="Мои тренировки"
+            description="Создавайте и управляйте своими тренировочными программами"
+            actions={
+              <Button onClick={open} className="hover-lift">
+                <PlusIcon className="w-4 h-4 mr-2" />
+                Создать тренировку
+              </Button>
+            }
+          />
+        }
+      >
+        <ExercisesListLayoutContent
+          isEmpty={trainingsQuery.trainings.length === 0}
+          isPending={trainingsQuery.isPending}
+          isPendingNext={trainingsQuery.isFetchingNextPage}
+          cursorRef={trainingsQuery.cursorRef}
+          hasCursor={trainingsQuery.hasNextPage}
+          renderList={() =>
+            trainingsQuery.trainings.map((training) => (
+              <TrainingItem key={training.id} training={training} />
+            ))
+          }
+        />
+        <Modal close={close} isOpen={isOpen} title="Создание тренировки">
+          <TrainingCreate close={close} />
+        </Modal>
+      </ExercisesListLayout>
+    </div>
   );
 };
 
-export const Component = ExercisesPage;
+export const Component = TrainingPage;
