@@ -18,18 +18,10 @@ import {
 } from "lucide-react";
 import styles from "./exercoses-list-item.module.scss";
 import { cn } from "@/shared/lib/css";
+import { ApiSchemas } from "@/shared/schema";
 
 interface ExercisesListItemProps {
-  exercise: {
-    id: string;
-    name: string;
-    favorite: boolean;
-    muscleGroups: string[];
-    description?: string;
-    videoUrl: string;
-    createdAt?: string;
-    updatedAt?: string;
-  };
+  exercise: ApiSchemas["Exercise"];
   rightActions?: React.ReactNode;
   menuActions?: React.ReactNode;
   onClick?: () => void;
@@ -102,6 +94,8 @@ export function ExercisesListItem({
                   })}
                 </div>
 
+                <p className="m-2">{exercise.name}</p>
+
                 {exercise.description && (
                   <p className={styles.description}>{exercise.description}</p>
                 )}
@@ -155,33 +149,3 @@ export function ExercisesListItem({
     </Card>
   );
 }
-
-// // Дополнительный компонент для компактного отображения
-// export function ExercisesCompactItem({
-//   exercise,
-//   onClick,
-// }: {
-//   exercise: ExercisesListItemProps["exercise"];
-//   onClick?: () => void;
-// }) {
-//   const primaryMuscleGroup = exercise.muscleGroups[0] || "Общее";
-//   const muscleGroupClass = getMuscleGroupClass(primaryMuscleGroup);
-
-//   return (
-//     <div className={styles.compactItem} onClick={onClick}>
-//       <div className={cn(styles.compactBadge, muscleGroupClass)}>
-//         <Dumbbell className={styles.compactBadgeIcon} />
-//       </div>
-//       <div className={styles.compactContent}>
-//         <div className={styles.compactTitleRow}>
-//           <span className={styles.compactTitle}>{exercise.name}</span>
-//           {exercise.favorite && <Star className={styles.compactFavoriteIcon} />}
-//         </div>
-//         <div className={styles.compactMuscleGroups}>
-//           {exercise.muscleGroups.slice(0, 2).join(", ")}
-//           {exercise.muscleGroups.length > 2 && "..."}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }

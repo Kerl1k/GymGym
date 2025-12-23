@@ -5,18 +5,20 @@ import { Button } from "@/shared/ui/kit/button";
 import { FC, useEffect } from "react";
 
 type RestTimeProps = {
-  currentRestTime: number;
+  restTime: number;
   isResting: boolean;
   setIsResting: React.Dispatch<React.SetStateAction<boolean>>;
+  timeLeft: number;
+  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export const RestTimer: FC<RestTimeProps> = ({
-  currentRestTime,
+  restTime,
   isResting,
   setIsResting,
+  timeLeft,
+  setTimeLeft,
 }) => {
-  const restTime = currentRestTime === 0 ? 90 : currentRestTime;
-
   const skipRest = () => {
     setIsResting(false);
   };
@@ -36,7 +38,12 @@ export const RestTimer: FC<RestTimeProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Timer duration={restTime} onComplete={() => setIsResting(false)} />
+        <Timer
+          setTimeLeft={setTimeLeft}
+          timeLeft={timeLeft}
+          duration={restTime}
+          onComplete={() => setIsResting(false)}
+        />
         <Button
           onClick={skipRest}
           variant="outline"

@@ -7,11 +7,11 @@ import {
   FormMessage,
   Form,
 } from "@/shared/ui/kit/form";
-import { Input } from "@/shared/ui/kit/inputLogin";
+import { Input } from "@/shared/ui/kit/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegister } from "../model/use-register";
+import { useRegister } from "../../../entities/auth/use-register";
 
 const registerSchema = z
   .object({

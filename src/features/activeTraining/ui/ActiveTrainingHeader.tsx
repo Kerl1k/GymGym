@@ -1,5 +1,5 @@
 import { Button } from "@/shared/ui/kit/button";
-import { CheckIcon, PauseIcon } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { FC } from "react";
 
 type ActiveTrainingHeaderProps = {
@@ -24,16 +24,6 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          onClick={() => {}}
-          size="lg"
-          variant="outline"
-          className="gap-2"
-        >
-          <PauseIcon className="h-5 w-5" />
-          Пауза
-        </Button>
-
         <Button
           onClick={finishTraining}
           size="lg"

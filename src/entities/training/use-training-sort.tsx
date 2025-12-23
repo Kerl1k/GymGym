@@ -6,17 +6,17 @@ import {
   SelectValue,
 } from "@/shared/ui/kit/select";
 
-interface BoardsSortSelectProps<T extends string> {
+interface TrainingSortSelectProps<T extends string> {
   value: T;
   onValueChange: (value: T) => void;
   items: { value: T; label: string }[];
 }
 
-export function BoardsSortSelect<T extends string>({
+export function TrainingSortSelect<T extends string>({
   value,
   onValueChange,
   items,
-}: BoardsSortSelectProps<T>) {
+}: TrainingSortSelectProps<T>) {
   return (
     <Select value={value} onValueChange={onValueChange}>
       <SelectTrigger id="sort" className="w-full">

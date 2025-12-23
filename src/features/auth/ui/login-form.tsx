@@ -7,11 +7,11 @@ import {
   FormMessage,
   Form,
 } from "@/shared/ui/kit/form";
-import { Input } from "@/shared/ui/kit/inputLogin";
+import { Input } from "@/shared/ui/kit/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLogin } from "../model/use-login";
+import { useLogin } from "../../../entities/auth/use-login";
 
 const loginSchema = z.object({
   email: z

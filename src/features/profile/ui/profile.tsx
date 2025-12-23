@@ -2,9 +2,7 @@ import { useState } from "react";
 import {
   User,
   Clock,
-  Flame,
   Target,
-  TrendingUp,
   Star,
   Calendar,
   Activity,
@@ -12,11 +10,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import styles from "./profile.module.scss";
-import {
-  favoriteExercisesQ as q,
-  trainingHistory as w,
-  workouts as er,
-} from "../mockData";
+import { trainingHistory as w, workouts as er } from "../mockData";
 
 export const Profile = () => {
   const [userData] = useState({
@@ -31,7 +25,6 @@ export const Profile = () => {
     goals: ["Набрать мышечную массу", "Улучшить выносливость"],
   });
 
-  const [favoriteExercises, setFavoriteExercises] = useState<any>(q);
   const [trainingHistory, setTrainingHistory] = useState<any>(w);
   const [workouts, setWorkouts] = useState<any>(er);
   const [stats, setStats] = useState({
@@ -106,26 +99,6 @@ export const Profile = () => {
 
         <div className={styles.statCard}>
           <div className={styles.statIcon}>
-            <Flame size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>{stats.totalCalories}</div>
-            <div className={styles.statLabel}>Сожжено калорий</div>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <TrendingUp size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>{stats.streakDays} дн.</div>
-            <div className={styles.statLabel}>Активная серия</div>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
             <Star size={24} />
           </div>
           <div className={styles.statContent}>
@@ -135,65 +108,12 @@ export const Profile = () => {
             <div className={styles.statLabel}>Избранных упражнений</div>
           </div>
         </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Target size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>{stats.completedThisWeek}/5</div>
-            <div className={styles.statLabel}>На этой неделе</div>
-          </div>
-        </div>
       </div>
 
       {/* Основной контент в две колонки */}
       <div className={styles.contentGrid}>
         {/* Левая колонка */}
         <div className={styles.leftColumn}>
-          {/* Избранные упражнения */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                <Star size={20} /> Избранные упражнения
-              </h2>
-              <span className={styles.sectionCount}>
-                {favoriteExercises?.length}
-              </span>
-            </div>
-
-            <div className={styles.exercisesGrid}>
-              {favoriteExercises.map((exercise: any) => (
-                <div key={exercise.id} className={styles.exerciseCard}>
-                  <div className={styles.exerciseHeader}>
-                    <h3 className={styles.exerciseName}>{exercise.name}</h3>
-                    <button className={styles.favoriteButton}>
-                      <Star size={16} fill="currentColor" />
-                    </button>
-                  </div>
-                  <div className={styles.exerciseMuscles}>
-                    {exercise.muscleGroups.map(
-                      ({ muscleGroups, index }: any) => (
-                        <span key={index} className={styles.muscleTag}>
-                          {muscleGroups}
-                        </span>
-                      ),
-                    )}
-                  </div>
-                  {exercise.description && (
-                    <p className={styles.exerciseDescription}></p>
-                  )}
-                  <div className={styles.exerciseActions}>
-                    <button className={styles.viewButton}>Подробнее</button>
-                    <button className={styles.addButton}>
-                      Добавить в тренировку
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* История тренировок */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
@@ -229,7 +149,7 @@ export const Profile = () => {
                       </span>
                     </div>
                   </div>
-                  <button className={styles.repeatButton}>Повторить</button>
+                  <button className={styles.repeatButton}>Подробнее</button>
                 </div>
               ))}
             </div>
@@ -275,11 +195,8 @@ export const Profile = () => {
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
-                <Award size={20} /> Популярные тренировки
+                <Award size={20} /> Избранные тренировки
               </h2>
-              <span className={styles.sectionHint}>
-                Скоро появятся избранные
-              </span>
             </div>
 
             <div className={styles.workoutsList}>
@@ -308,17 +225,6 @@ export const Profile = () => {
                     </button>
                   </div>
                 ))}
-
-              {/* Заглушка для будущих избранных */}
-              <div className={styles.comingSoon}>
-                <div className={styles.comingSoonContent}>
-                  <Award size={32} />
-                  <p>Скоро здесь появятся ваши избранные тренировки</p>
-                  <button className={styles.exploreButton}>
-                    Исследовать тренировки
-                  </button>
-                </div>
-              </div>
             </div>
           </section>
 
@@ -356,16 +262,6 @@ export const Profile = () => {
                   <span>Окт</span>
                   <span>Ноя</span>
                   <span>Дек</span>
-                </div>
-              </div>
-              <div className={styles.chartStats}>
-                <div className={styles.chartStat}>
-                  <span className={styles.chartStatValue}>+15%</span>
-                  <span className={styles.chartStatLabel}>К тренировкам</span>
-                </div>
-                <div className={styles.chartStat}>
-                  <span className={styles.chartStatValue}>-5%</span>
-                  <span className={styles.chartStatLabel}>К пропускам</span>
                 </div>
               </div>
             </div>

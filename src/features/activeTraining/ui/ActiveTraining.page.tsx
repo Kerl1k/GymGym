@@ -1,4 +1,4 @@
-import { useTrainingFetch } from "@/entities/training-active/use-training-active";
+import { useTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { ActiveTrainingContent } from "./ActiveTrainingContent";
 
 const ActiveTraining = () => {

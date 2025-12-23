@@ -6,6 +6,7 @@ export const ROUTES = {
   REGISTER: "/register",
   TRAINING: "/training",
   ACTIVE_TRAINING: "/active",
+  TEST: "/test",
 
   profile: "/profile",
   WORKOUT: "/workout",

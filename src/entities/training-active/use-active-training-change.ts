@@ -10,10 +10,9 @@ export function useUpdateActiveTraining() {
     "/active-trainings",
     {
       onSettled: async () => {
-        const qwe = await queryClient.invalidateQueries(
+        return await queryClient.invalidateQueries(
           rqClient.queryOptions("get", "/active-trainings"),
         );
-        return qwe;
       },
     },
   );

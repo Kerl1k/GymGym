@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.TRAINING,
-            lazy: () => import("@/features/training-list/exercises.page"),
+            lazy: () => import("@/features/trainingList/exercises.page"),
           },
           {
             path: ROUTES.ACTIVE_TRAINING,
@@ -38,6 +38,10 @@ export const router = createBrowserRouter([
           {
             path: ROUTES.PROFILE,
             lazy: () => import("@/features/profile/profile.page"),
+          },
+          {
+            path: ROUTES.TEST,
+            lazy: () => import("@/features/startTraining/training-start.page"),
           },
         ],
       },

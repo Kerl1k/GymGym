@@ -1,29 +1,29 @@
 import { Button } from "@/shared/ui/kit/button";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, StarIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
-import { TrainingCreate } from "./ui/training-create/training-create";
+import { TrainingCreate } from "./ui/training-create/exercises-create";
 import {
   ExercisesListLayout,
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/exercises-list-layout";
-import { SideBar } from "../../shared/ui/kit/sidebar";
 import { TrainingItem } from "./compose/training-item";
-import { useBoardsFilters } from "./model/use-boards-filters";
-import { useTrainingList } from "./model/use-boards-list";
+import { useTrainingsFilters } from "../../entities/training/use-training-filters";
+import { useTrainingList } from "../../entities/training/use-training-fetch";
 import { useDebouncedValue } from "@/shared/lib/react";
 import { ExercisesListLayoutFilters } from "./ui/exercises-filter";
-import { BoardsSortSelect } from "./model/use-sort-exersises";
+import { TrainingSortSelect } from "../../entities/training/use-training-sort";
 import { SearchInput } from "@/shared/ui/kit/search";
+import { Switch } from "@/shared/ui/kit/switch";
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();
 
-  const boardsFilters = useBoardsFilters();
+  const trainingsFilters = useTrainingsFilters();
   const trainingsQuery = useTrainingList({
-    sort: boardsFilters.sort,
-    search: useDebouncedValue(boardsFilters.search, 300),
+    sort: trainingsFilters.sort,
+    search: useDebouncedValue(trainingsFilters.search, 300),
   });
 
   const itemsSort = [
@@ -35,24 +35,28 @@ const ExercisesPage = () => {
 
   return (
     <ExercisesListLayout
-      sidebar={<SideBar />}
       filters={
         <ExercisesListLayoutFilters
           sort={
-            <BoardsSortSelect
-              value={boardsFilters.sort}
-              onValueChange={boardsFilters.setSort}
+            <TrainingSortSelect
+              value={trainingsFilters.sort}
+              onValueChange={trainingsFilters.setSort}
               items={itemsSort}
             />
           }
           filters={
             <SearchInput
-              value={boardsFilters.search}
-              onChange={boardsFilters.setSearch}
+              value={trainingsFilters.search}
+              onChange={trainingsFilters.setSearch}
               placeholder="Введите название тренирвоки"
             />
           }
-          actions={<div>chto to takoe</div>}
+          actions={
+            <div className="flex gap-5">
+              <StarIcon />
+              <Switch />
+            </div>
+          }
         />
       }
       header={

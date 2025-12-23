@@ -60,7 +60,6 @@ export function useTrainingList({
     },
     [fetchNextPage],
   );
-  console.log(data);
   const trainings = data?.pages.flatMap((page) => page.list) ?? [];
 
   return {

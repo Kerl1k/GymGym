@@ -1,19 +1,32 @@
-// features/training-active/components/timer.tsx
-"use client";
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/shared/ui/kit/button";
 import { PlayIcon, PauseIcon, RotateCcwIcon } from "lucide-react";
 
 interface TimerProps {
   duration: number; // в секундах
   onComplete: () => void;
-  autoStart?: boolean;
+  timeLeft: number;
+  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 }
 
-export function Timer({ duration, onComplete, autoStart = true }: TimerProps) {
-  const [timeLeft, setTimeLeft] = useState(duration);
-  const [isRunning, setIsRunning] = useState(autoStart);
+export function Timer({
+  duration,
+  onComplete,
+  setTimeLeft,
+  timeLeft,
+}: TimerProps) {
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const progress = ((duration - timeLeft) / duration) * 100;
+
+  const [isRunning, setIsRunning] = useState(true);
+
+  const toggleTimer = () => setIsRunning(!isRunning);
+
+  const resetTimer = () => {
+    setTimeLeft(duration);
+    setIsRunning(false);
+  };
 
   useEffect(() => {
     if (!isRunning) return;
@@ -31,16 +44,6 @@ export function Timer({ duration, onComplete, autoStart = true }: TimerProps) {
 
     return () => clearInterval(interval);
   }, [isRunning, onComplete]);
-
-  const toggleTimer = () => setIsRunning(!isRunning);
-  const resetTimer = () => {
-    setTimeLeft(duration);
-    setIsRunning(false);
-  };
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-  const progress = ((duration - timeLeft) / duration) * 100;
 
   return (
     <div className="text-center">

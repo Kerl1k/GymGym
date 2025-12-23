@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-export type BoardsFilters = {
+export type TrainingsFilters = {
   search: string;
   sort: string;
 };
 
-export function useBoardsFilters() {
+export function useTrainingsFilters() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<string>("lastOpenedAt");
 

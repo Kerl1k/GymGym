@@ -8,8 +8,7 @@ import {
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/exercises-list-layout";
-import { SideBar } from "../../shared/ui/kit/sidebar";
-import { BoardItem } from "./compose/board-item";
+import { ExerciseItem } from "./ui/Item";
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 
 const ExercisesPage = () => {
@@ -19,7 +18,6 @@ const ExercisesPage = () => {
 
   return (
     <ExercisesListLayout
-      sidebar={<SideBar />}
       header={
         <ExercisesListLayoutHeader
           title="упражнения"
@@ -41,7 +39,7 @@ const ExercisesPage = () => {
         hasCursor={exercisesQuery.hasNextPage}
         renderList={() =>
           exercisesQuery.exercises.map((exercises) => (
-            <BoardItem key={exercises.id} exercises={exercises} />
+            <ExerciseItem key={exercises.id} exercises={exercises} />
           ))
         }
       />

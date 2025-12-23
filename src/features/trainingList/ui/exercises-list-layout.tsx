@@ -5,17 +5,14 @@ export function ExercisesListLayout({
   header,
   filters,
   children,
-  sidebar,
 }: {
   header: React.ReactNode;
   filters?: React.ReactNode;
   children: React.ReactNode;
-  sidebar?: React.ReactNode;
 }) {
   return (
     <div className="container mx-auto">
       <div className="flex gap-4">
-        {sidebar}
         <div className="flex-1  p-4 flex flex-col gap-6">
           {header}
           {filters}
@@ -120,25 +117,21 @@ export function ExercisesListLayoutContent({
     </div>
   );
 }
-
-export function ExercisesListLayoutCards({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {children}
-    </div>
-  );
-}
-
 export function ExercisesListLayoutList({
   children,
+  columns = 2,
 }: {
   children: React.ReactNode;
+  columns?: 1 | 2 | 3 | 4;
 }) {
-  return <div className="flex flex-col gap-2">{children}</div>;
+  const gridClass = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 sm:grid-cols-2",
+    3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+    4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+  }[columns];
+
+  return <div className={`grid ${gridClass} gap-3`}>{children}</div>;
 }
 
 export function ExercisesLayoutContentGroups({

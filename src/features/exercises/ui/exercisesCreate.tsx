@@ -1,33 +1,38 @@
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Input } from "@/shared/ui/kit/inputLogin";
+import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 
 import { Textarea } from "@/shared/ui/kit/Textarea";
 import { Badge } from "@/shared/ui/kit/badge";
-import { XIcon, PlusIcon, InfoIcon } from "lucide-react";
-import { FC, useState } from "react";
+import { XIcon, PlusIcon } from "lucide-react";
+import { FC, useEffect, useState } from "react";
 import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
 import { TogleAddFavorite } from "@/shared/ui/kit/togleAddFavorite";
+import { ApiSchemas } from "@/shared/schema";
+import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
 
 type ExercisesCreateProps = {
   close: () => void;
+  exercises?: ApiSchemas["Exercise"];
 };
 
-export const ExercisesCreate: FC<ExercisesCreateProps> = ({ close }) => {
-  const [form, setForm] = useState({
+export const ExercisesCreate: FC<ExercisesCreateProps> = ({
+  close,
+  exercises,
+}) => {
+  const [form, setForm] = useState<ApiSchemas["Exercise"]>({
+    id: "",
     name: "",
-    type: "strength",
+    muscleGroups: ["strength"],
     description: "",
-    difficulty: "medium",
-    equipment: "",
-    muscles: [] as string[],
     videoUrl: "",
     favorite: false,
   });
 
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const { create, isPending } = useCreateExercises();
+  const { change } = useChangeExercises();
 
   const muscleGroups = [
     "Грудь",
@@ -57,22 +62,29 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({ close }) => {
         ? prev.filter((m) => m !== muscle)
         : [...prev, muscle],
     );
-    handleChange("muscles", selectedMuscles);
+    handleChange("muscleGroups", selectedMuscles);
   };
 
   const addExercise = () => {
-    if (!form.name || !form.type || isPending) return;
+    if (!form.name || isPending) return;
 
-    create({
-      name: form.name,
-      favorite: form.favorite,
-      muscleGroups: form.muscles,
-      description: form.description,
-      videoUrl: form.videoUrl,
-    });
+    create({ ...form, muscleGroups: selectedMuscles });
 
     close();
   };
+
+  const changeExercises = () => {
+    if (!form.name || isPending) return;
+    change(exercises!.id, { ...form, muscleGroups: selectedMuscles });
+    close();
+  };
+
+  useEffect(() => {
+    if (exercises) {
+      setForm(exercises);
+      setSelectedMuscles(exercises.muscleGroups);
+    }
+  }, [exercises]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -97,7 +109,6 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({ close }) => {
           <div className="space-y-6 py-4">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <InfoIcon className="h-5 w-5" />
                 Основная информация
               </h3>
 
@@ -170,23 +181,34 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({ close }) => {
               Отмена
             </Button>
 
-            <Button
-              onClick={addExercise}
-              disabled={!form.name || !form.type || isPending}
-              className="gap-2"
-            >
-              {isPending ? (
-                <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Создание...
-                </>
-              ) : (
-                <>
-                  <PlusIcon className="h-5 w-5" />
-                  Создать упражнение
-                </>
-              )}
-            </Button>
+            {!exercises ? (
+              <Button
+                onClick={addExercise}
+                disabled={!form.name || isPending}
+                className="gap-2"
+              >
+                {isPending ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Создание...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className="h-5 w-5" />
+                    Создать упражнение
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button
+                onClick={changeExercises}
+                disabled={!form.name || isPending}
+                className="gap-2"
+              >
+                {" "}
+                Сохранить изменения
+              </Button>
+            )}
           </div>
         </div>
       </Card>

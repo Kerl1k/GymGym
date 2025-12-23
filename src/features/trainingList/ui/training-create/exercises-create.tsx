@@ -1,6 +1,6 @@
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Input } from "@/shared/ui/kit/inputLogin";
+import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import {
   Select,
@@ -17,18 +17,19 @@ import {
   CopyIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  InfoIcon,
   LayersIcon,
 } from "lucide-react";
-import { FC, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import styles from "./training-create.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
+import { useChangeTraining } from "@/entities/training/use-training-change";
 
 type TrainingCreateProps = {
   close: () => void;
+  training?: ApiSchemas["Training"];
 };
 
 type ExerciseForm = Pick<
@@ -36,10 +37,14 @@ type ExerciseForm = Pick<
   "id" | "name" | "notes" | "type"
 >;
 
-export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
+export const TrainingCreate: FC<TrainingCreateProps> = ({
+  close,
+  training,
+}) => {
   const { exercises: exercisesList, isPending: isLoading } =
     useExercisesFetchList({});
   const { create, isPending } = useCreateTraining();
+  const { change } = useChangeTraining();
 
   const [form, setForm] = useState<ApiSchemas["Training"]>({
     name: "",
@@ -142,6 +147,18 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
     close();
   };
 
+  const changeTraining = () => {
+    if (!form.name || isPending) return;
+    change(training!.id, form);
+    close();
+  };
+
+  useEffect(() => {
+    if (training) {
+      setForm(training);
+    }
+  }, [training]);
+
   return (
     <div className={styles.modalOverlay}>
       <Card className={styles.modalCard}>
@@ -165,39 +182,34 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
           <div className={styles.contentWrapper}>
             {/* Основная информация */}
             <div className={styles.section}>
-              <h3 className={styles.sectionTitle}>
-                <InfoIcon className={styles.sectionIcon} />
-                Основная информация
-              </h3>
+              <h3 className={styles.sectionTitle}>Основная информация</h3>
 
-              <div className={styles.gridContainer}>
-                <div className={styles.formGroup}>
-                  <Label htmlFor="name" className="mb-2 block">
-                    Название тренировки *
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="Например: Силовая тренировка на грудь"
-                    value={form.name}
-                    onChange={(e) => handleFormChange("name", e.target.value)}
-                    className={styles.input}
-                  />
-                </div>
+              <div className={styles.formGroup}>
+                <Label htmlFor="name" className="mb-2 block">
+                  Название тренировки *
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Например: Силовая тренировка на грудь"
+                  value={form.name}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
+                  className={styles.input}
+                />
               </div>
               <div>
                 <Label htmlFor="description" className="mb-2 block">
                   Описание тренировки
                 </Label>
-                {/* <Textarea
+                <Textarea
                   id="description"
                   placeholder="Опишите цели, особенности, рекомендации..."
-                  value={form.description}
+                  value={""}
                   onChange={(e) =>
                     handleFormChange("description", e.target.value)
                   }
                   className={styles.textarea}
                   rows={2}
-                /> */}
+                />
               </div>
             </div>
 
@@ -324,7 +336,6 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                             Примечания
                           </Label>
                           <Textarea
-                            placeholder="Особенности выполнения, техника..."
                             value={exercise.notes}
                             onChange={(e) =>
                               handleExerciseChange(
@@ -333,6 +344,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                                 e.target.value,
                               )
                             }
+                            readOnly={true}
                             className="h-16 text-sm"
                           />
                         </div>
@@ -375,23 +387,27 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({ close }) => {
                 Отмена
               </Button>
 
-              <Button
-                onClick={createTraining}
-                disabled={!form.name || isPending}
-                className={styles.createButton}
-              >
-                {isPending ? (
-                  <>
-                    <div className={styles.spinner} />
-                    Создание...
-                  </>
-                ) : (
-                  <>
-                    <PlusIcon className={styles.createIcon} />
-                    Создать тренировку
-                  </>
-                )}
-              </Button>
+              {!training ? (
+                <Button
+                  onClick={createTraining}
+                  disabled={!form.name || isPending}
+                  className={styles.createButton}
+                >
+                  {isPending ? (
+                    <>
+                      <div className={styles.spinner} />
+                      Создание...
+                    </>
+                  ) : (
+                    <>
+                      <PlusIcon className={styles.createIcon} />
+                      Создать тренировку
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button onClick={changeTraining}>Сохранить</Button>
+              )}
             </div>
           </div>
         </div>

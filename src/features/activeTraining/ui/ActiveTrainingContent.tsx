@@ -5,12 +5,12 @@ import { Progress } from "@/shared/ui/kit/progress";
 import { TrainingStats } from "../components/training-stats";
 import { ROUTES } from "@/shared/model/routes";
 import { useOpen } from "@/shared/lib/useOpen";
-import { ChangeModal } from "./ChangeModal";
 import { ApiSchemas } from "@/shared/schema";
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
 import { RestTimer } from "./RestTimer";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
+import { NotedWeightModal } from "./NotedWeightModal";
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
@@ -19,11 +19,20 @@ export const ActiveTrainingContent: FC<{
   const { close, isOpen, open } = useOpen();
   const [training, setTraining] = useState(data);
 
+  const [prevExercise, setPrevExercise] = useState(training.exercises[0].sets);
+
   const [isResting, setIsResting] = useState(false);
 
   const indexCurrentExercise = training.exercises.findIndex(
     (ex) => ex.completedSets !== ex.sets.length,
   );
+
+  const restTime =
+    training.exercises[indexCurrentExercise].restTime === 0
+      ? 90
+      : training.exercises[indexCurrentExercise].restTime;
+
+  const [timeLeft, setTimeLeft] = useState(restTime);
 
   const totalSets = training.exercises.reduce(
     (sum, ex) => sum + ex.sets.length,
@@ -45,20 +54,35 @@ export const ActiveTrainingContent: FC<{
         }
         return ex;
       });
-
-      // Если все подходы текущего упражнения выполнены, переходим к следующему
       const currentEx = updatedExercises[indexCurrentExercise];
       if (currentEx.completedSets >= currentEx.sets.length) {
+        setPrevExercise(currentEx.sets);
         setIsResting(true);
-        return {
+        open();
+
+        const returnValue = {
           ...prev,
           exercises: updatedExercises,
         };
+
+        const qwe = returnValue.exercises.findIndex(
+          (ex) => ex.completedSets !== ex.sets.length,
+        );
+
+        if (qwe === -1) {
+          finishTraining();
+        }
+
+        return returnValue;
       }
+      setPrevExercise([currentEx.sets[currentEx.completedSets - 1]]);
+      open();
 
-      // Начинаем отдых
-      setIsResting(true);
-
+      if (isResting) {
+        setTimeLeft(restTime);
+      } else {
+        setIsResting(true);
+      }
       return {
         ...prev,
         exercises: updatedExercises,
@@ -66,9 +90,13 @@ export const ActiveTrainingContent: FC<{
     });
   };
 
-  // Функция для завершения тренировки
   const finishTraining = () => {
-    navigate(ROUTES.HOME);
+    navigate(ROUTES.TEST);
+  };
+
+  const openChange = () => {
+    setPrevExercise(training.exercises[indexCurrentExercise].sets);
+    open();
   };
 
   useEffect(() => {
@@ -101,14 +129,14 @@ export const ActiveTrainingContent: FC<{
               <CurrentExercise
                 exercise={training.exercises[indexCurrentExercise]}
                 setTraining={setTraining}
-                open={open}
+                open={openChange}
               />
             )}
             {isResting && (
               <RestTimer
-                currentRestTime={
-                  training.exercises[indexCurrentExercise].restTime
-                }
+                setTimeLeft={setTimeLeft}
+                timeLeft={timeLeft}
+                restTime={restTime}
                 setIsResting={setIsResting}
                 isResting={isResting}
               />
@@ -157,10 +185,12 @@ export const ActiveTrainingContent: FC<{
           </div>
         </div>
       </div>
-      <ChangeModal
-        currentExercise={training.exercises[indexCurrentExercise]}
+      <NotedWeightModal
         close={close}
+        currentExercise={training.exercises[indexCurrentExercise]}
+        initialData={prevExercise}
         isOpen={isOpen}
+        setTraining={setTraining}
       />
     </div>
   );
