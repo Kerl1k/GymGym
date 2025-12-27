@@ -2,14 +2,8 @@ import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/shared/ui/kit/select";
 import { Textarea } from "@/shared/ui/kit/Textarea";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import {
   XIcon,
   PlusIcon,
@@ -26,6 +20,7 @@ import styles from "./training-create.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
 import { useChangeTraining } from "@/entities/training/use-training-change";
+import { useOpen } from "@/shared/lib/useOpen";
 
 type TrainingCreateProps = {
   close: () => void;
@@ -45,6 +40,8 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     useExercisesFetchList({});
   const { create, isPending } = useCreateTraining();
   const { change } = useChangeTraining();
+
+  const { close: closeModal, isOpen, open } = useOpen();
 
   const [form, setForm] = useState<ApiSchemas["Training"]>({
     name: "",
@@ -310,34 +307,24 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                           {isLoading ? (
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
                           ) : (
-                            <Select
-                              defaultValue="empty"
-                              value={exercise.name}
-                              onValueChange={(value) =>
-                                handleExerciseSelect(index, value)
-                              }
+                            <Button
+                              onClick={open}
+                              variant="outline"
+                              className={styles.input}
                             >
-                              <SelectTrigger className={styles.input}>
-                                <SelectValue defaultValue={"empty"} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={exercise.name}>
-                                  <div className="flex items-center justify-between">
-                                    <span>{exercise.name}</span>
-                                  </div>
-                                </SelectItem>
-                                {exercisesList.map((ex) => (
-                                  <SelectItem key={ex.id} value={ex.id}>
-                                    <div className="flex items-center justify-between">
-                                      <span>{ex.name}</span>
-                                    </div>
-                                  </SelectItem>
-                                )) || "Нет упражнений"}
-                              </SelectContent>
-                            </Select>
+                              {exercise.name || "Выбрать упражнение"}
+                            </Button>
                           )}
                         </div>
-
+                        <ExerciseSelectModal
+                          exercises={exercisesList}
+                          onSelect={(exerciseId) =>
+                            handleExerciseSelect(index, exerciseId)
+                          }
+                          close={closeModal}
+                          isOpen={isOpen}
+                          isLoading={isLoading}
+                        />
                         {/* Примечания к упражнению */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">

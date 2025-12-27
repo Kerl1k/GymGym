@@ -8,13 +8,11 @@ import {
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/training-list-layout";
-import { TrainingItem } from "./compose/training-item";
+import { TrainingItem } from "./ui/training-item";
 import { useTrainingsFilters } from "../../entities/training/use-training-filters";
 import { useTrainingList } from "../../entities/training/use-training-fetch";
 import { useDebouncedValue } from "@/shared/lib/react";
-import { ExercisesListLayoutFilters } from "./ui/training-filter";
-import { TrainingSortSelect } from "../../entities/training/use-training-sort";
-import { SearchInput } from "@/shared/ui/kit/search";
+import { TrainingFilter } from "./ui/training-filter";
 
 const TrainingPage = () => {
   const { close, isOpen, open } = useOpen();
@@ -25,32 +23,11 @@ const TrainingPage = () => {
     search: useDebouncedValue(trainingsFilters.search, 300),
   });
 
-  const itemsSort = [
-    { value: "createdAt", label: "По дате создания" },
-    { value: "updatedAt", label: "По дате обновления" },
-    { value: "lastOpenedAt", label: "По дате открытия" },
-    { value: "name", label: "По имени" },
-  ];
-
   return (
     <div className="container mx-auto p-4 sm:p-6 animate-fade-in">
       <ExercisesListLayout
         filters={
-          <ExercisesListLayoutFilters
-            sort={
-              <TrainingSortSelect
-                value={trainingsFilters.sort}
-                onValueChange={trainingsFilters.setSort}
-                items={itemsSort}
-              />
-            }
-            filters={
-              <SearchInput
-                value={trainingsFilters.search}
-                onChange={trainingsFilters.setSearch}
-                placeholder="Поиск тренировок..."
-              />
-            }
+          <TrainingFilter
             actions={
               <div className="flex gap-2">
                 <StarIcon className="w-5 h-5 text-yellow-500" />

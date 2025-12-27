@@ -22,7 +22,7 @@ import { PenIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
-import { TrainingCreate } from "../ui/training-create/training-create";
+import { TrainingCreate } from "./training-create/training-create";
 import { useState } from "react";
 
 export function TrainingItem({

@@ -23,17 +23,6 @@ type Props = {
   exerciseIndex: number;
 };
 
-interface TrainingSet {
-  setId: string;
-  exerciseId: string;
-  setNumber: number;
-  weight: number;
-  reps: number;
-  restTime: number;
-  completed?: boolean;
-  completedAt?: string;
-  notes: string;
-}
 const Approach: FC<Props> = ({
   exercise,
   activeTraining,
@@ -43,7 +32,9 @@ const Approach: FC<Props> = ({
   const handleSetChange = (
     exerciseIndex: number,
     setIndex: number,
-    field: keyof TrainingSet,
+    field:
+      | keyof ApiSchemas["ActiveTraining"]["exercises"][0]
+      | keyof ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][0],
     value: number | string,
   ) => {
     if (!activeTraining) return;
@@ -73,17 +64,17 @@ const Approach: FC<Props> = ({
 
       const newExercises = [...prev.exercises];
 
-      //   newExercises[exerciseIndex] = {
-      //     ...exercise,
-      //     sets: [
-      //       ...exercise.sets,
-      //       {
-      //         id: crypto.randomUUID(),
-      //         weight: 0,
-      //         repeatCount: 10,
-      //       },
-      //     ],
-      //   };
+      newExercises[exerciseIndex] = {
+        ...exercise,
+        sets: [
+          ...exercise.sets,
+          {
+            id: Date.now(),
+            weight: 0,
+            repeatCount: 0,
+          },
+        ],
+      };
 
       return {
         ...prev,
@@ -116,7 +107,7 @@ const Approach: FC<Props> = ({
 
       return {
         ...prev,
-        exercises: newExercises, // Исправлено
+        exercises: newExercises,
         updatedAt: new Date().toISOString(),
       };
     });
@@ -132,7 +123,7 @@ const Approach: FC<Props> = ({
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
-      const newExercises = [...prev.exercises]; // Исправлено
+      const newExercises = [...prev.exercises];
       newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.map(
         (set) => ({
           ...set,
@@ -142,7 +133,7 @@ const Approach: FC<Props> = ({
 
       return {
         ...prev,
-        exercises: newExercises, // Исправлено
+        exercises: newExercises,
         updatedAt: new Date().toISOString(),
       };
     });
@@ -151,7 +142,6 @@ const Approach: FC<Props> = ({
   return (
     <div className={styles.setsSection}>
       {!exercise.useCustomSets ? (
-        // Режим одинаковых подходов
         <div className={styles.uniformSets}>
           <div className={styles.uniformFields}>
             <div className={styles.fieldGroup}>
@@ -221,7 +211,7 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.repeatCount || 60}
+                value={exercise.restTime || 60}
                 onChange={(e) =>
                   updateAllSets(
                     exerciseIndex,
@@ -236,15 +226,29 @@ const Approach: FC<Props> = ({
           </div>
         </div>
       ) : (
-        // Режим разных подходов
         <div className={styles.customSets}>
+          <div className={styles.fieldGroup}>
+            <Label className={styles.fieldLabel}>
+              <ClockIcon className={styles.fieldIcon} />
+              Отдых (сек)
+            </Label>
+            <Input
+              type="number"
+              value={exercise.restTime || 60}
+              onChange={(e) =>
+                updateAllSets(exerciseIndex, "restTime", Number(e.target.value))
+              }
+              className={styles.fieldInput}
+              min="0"
+            />
+          </div>
           <div className={styles.setsList}>
             {exercise.sets.map((set, setIndex) => (
               <div key={set.id} className={styles.setItem}>
                 <div className={styles.setHeader}>
                   <div className={styles.setNumber}>
                     <DumbbellIcon className={styles.setIcon} />
-                    <span>Подход {set.weight}</span>
+                    <span>Подход {setIndex + 1}</span>
                   </div>
                   <div className={styles.setActions}>
                     <Button
@@ -288,30 +292,12 @@ const Approach: FC<Props> = ({
                         handleSetChange(
                           exerciseIndex,
                           setIndex,
-                          "reps",
+                          "repeatCount",
                           Number(e.target.value),
                         )
                       }
                       className={styles.setInput}
                       min="1"
-                    />
-                  </div>
-
-                  <div className={styles.setField}>
-                    <Label className={styles.setFieldLabel}>Отдых (сек)</Label>
-                    <Input
-                      type="number"
-                      value={set.repeatCount}
-                      onChange={(e) =>
-                        handleSetChange(
-                          exerciseIndex,
-                          setIndex,
-                          "restTime",
-                          Number(e.target.value),
-                        )
-                      }
-                      className={styles.setInput}
-                      min="0"
                     />
                   </div>
                 </div>

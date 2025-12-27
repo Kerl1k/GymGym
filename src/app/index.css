@@ -132,11 +132,7 @@
   }
 
   .gradient-primary {
-    background: linear-gradient(
-      135deg,
-      var(--primary),
-      oklch(83.067% 0.16363 80.435)
-    );
+    background: linear-gradient(135deg, var(--primary), rgb(168, 124, 42));
   }
 
   .gradient-card {
@@ -225,7 +221,7 @@
     background: linear-gradient(
       135deg,
       var(--primary),
-      oklch(84.933% 0.16549 89.634)
+      oklch(92.252% 0.16019 108.029)
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;

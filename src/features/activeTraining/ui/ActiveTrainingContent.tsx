@@ -65,11 +65,11 @@ export const ActiveTrainingContent: FC<{
           exercises: updatedExercises,
         };
 
-        const qwe = returnValue.exercises.findIndex(
+        const nextIndex = returnValue.exercises.findIndex(
           (ex) => ex.completedSets !== ex.sets.length,
         );
 
-        if (qwe === -1) {
+        if (nextIndex === -1) {
           finishTraining();
         }
 

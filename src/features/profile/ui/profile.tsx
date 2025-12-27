@@ -162,77 +162,6 @@ export const Profile = () => {
 
         {/* Правая колонка */}
         <div className={styles.rightColumn}>
-          {/* Цели пользователя */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                <Target size={20} /> Мои цели
-              </h2>
-              <button className={styles.addGoalButton}>+ Добавить цель</button>
-            </div>
-
-            <div className={styles.goalsList}>
-              {userData.goals.map((goal, index) => (
-                <div key={index} className={styles.goalItem}>
-                  <div className={styles.goalCheckbox}>
-                    <input type="checkbox" id={`goal-${index}`} />
-                    <label htmlFor={`goal-${index}`}></label>
-                  </div>
-                  <span className={styles.goalText}>{goal}</span>
-                  <div className={styles.goalProgress}>
-                    <div className={styles.progressBar}>
-                      <div
-                        className={styles.progressFill}
-                        style={{ width: `${Math.random() * 100}%` }}
-                      />
-                    </div>
-                    <span className={styles.progressText}>
-                      {Math.floor(Math.random() * 100)}%
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Будущие избранные тренировки */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                <Award size={20} /> Избранные тренировки
-              </h2>
-            </div>
-
-            <div className={styles.workoutsList}>
-              {workouts
-                .filter((w: any) => w.favorite)
-                .map((workout: any) => (
-                  <div key={workout.id} className={styles.workoutCard}>
-                    <div className={styles.workoutHeader}>
-                      <h3 className={styles.workoutName}>{workout.name}</h3>
-                      <button className={styles.workoutFavorite}>
-                        <Star size={16} fill="currentColor" />
-                      </button>
-                    </div>
-                    <div className={styles.workoutExercises}>
-                      {workout.exercises.map((exercise: any) => (
-                        <span
-                          key={exercise.id}
-                          className={styles.workoutExercise}
-                        >
-                          {exercise.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button className={styles.startWorkoutButton}>
-                      Начать тренировку
-                    </button>
-                  </div>
-                ))}
-            </div>
-          </section>
-
-          {/* Статистика прогресса */}
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
@@ -268,6 +197,42 @@ export const Profile = () => {
                   <span>Дек</span>
                 </div>
               </div>
+            </div>
+          </section>
+          {/* Будущие избранные тренировки */}
+          <section className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <h2 className={styles.sectionTitle}>
+                <Award size={20} /> Избранные тренировки
+              </h2>
+            </div>
+
+            <div className={styles.workoutsList}>
+              {workouts
+                .filter((w: any) => w.favorite)
+                .map((workout: any) => (
+                  <div key={workout.id} className={styles.workoutCard}>
+                    <div className={styles.workoutHeader}>
+                      <h3 className={styles.workoutName}>{workout.name}</h3>
+                      <button className={styles.workoutFavorite}>
+                        <Star size={16} fill="currentColor" />
+                      </button>
+                    </div>
+                    <div className={styles.workoutExercises}>
+                      {workout.exercises.map((exercise: any) => (
+                        <span
+                          key={exercise.id}
+                          className={styles.workoutExercise}
+                        >
+                          {exercise.name}
+                        </span>
+                      ))}
+                    </div>
+                    <button className={styles.startWorkoutButton}>
+                      Начать тренировку
+                    </button>
+                  </div>
+                ))}
             </div>
           </section>
         </div>

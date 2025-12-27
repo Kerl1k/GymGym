@@ -1,12 +1,6 @@
 .exercisesListItem {
-  cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-color: rgba(59, 130, 246, 0.5);
-  }
 
   &.selected {
     border-color: #3b82f6;

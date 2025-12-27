@@ -25,7 +25,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
         <Link to={ROUTES.HOME}>
           <div className="text-2xl font-bold text-gradient animate-fade-in">
-            GymGym
+            🎄 Gym Note 🎄
           </div>
         </Link>
         <nav className="flex items-center gap-1 sm:gap-2 flex-wrap">

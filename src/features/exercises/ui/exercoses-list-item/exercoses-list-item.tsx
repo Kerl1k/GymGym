@@ -8,7 +8,6 @@ import { Badge } from "@/shared/ui/kit/badge";
 import { Card, CardContent } from "@/shared/ui/kit/card";
 import {
   MoreHorizontal,
-  Play,
   Dumbbell,
   Heart,
   Activity,
@@ -96,18 +95,15 @@ export function ExercisesListItem({
 
                 <p className="m-2">{exercise.name}</p>
 
-                {exercise.description && (
-                  <p className={styles.description}>{exercise.description}</p>
-                )}
-
-                <div className={styles.infoContainer}>
-                  {exercise.videoUrl && (
-                    <div className={styles.videoInfo}>
-                      <Play className={styles.videoIcon} />
-                      <span>Есть видео</span>
+                <p className={styles.description}>
+                  {exercise.description && (
+                    <div title={exercise.description}>
+                      {exercise.description}
                     </div>
                   )}
+                </p>
 
+                <div className={styles.infoContainer}>
                   {exercise.createdAt && (
                     <div className={styles.dateInfo}>
                       Добавлено:{" "}
