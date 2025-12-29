@@ -28,7 +28,7 @@ export const ActiveTrainingContent: FC<{
 
   const indexCurrentExercise = training.exercises.findIndex((ex) => {
     const doneSetsCount = ex.sets.filter((set) => set.done).length;
-    console.log(doneSetsCount, ex.sets.length);
+
     return doneSetsCount !== ex.sets.length;
   });
 
