@@ -28,7 +28,7 @@ type TrainingCreateProps = {
   training?: ApiSchemas["Training"];
 };
 
-type ExerciseForm = ApiSchemas["TrainingCreateBody"]["exerciseTypes"][0];
+type ExerciseForm = ApiSchemas["ExerciseType"];
 
 export const TrainingCreate: FC<TrainingCreateProps> = ({
   close,
@@ -71,6 +71,10 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     }));
   };
 
+  const getExerciseById = (exerciseId: string) => {
+    return exercisesList.find((ex) => ex.id === exerciseId);
+  };
+
   const handleExerciseSelect = (index: number, exerciseId: string) => {
     const selectedExercise = exercisesList.find((ex) => ex.id === exerciseId);
     if (selectedExercise) {
@@ -85,11 +89,6 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
         ...prev.exerciseTypes,
         {
           id: Date.now().toString(),
-          name: "",
-          description: "",
-          favorite: false,
-          muscleGroups: [],
-          restTime: 60,
         },
       ],
     }));
@@ -239,9 +238,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             <div className={styles.exerciseTitle}>
                               Упражнение {index + 1}
                             </div>
-                            {exercise.name && (
+                            {getExerciseById(exercise.id)?.name && (
                               <div className={styles.exerciseName}>
-                                {exercise.name}
+                                {getExerciseById(exercise.id)?.name}
                               </div>
                             )}
                           </div>
@@ -303,7 +302,8 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                               variant="outline"
                               className={styles.input}
                             >
-                              {exercise.name || "Выбрать упражнение"}
+                              {getExerciseById(exercise.id)?.name ||
+                                "Выбрать упражнение"}
                             </Button>
                           )}
                         </div>
@@ -322,7 +322,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             Примечания
                           </Label>
                           <Textarea
-                            value={exercise.description}
+                            value={
+                              getExerciseById(exercise.id)?.description || ""
+                            }
                             readOnly={true}
                             className="h-16 text-sm"
                           />

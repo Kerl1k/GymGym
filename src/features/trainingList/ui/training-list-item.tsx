@@ -35,7 +35,7 @@ export function ExercisessListItem({
           </Link>
         </Button>
         <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-          {training.exercises.length} упражнений
+          {training.exerciseTypes.length} упражнений
         </div>
       </div>
       <div className="flex items-center gap-2">

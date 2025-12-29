@@ -102,15 +102,6 @@ export function ExercisesListItem({
                     </div>
                   )}
                 </p>
-
-                <div className={styles.infoContainer}>
-                  {exercise.createdAt && (
-                    <div className={styles.dateInfo}>
-                      Добавлено:{" "}
-                      {new Date(exercise.createdAt).toLocaleDateString("ru-RU")}
-                    </div>
-                  )}
-                </div>
               </div>
 
               <div className={styles.actionsWrapper}>

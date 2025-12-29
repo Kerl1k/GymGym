@@ -35,9 +35,6 @@ const ExercisesPage = () => {
         <ExercisesListLayoutContent
           isEmpty={exercisesQuery.exercises.length === 0}
           isPending={exercisesQuery.isPending}
-          isPendingNext={exercisesQuery.isFetchingNextPage}
-          cursorRef={exercisesQuery.cursorRef}
-          hasCursor={exercisesQuery.hasNextPage}
           renderList={() =>
             exercisesQuery.exercises.map((exercises) => (
               <ExerciseItem key={exercises.id} exercises={exercises} />
