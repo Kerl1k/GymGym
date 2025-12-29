@@ -1,7 +1,7 @@
 import { rqClient } from "@/entities/instance";
 
-export function useTrainingFetch() {
-  const { data, isPending } = rqClient.useQuery("get", "/active-trainings", {
+export function useActiveTrainingFetch() {
+  const { data, isPending } = rqClient.useQuery("get", "/api/active-training", {
     params: {},
   });
 
@@ -12,10 +12,10 @@ export function useTrainingFetch() {
     };
   }
 
-  if (!data.list[0]) return { data: null, isLoading: isPending };
+  if (!data) return { data: null, isLoading: isPending };
 
   return {
-    data: data.list[0],
+    data: data,
     isLoading: isPending,
   };
 }

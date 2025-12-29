@@ -23,7 +23,7 @@ schemas:
         example: 10
 
   # Схема упражнения
-  Exercise:
+  ExerciseType:
     type: object
     required:
       - id
@@ -92,7 +92,7 @@ schemas:
       exercises:
         type: array
         items:
-          $ref: "#/schemas/Exercise"
+          $ref: "#/schemas/ExerciseType"
 
   # Для создания новой активной тренировки
   CreateActiveTraining:
@@ -107,7 +107,7 @@ schemas:
       exercises:
         type: array
         items:
-          $ref: "#/schemas/Exercise"
+          $ref: "#/schemas/ExerciseType"
 
   # Для обновления активной тренировки
   UpdateActiveTraining:
@@ -119,7 +119,7 @@ schemas:
       exercises:
         type: array
         items:
-          $ref: "#/schemas/Exercise"
+          $ref: "#/schemas/ExerciseType"
 
   # Для ответа со списком активных тренировок
   ActiveTrainingsList:
@@ -178,7 +178,7 @@ schemas:
       exercises:
         type: array
         items:
-          $ref: "#/schemas/Exercise"
+          $ref: "#/schemas/ExerciseType"
 
 # Endpoints
 

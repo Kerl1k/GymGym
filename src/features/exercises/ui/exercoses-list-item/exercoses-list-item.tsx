@@ -20,7 +20,7 @@ import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
 
 interface ExercisesListItemProps {
-  exercise: ApiSchemas["Exercise"];
+  exercise: ApiSchemas["ExerciseType"];
   rightActions?: React.ReactNode;
   menuActions?: React.ReactNode;
   onClick?: () => void;

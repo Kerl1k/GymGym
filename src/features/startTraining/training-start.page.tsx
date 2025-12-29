@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { href, useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent } from "@/shared/ui/kit/card";
 import { Label } from "@/shared/ui/kit/label";
@@ -13,62 +13,20 @@ import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import Approach from "./approach";
-import { useTrainingList } from "@/entities/training/use-training-fetch";
+import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 
 const TrainingStartPage = () => {
-  const { trainingId } = useParams<{ trainingId: string }>();
+  const { data } = useActiveTrainingFetch();
 
-  const { trainings: training } = useTrainingList({});
+  const { change } = useUpdateActiveTraining();
 
   const [activeTraining, setActiveTraining] = useState<
     ApiSchemas["ActiveTraining"] | null
-  >(null);
+  >(data);
 
   const { isPending: isUpdating } = useUpdateActiveTraining();
 
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (training && training.length > 0 && !activeTraining) {
-      const trainingData = training[0];
-      const exercises = trainingData.exercises || [];
-
-      const initializedExercises = exercises.map(
-        (exercise: {
-          exerciseId: string;
-          name: string;
-          type: string[];
-          notes: string;
-        }) => {
-          const defaultSets = Array.from({ length: 3 }, (_, i) => ({
-            id: i + 1,
-            weight: 0,
-            repeatCount: 10,
-          }));
-
-          return {
-            id: crypto.randomUUID(),
-            name: exercise.name,
-            favorite: false,
-            description: exercise.notes || "",
-            muscleGroups: exercise.type || ["strength"],
-            restTime: 60,
-            useCustomSets: false,
-            completedSets: 0,
-            sets: defaultSets,
-          };
-        },
-      );
-
-      const newActiveTraining: ApiSchemas["ActiveTraining"] = {
-        id: crypto.randomUUID(),
-        dateStart: new Date().toISOString(),
-        exercises: initializedExercises,
-      };
-
-      setActiveTraining(newActiveTraining);
-    }
-  }, [training, activeTraining]);
 
   const toggleCustomSets = (exerciseIndex: number) => {
     if (!activeTraining) return;
@@ -90,6 +48,7 @@ const TrainingStartPage = () => {
             weight: firstSet.weight,
             reps: firstSet.repeatCount,
             restTime: firstSet.repeatCount,
+            done: false,
           })),
         };
       } else {
@@ -102,7 +61,6 @@ const TrainingStartPage = () => {
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -116,7 +74,6 @@ const TrainingStartPage = () => {
       return {
         ...prev,
         exercises: prev.exercises.filter((_, i) => i !== exerciseIndex),
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -138,7 +95,6 @@ const TrainingStartPage = () => {
         return {
           ...prev,
           exercises: newExercises,
-          updatedAt: new Date().toISOString(),
         };
       });
     }
@@ -153,17 +109,14 @@ const TrainingStartPage = () => {
       const exerciseToDuplicate = prev.exercises[index];
       const newExercise = {
         ...exerciseToDuplicate,
-        id: crypto.randomUUID(),
         sets: exerciseToDuplicate.sets.map((set) => ({
           ...set,
-          setId: crypto.randomUUID(),
         })),
       };
 
       return {
         ...prev,
         exercises: [...prev.exercises, newExercise],
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -192,28 +145,29 @@ const TrainingStartPage = () => {
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
 
   const handleSave = async () => {
-    if (!activeTraining || !trainingId) return;
+    if (!activeTraining) return;
 
-    // const trainingToSave: ApiSchemas["CreateActiveTraining"] = {
-    //   exercises: activeTraining.exercises.map((ex) => ({
-    //     ...ex,
-    //   })),
-    // };
+    change(activeTraining);
 
-    navigate(href(ROUTES.ACTIVE_TRAINING, { trainingId: activeTraining.id }));
+    navigate(ROUTES.ACTIVE_TRAINING);
   };
+
+  useEffect(() => {
+    if (data && !activeTraining) {
+      setActiveTraining(data);
+    }
+  }, [data, activeTraining]);
 
   if (!activeTraining) {
     return <div className={styles.loading}>Загрузка тренировки...</div>;
   }
 
-  if (!training) {
+  if (!data) {
     return <div className={styles.notFound}>Тренировка не найдена</div>;
   }
 
@@ -239,7 +193,7 @@ const TrainingStartPage = () => {
       {/* Упражнения */}
       <div className={styles.exercisesList}>
         {activeTraining.exercises.map((exercise, exerciseIndex) => (
-          <Card key={exercise.id} className={styles.exerciseCard}>
+          <Card key={exerciseIndex} className={styles.exerciseCard}>
             <CardContent className={styles.exerciseContent}>
               {/* Заголовок упражнения */}
               <div className={styles.exerciseHeader}>
@@ -250,7 +204,7 @@ const TrainingStartPage = () => {
                   <div>
                     <h3 className={styles.exerciseName}>{exercise.name}</h3>
                     <div className={styles.exerciseTags}>
-                      {exercise.muscleGroups.slice(0, 3).map((group, i) => (
+                      {exercise.muscleGroups?.map((group, i) => (
                         <Badge key={i} variant="outline" className={styles.tag}>
                           {group}
                         </Badge>
@@ -306,6 +260,7 @@ const TrainingStartPage = () => {
               {/* Переключатель разных весов */}
               <div className={styles.customSetsToggle}>
                 <div className={styles.toggleContainer}>
+                  data
                   <Label
                     htmlFor={`custom-${exerciseIndex}`}
                     className={styles.toggleLabel}
@@ -314,14 +269,12 @@ const TrainingStartPage = () => {
                   </Label>
                   <Switch
                     id={`custom-${exerciseIndex}`}
-                    checked={exercise.useCustomSets}
+                    checked={false}
                     onCheckedChange={() => toggleCustomSets(exerciseIndex)}
                   />
                 </div>
                 <p className={styles.toggleDescription}>
-                  {exercise.useCustomSets
-                    ? "Каждый подход настраивается отдельно"
-                    : "Все подходы с одинаковыми параметрами"}
+                  {"Каждый подход настраивается отдельно"}
                 </p>
               </div>
               <Approach

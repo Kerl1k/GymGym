@@ -1,8 +1,6 @@
 import { ApiSchemas } from "@/shared/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
-import { useUpdateFavorite } from "../../../entities/exercises/use-update-favorite";
 import { ExercisesListItem } from "./exercoses-list-item/exercoses-list-item";
-import { ExercisesFavoriteToggle } from "../../../shared/ui/kit/favorite-toggle";
 import { PenIcon, TrashIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
@@ -11,23 +9,21 @@ import { ExercisesCreate } from "./exercisesCreate";
 export function ExerciseItem({
   exercises,
 }: {
-  exercises: ApiSchemas["Exercise"];
+  exercises: ApiSchemas["ExerciseType"];
 }) {
   const { open, close, isOpen } = useOpen();
-
-  const updateFavorite = useUpdateFavorite();
 
   return (
     <>
       <ExercisesListItem
         key={exercises.id}
         exercise={exercises}
-        rightActions={
-          <ExercisesFavoriteToggle
-            isFavorite={updateFavorite.isOptimisticFavorite(exercises)}
-            onToggle={() => updateFavorite.toggle(exercises)}
-          />
-        }
+        // rightActions={
+        //   <ExercisesFavoriteToggle
+        //     isFavorite={updateFavorite.isOptimisticFavorite(exercises)}
+        //     onToggle={() => updateFavorite.toggle(exercises)}
+        //   />
+        // }
         menuActions={
           <>
             <DropdownMenuItem onClick={() => open()} className="gap-2">

@@ -138,8 +138,8 @@ function generateVideoUrl(): string {
 }
 
 // Генерация случайных упражнений
-function generateRandomExercises(count: number): ApiSchemas["Exercise"][] {
-  const result: ApiSchemas["Exercise"][] = [];
+function generateRandomExercises(count: number): ApiSchemas["ExerciseType"][] {
+  const result: ApiSchemas["ExerciseType"][] = [];
 
   for (let i = 0; i < count; i++) {
     const createdAt = randomDate();
@@ -169,7 +169,7 @@ function generateRandomExercises(count: number): ApiSchemas["Exercise"][] {
 }
 
 // Создаем случайные упражнения
-const exercises: ApiSchemas["Exercise"][] = generateRandomExercises(10);
+const exercises: ApiSchemas["ExerciseType"][] = generateRandomExercises(10);
 
 export const exercisesHandlers = [
   http.get("/exercises", async (ctx) => {
@@ -239,7 +239,7 @@ export const exercisesHandlers = [
     const data = (await ctx.request.json()) as ApiSchemas["CreateExercise"];
     const now = new Date().toISOString();
 
-    const exercise: ApiSchemas["Exercise"] = {
+    const exercise: ApiSchemas["ExerciseType"] = {
       id: crypto.randomUUID(),
       name: data.name,
       favorite: data.favorite || false,

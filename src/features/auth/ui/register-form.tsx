@@ -13,24 +13,18 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRegister } from "../../../entities/auth/use-register";
 
-const registerSchema = z
-  .object({
-    email: z
-      .string({
-        required_error: "Email обязателен",
-      })
-      .email("Неверный email"),
-    password: z
-      .string({
-        required_error: "Пароль обязателен",
-      })
-      .min(6, "Пароль должен быть не менее 6 символов"),
-    confirmPassword: z.string().optional(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    path: ["confirmPassword"],
-    message: "Пароли не совпадают",
-  });
+const registerSchema = z.object({
+  email: z
+    .string({
+      required_error: "Email обязателен",
+    })
+    .email("Неверный email"),
+  password: z
+    .string({
+      required_error: "Пароль обязателен",
+    })
+    .min(6, "Пароль должен быть не менее 6 символов"),
+});
 
 export function RegisterForm() {
   const form = useForm({
@@ -66,20 +60,6 @@ export function RegisterForm() {
               <FormLabel>Пароль</FormLabel>
               <FormControl>
                 <Input placeholder="******" type="password" {...field} />
-              </FormControl>
-
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Подтвердите пароль</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
               </FormControl>
 
               <FormMessage />

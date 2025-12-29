@@ -21,16 +21,14 @@ import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
 import { useChangeTraining } from "@/entities/training/use-training-change";
 import { useOpen } from "@/shared/lib/useOpen";
+import { Switch } from "@/shared/ui/kit/switch";
 
 type TrainingCreateProps = {
   close: () => void;
   training?: ApiSchemas["Training"];
 };
 
-type ExerciseForm = Pick<
-  ApiSchemas["Training"]["exercises"][0],
-  "id" | "name" | "notes" | "type"
->;
+type ExerciseForm = ApiSchemas["TrainingCreateBody"]["exerciseTypes"][0];
 
 export const TrainingCreate: FC<TrainingCreateProps> = ({
   close,
@@ -43,18 +41,11 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
   const { close: closeModal, isOpen, open } = useOpen();
 
-  const [form, setForm] = useState<ApiSchemas["Training"]>({
+  const [form, setForm] = useState<ApiSchemas["TrainingCreateBody"]>({
     name: "",
-    id: Date.now().toString(),
-    exercises: [
-      {
-        id: "1",
-        name: "",
-        type: ["strength"],
-        notes: "",
-        exerciseId: "",
-      },
-    ],
+    description: "",
+    favorite: false,
+    exerciseTypes: [],
   });
 
   const handleFormChange = (
@@ -70,11 +61,11 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const handleExerciseChange = (
     index: number,
     field: keyof ExerciseForm,
-    value: string | boolean | number,
+    value: string,
   ) => {
     setForm((prev) => ({
       ...prev,
-      exercises: prev.exercises.map((exercise, i) =>
+      exerciseTypes: prev.exerciseTypes.map((exercise, i) =>
         i === index ? { ...exercise, [field]: value } : exercise,
       ),
     }));
@@ -83,56 +74,56 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const handleExerciseSelect = (index: number, exerciseId: string) => {
     const selectedExercise = exercisesList.find((ex) => ex.id === exerciseId);
     if (selectedExercise) {
-      handleExerciseChange(index, "name", selectedExercise.name);
+      handleExerciseChange(index, "id", selectedExercise.id);
     }
   };
 
   const addExercise = () => {
     setForm((prev) => ({
       ...prev,
-      exercises: [
-        ...prev.exercises,
+      exerciseTypes: [
+        ...prev.exerciseTypes,
         {
           id: Date.now().toString(),
-          exerciseId: "",
           name: "",
-          type: ["strength"],
-          notes: "",
+          description: "",
+          favorite: false,
+          muscleGroups: [],
+          restTime: 60,
         },
       ],
     }));
   };
 
   const removeExercise = (index: number) => {
-    if (form.exercises.length > 1) {
+    if (form.exerciseTypes.length > 1) {
       setForm((prev) => ({
         ...prev,
-        exercises: prev.exercises.filter((_, i) => i !== index),
+        exerciseTypes: prev.exerciseTypes.filter((_, i) => i !== index),
       }));
     }
   };
 
   const moveExercise = (index: number, direction: "up" | "down") => {
     const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex >= 0 && newIndex < form.exercises.length) {
-      const newExercises = [...form.exercises];
+    if (newIndex >= 0 && newIndex < form.exerciseTypes.length) {
+      const newExercises = [...form.exerciseTypes];
       [newExercises[index], newExercises[newIndex]] = [
         newExercises[newIndex],
         newExercises[index],
       ];
-      setForm((prev) => ({ ...prev, exercises: newExercises }));
+      setForm((prev) => ({ ...prev, exerciseTypes: newExercises }));
     }
   };
 
   const duplicateExercise = (index: number) => {
-    const exerciseToDuplicate = form.exercises[index];
+    const exerciseToDuplicate = form.exerciseTypes[index];
     setForm((prev) => ({
       ...prev,
-      exercises: [
-        ...prev.exercises,
+      exerciseTypes: [
+        ...prev.exerciseTypes,
         {
           ...exerciseToDuplicate,
-          id: Date.now().toString(),
         },
       ],
     }));
@@ -145,8 +136,8 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   };
 
   const changeTraining = () => {
-    if (!form.name || isPending) return;
-    change(training!.id, form);
+    if (!form.name || isPending || !training) return;
+    change({ id: training.id, ...form });
     close();
   };
 
@@ -206,7 +197,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                 <Textarea
                   id="description"
                   placeholder="Опишите цели, особенности, рекомендации..."
-                  value={""}
+                  value={form.description}
                   onChange={(e) =>
                     handleFormChange("description", e.target.value)
                   }
@@ -221,7 +212,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               <div className={styles.exercisesHeader}>
                 <h3 className={styles.sectionTitle}>
                   <LayersIcon className={styles.exercisesIcon} />
-                  Упражнения в тренировке ({form.exercises.length})
+                  Упражнения в тренировке ({form.exerciseTypes.length})
                 </h3>
                 <Button
                   onClick={addExercise}
@@ -234,7 +225,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               </div>
 
               <div className={styles.exercisesList}>
-                {form.exercises.map((exercise, index) => (
+                {form.exerciseTypes.map((exercise, index) => (
                   <Card key={exercise.id} className={styles.exerciseCard}>
                     <CardContent className={styles.exerciseCardContent}>
                       <div className={styles.exerciseHeader}>
@@ -270,7 +261,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             size="sm"
                             variant="ghost"
                             onClick={() => moveExercise(index, "down")}
-                            disabled={index === form.exercises.length - 1}
+                            disabled={index === form.exerciseTypes.length - 1}
                             className={styles.actionButton}
                           >
                             <ArrowDownIcon className={styles.actionIcon} />
@@ -287,7 +278,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             size="sm"
                             variant="ghost"
                             onClick={() => removeExercise(index)}
-                            disabled={form.exercises.length <= 1}
+                            disabled={form.exerciseTypes.length <= 1}
                             className={cn(
                               styles.actionButton,
                               "text-red-500 hover:text-red-600 hover:bg-red-50",
@@ -331,14 +322,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             Примечания
                           </Label>
                           <Textarea
-                            value={exercise.notes}
-                            onChange={(e) =>
-                              handleExerciseChange(
-                                index,
-                                "notes",
-                                e.target.value,
-                              )
-                            }
+                            value={exercise.description}
                             readOnly={true}
                             className="h-16 text-sm"
                           />
@@ -366,13 +350,13 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                     Тренировка появится в разделе "Избранное"
                   </p>
                 </div>
-                {/* <Switch
+                <Switch
                   id="favorite"
                   checked={form.favorite}
                   onCheckedChange={(checked) =>
                     handleFormChange("favorite", checked)
                   }
-                /> */}
+                />
               </div>
             </div>
           </div>

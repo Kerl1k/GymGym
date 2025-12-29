@@ -7,12 +7,6 @@ import { Card } from "@/shared/ui/kit/card";
 import { Plus, Minus, X, Dumbbell, Repeat, Save, Clock } from "lucide-react";
 import { FC, useState, useEffect, useRef } from "react";
 
-type SetData = {
-  id: number;
-  weight: number | null;
-  repeatCount: number | null;
-};
-
 type NotedWeightModalProps = {
   isOpen: boolean;
   currentExercise: ApiSchemas["ActiveTraining"]["exercises"][0];
@@ -20,7 +14,9 @@ type NotedWeightModalProps = {
   setTraining: React.Dispatch<
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
-  initialData?: SetData[] | SetData;
+  initialData?:
+    | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
+    | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
 };
 
 export const NotedWeightModal: FC<NotedWeightModalProps> = ({
@@ -30,9 +26,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   setTraining,
   initialData,
 }) => {
-  const [sets, setSets] = useState<SetData[]>([
-    { id: 0, weight: null, repeatCount: null },
-  ]);
+  const [sets, setSets] = useState<
+    ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
+  >([{ weight: 0, repeatCount: 0, done: false }]);
   const [isMultipleSets, setIsMultipleSets] = useState(true);
   const [restTime, setRestTime] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -43,7 +39,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         setSets(
           initialData.length > 0
             ? initialData
-            : [{ id: 0, weight: null, repeatCount: null }],
+            : [{ weight: 0, repeatCount: 0, done: false }],
         );
         setIsMultipleSets(true);
       } else {
@@ -51,7 +47,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         setIsMultipleSets(false);
       }
     } else {
-      setSets([{ id: 0, weight: null, repeatCount: null }]);
+      setSets([{ weight: 0, repeatCount: 0, done: false }]);
       setIsMultipleSets(true);
     }
 
@@ -69,7 +65,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
   const handleAddSet = () => {
     if (sets.length < 10) {
-      setSets([...sets, { id: 0, weight: null, repeatCount: null }]);
+      setSets([...sets, { weight: 0, repeatCount: 0, done: false }]);
     }
   };
 
@@ -82,7 +78,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
   const handleSetChange = (
     index: number,
-    field: keyof SetData,
+    field: keyof ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
     value: string,
   ) => {
     const newSets = [...sets];
@@ -91,14 +87,26 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     setSets(newSets);
   };
 
-  const handleIncrement = (index: number, field: keyof SetData) => {
+  const handleIncrement = (
+    index: number,
+    field: keyof Pick<
+      ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
+      "repeatCount" | "weight"
+    >,
+  ) => {
     const newSets = [...sets];
     const currentValue = newSets[index][field] || 0;
     newSets[index] = { ...newSets[index], [field]: currentValue + 1 };
     setSets(newSets);
   };
 
-  const handleDecrement = (index: number, field: keyof SetData) => {
+  const handleDecrement = (
+    index: number,
+    field: keyof Pick<
+      ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
+      "repeatCount" | "weight"
+    >,
+  ) => {
     const newSets = [...sets];
     const currentValue = newSets[index][field] || 0;
     if (currentValue > 0) {
@@ -138,16 +146,16 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     // Преобразуем SetData в формат TrainingSet
     const newSets =
       isMultipleSets || validSets.length > 1
-        ? validSets.map((set, index) => ({
-            id: set.id || index + 1,
+        ? validSets.map((set) => ({
             weight: set.weight || 0,
             repeatCount: set.repeatCount || 0,
+            done: set.done || false,
           }))
         : [
             {
-              id: validSets[0].id || 1,
               weight: validSets[0].weight || 0,
               repeatCount: validSets[0].repeatCount || 0,
+              done: validSets[0].done || false,
             },
           ];
 
@@ -161,9 +169,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
           const updatedSets = [...existingSets];
 
           // Обновляем или добавляем новые сеты
-          newSets.forEach((newSet) => {
+          newSets.forEach((newSet, index) => {
             const existingSetIndex = updatedSets.findIndex(
-              (s) => s.id === newSet.id,
+              (_, i) => i === index,
             );
             if (existingSetIndex >= 0) {
               // Если сет с таким id уже существует, обновляем его
@@ -514,7 +522,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
               variant="outline"
               onClick={() => {
                 // Очистить все поля
-                setSets([{ id: 0, weight: null, repeatCount: null }]);
+                setSets([{ weight: 0, repeatCount: 0, done: false }]);
               }}
               className="text-sm sm:text-base flex-1 sm:flex-none"
             >

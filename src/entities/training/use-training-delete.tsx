@@ -5,11 +5,11 @@ export function useDeleteTraining() {
   const queryClient = useQueryClient();
   const deleteTrainingMutation = rqClient.useMutation(
     "delete",
-    "/trainings/{trainingId}",
+    "/api/training/{id}",
     {
       onSettled: async () => {
         await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/trainings"),
+          rqClient.queryOptions("get", "/api/training"),
         );
       },
     },
@@ -18,10 +18,10 @@ export function useDeleteTraining() {
   return {
     deleteTraining: (trainingId: string) =>
       deleteTrainingMutation.mutate({
-        params: { path: { trainingId } },
+        params: { path: { id: trainingId } },
       }),
     getIsPending: (trainingId: string) =>
       deleteTrainingMutation.isPending &&
-      deleteTrainingMutation.variables?.params?.path?.trainingId === trainingId,
+      deleteTrainingMutation.variables?.params?.path?.id === trainingId,
   };
 }

@@ -1,8 +1,8 @@
-import { useTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
-  const { data } = useTrainingFetch();
+  const { data } = useActiveTrainingFetch();
 
   if (data === null) {
     return <>Идет загрузка тренировки</>;

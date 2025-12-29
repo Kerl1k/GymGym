@@ -39,7 +39,7 @@ export const useSession = createGStore(() => {
     if (session.exp < Date.now() / 1000) {
       if (!refreshTokenPromise) {
         refreshTokenPromise = publicFetchClient
-          .POST("/auth/refresh")
+          .POST("/api/auth/refresh")
           .then((r) => r.data?.accessToken ?? null)
           .then((newToken) => {
             if (newToken) {

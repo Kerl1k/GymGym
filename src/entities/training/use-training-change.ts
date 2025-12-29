@@ -7,21 +7,20 @@ export function useChangeTraining() {
   const queryClient = useQueryClient();
 
   const changeTrainingMutation = rqClient.useMutation(
-    "put",
-    "/trainings/{trainingId}",
+    "patch",
+    "/api/training",
     {
       onSettled: async () => {
         await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/trainings"),
+          rqClient.queryOptions("get", "/api/training"),
         );
       },
     },
   );
 
-  const change = (trainingId: string, data: ApiSchemas["CreateTraining"]) => {
+  const change = (data: ApiSchemas["TrainingUpdateBody"]) => {
     changeTrainingMutation.mutate({
       body: data,
-      params: { path: { trainingId } },
     });
   };
 

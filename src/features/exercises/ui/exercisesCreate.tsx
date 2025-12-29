@@ -14,20 +14,19 @@ import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
 
 type ExercisesCreateProps = {
   close: () => void;
-  exercises?: ApiSchemas["Exercise"];
+  exercises?: ApiSchemas["ExerciseType"];
 };
 
 export const ExercisesCreate: FC<ExercisesCreateProps> = ({
   close,
   exercises,
 }) => {
-  const [form, setForm] = useState<ApiSchemas["Exercise"]>({
-    id: "",
+  const [form, setForm] = useState<ApiSchemas["ExerciseTypeCreateBody"]>({
     name: "",
     muscleGroups: ["strength"],
     description: "",
-    videoUrl: "",
     favorite: false,
+    restTime: 60,
   });
 
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
@@ -74,8 +73,8 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
   };
 
   const changeExercises = () => {
-    if (!form.name || isPending) return;
-    change(exercises!.id, { ...form, muscleGroups: selectedMuscles });
+    if (!form.name || isPending || !exercises) return;
+    change({ ...form, id: exercises.id, muscleGroups: selectedMuscles });
     close();
   };
 
@@ -168,7 +167,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
             </div>
 
             <TogleAddFavorite
-              favorite={form.favorite}
+              favorite={form.favorite || false}
               handleChange={() => handleChange("favorite", !form.favorite)}
               discription="Добавляет упражнение в избранное"
             />

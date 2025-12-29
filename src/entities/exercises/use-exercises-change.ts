@@ -7,21 +7,20 @@ export function useChangeExercises() {
   const queryClient = useQueryClient();
 
   const changeExercisesMutation = rqClient.useMutation(
-    "put",
-    "/exercises/{exerciseId}",
+    "patch",
+    "/api/exercise-type",
     {
       onSettled: async () => {
         await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/exercises"),
+          rqClient.queryOptions("get", "/api/exercise-type"),
         );
       },
     },
   );
 
-  const change = (exercisesId: string, data: ApiSchemas["CreateExercise"]) => {
+  const change = (data: ApiSchemas["ExerciseTypeUpdateBody"]) => {
     changeExercisesMutation.mutate({
       body: data,
-      params: { path: { exerciseId: exercisesId } },
     });
   };
 

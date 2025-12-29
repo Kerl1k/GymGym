@@ -1,7 +1,7 @@
 import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
 import { CONFIG } from "@/shared/model/config";
-import { ApiPaths, ApiSchemas } from "../shared/schema";
+import { ApiPaths } from "../shared/schema";
 import { useSession } from "../shared/model/session";
 
 export const fetchClient = createFetchClient<ApiPaths>({
@@ -21,18 +21,7 @@ fetchClient.use({
     if (token) {
       request.headers.set("Authorization", `Bearer ${token}`);
     } else {
-      return new Response(
-        JSON.stringify({
-          code: "NOT_AUTHOIZED",
-          message: "You are not authorized to access this resource",
-        } as ApiSchemas["Error"]),
-        {
-          status: 401,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
+      return;
     }
   },
 });

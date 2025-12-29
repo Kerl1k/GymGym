@@ -11,10 +11,13 @@ import { SetTracker } from "../components/set-tracker";
 import { RestTimer } from "./RestTimer";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 import { NotedWeightModal } from "./NotedWeightModal";
+import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
 }> = ({ data }) => {
+  const { end } = useEndActiveTraining();
+
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
   const [training, setTraining] = useState(data);
@@ -23,9 +26,10 @@ export const ActiveTrainingContent: FC<{
 
   const [isResting, setIsResting] = useState(false);
 
-  const indexCurrentExercise = training.exercises.findIndex(
-    (ex) => ex.completedSets !== ex.sets.length,
-  );
+  const indexCurrentExercise = training.exercises.findIndex((ex) => {
+    const doneSetsCount = ex.sets.filter((set) => set.done).length;
+    return doneSetsCount !== ex.sets.length;
+  });
 
   const restTime =
     training.exercises[indexCurrentExercise].restTime === 0
@@ -39,23 +43,29 @@ export const ActiveTrainingContent: FC<{
     0,
   );
   const completedSets = training.exercises.reduce(
-    (sum, ex) => sum + ex.completedSets,
+    (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
     0,
   );
 
   const progress = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
   // // Функция для завершения подхода
-  const completeSet = (exerciseId: string) => {
+  const completeSet = () => {
     setTraining((prev) => {
-      const updatedExercises = prev.exercises.map((ex) => {
-        if (ex.id === exerciseId && ex.completedSets < ex.sets.length) {
-          return { ...ex, completedSets: ex.completedSets + 1 };
+      const updatedExercises = prev.exercises.map((ex, index) => {
+        if (index === indexCurrentExercise) {
+          // Count how many sets are actually done (have done: true)
+          const doneSetsCount = ex.sets.filter((set) => set.done).length;
+          return { ...ex, completedSets: doneSetsCount };
         }
         return ex;
       });
+
       const currentEx = updatedExercises[indexCurrentExercise];
-      if (currentEx.completedSets >= currentEx.sets.length) {
+
+      const currentExSets = currentEx.sets.filter((set) => !set.done).length;
+
+      if (currentExSets >= currentEx.sets.length) {
         setPrevExercise(currentEx.sets);
         setIsResting(true);
         open();
@@ -66,7 +76,7 @@ export const ActiveTrainingContent: FC<{
         };
 
         const nextIndex = returnValue.exercises.findIndex(
-          (ex) => ex.completedSets !== ex.sets.length,
+          (ex) => ex.sets.filter((set) => set.done).length !== ex.sets.length,
         );
 
         if (nextIndex === -1) {
@@ -75,7 +85,7 @@ export const ActiveTrainingContent: FC<{
 
         return returnValue;
       }
-      setPrevExercise([currentEx.sets[currentEx.completedSets - 1]]);
+      setPrevExercise([currentEx.sets[currentExSets - 1]]);
       open();
 
       if (isResting) {
@@ -91,6 +101,7 @@ export const ActiveTrainingContent: FC<{
   };
 
   const finishTraining = () => {
+    end();
     navigate(ROUTES.TEST);
   };
 
@@ -146,9 +157,7 @@ export const ActiveTrainingContent: FC<{
             </h3>
             <SetTracker
               exercise={training.exercises[indexCurrentExercise]}
-              onCompleteSet={() =>
-                completeSet(training.exercises[indexCurrentExercise].id)
-              }
+              onCompleteSet={completeSet}
             />
           </div>
           <div className="space-y-4 sm:space-y-6">
@@ -164,7 +173,7 @@ export const ActiveTrainingContent: FC<{
                   .slice(indexCurrentExercise + 1)
                   .map((exercise, index) => (
                     <div
-                      key={exercise.id}
+                      key={index}
                       className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-border bg-card"
                     >
                       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-muted-foreground">

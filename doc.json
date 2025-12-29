@@ -1,0 +1,1505 @@
+{
+  "openapi": "3.0.2",
+  "paths": {
+    "/api/auth/login": {
+      "post": {
+        "tags": ["auth"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthLoginBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensPair"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["InvalidCredentials"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "tags": ["auth"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRegisterBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensPair"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["AlreadyExists"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["auth"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthRefreshBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokensPair"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["Unauthorized"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "tags": ["auth"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["Unauthorized"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercise-type": {
+      "post": {
+        "tags": ["exercise-type"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseTypeCreateBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseType"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["exercise-type"],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExerciseType"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "pages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["limit", "page", "pages"]
+                    }
+                  },
+                  "required": ["content", "meta"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["exercise-type"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExerciseTypeUpdateBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseType"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercise-type/{id}": {
+      "get": {
+        "tags": ["exercise-type"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseType"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["exercise-type"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/training": {
+      "post": {
+        "tags": ["training"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingCreateBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["training"],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Training"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "pages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["limit", "page", "pages"]
+                    }
+                  },
+                  "required": ["content", "meta"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["training"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingUpdateBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/training/{id}": {
+      "get": {
+        "tags": ["training"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Training"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["training"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/active-training": {
+      "get": {
+        "tags": ["active-training"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveTraining"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/active-training/start": {
+      "post": {
+        "tags": ["active-training"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActiveTrainingStartBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveTraining"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["AlreadyExists"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/active-training/update": {
+      "patch": {
+        "tags": ["active-training"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateActiveTrainingBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActiveTraining"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/active-training/end": {
+      "post": {
+        "tags": ["active-training"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/training-history": {
+      "get": {
+        "tags": ["training-history"],
+        "parameters": [
+          {
+            "name": "filter",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TrainingHistory"
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "limit": {
+                          "type": "number"
+                        },
+                        "page": {
+                          "type": "number"
+                        },
+                        "pages": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["limit", "page", "pages"]
+                    }
+                  },
+                  "required": ["content", "meta"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["training-history"],
+        "parameters": [],
+        "requestBody": {
+          "description": "Body",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingHistoryUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "422",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/training-history/{id}": {
+      "get": {
+        "tags": ["training-history"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingHistory"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["training-history"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "enum": ["NotFound"]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "info": {
+    "title": "Auth API",
+    "version": "0.1.0"
+  },
+  "components": {
+    "schemas": {
+      "AuthLoginBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false,
+        "title": "AuthLoginBody"
+      },
+      "TokensPair": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": ["accessToken", "refreshToken"],
+        "title": "TokensPair"
+      },
+      "AuthRegisterBody": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false,
+        "title": "AuthRegisterBody"
+      },
+      "AuthRefreshBody": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": ["refreshToken"],
+        "additionalProperties": false,
+        "title": "AuthRefreshBody"
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "email"],
+        "title": "Profile"
+      },
+      "ExerciseTypeCreateBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "restTime": {
+            "type": "number"
+          },
+          "muscleGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false,
+        "title": "ExerciseTypeCreateBody"
+      },
+      "ExerciseType": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "restTime": {
+            "type": "number"
+          },
+          "muscleGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "favorite",
+          "description",
+          "restTime",
+          "muscleGroups"
+        ],
+        "title": "ExerciseType"
+      },
+      "ExerciseTypeUpdateBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "restTime": {
+            "type": "number"
+          },
+          "muscleGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false,
+        "title": "ExerciseTypeUpdateBody"
+      },
+      "TrainingCreateBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exerciseTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": ["id"]
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["name", "exerciseTypes"],
+        "title": "TrainingCreateBody"
+      },
+      "Training": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exerciseTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "favorite": {
+                  "type": "boolean"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "restTime": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "favorite",
+                "description",
+                "muscleGroups",
+                "restTime"
+              ]
+            }
+          }
+        },
+        "required": ["id", "name", "favorite", "description", "exerciseTypes"],
+        "title": "Training"
+      },
+      "TrainingUpdateBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exerciseTypes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                }
+              },
+              "required": ["id"]
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["id", "exerciseTypes"],
+        "title": "TrainingUpdateBody"
+      },
+      "ActiveTraining": {
+        "type": "object",
+        "properties": {
+          "dateStart": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "restTime": {
+                  "type": "number"
+                },
+                "sets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "number"
+                      },
+                      "repeatCount": {
+                        "type": "number"
+                      },
+                      "done": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["weight", "repeatCount", "done"],
+                    "additionalProperties": false
+                  }
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "useCustomSets": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "restTime",
+                "sets",
+                "muscleGroups",
+                "useCustomSets"
+              ]
+            }
+          }
+        },
+        "required": ["dateStart", "name", "description", "exercises"],
+        "additionalProperties": false,
+        "title": "ActiveTraining"
+      },
+      "ActiveTrainingStartBody": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "dateStart": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "dateStart"],
+        "additionalProperties": false,
+        "title": "ActiveTrainingStartBody"
+      },
+      "UpdateActiveTrainingBody": {
+        "type": "object",
+        "properties": {
+          "dateStart": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "restTime": {
+                  "type": "number"
+                },
+                "sets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "number"
+                      },
+                      "repeatCount": {
+                        "type": "number"
+                      },
+                      "done": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["weight", "repeatCount", "done"],
+                    "additionalProperties": false
+                  }
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "useCustomSets": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "restTime",
+                "sets",
+                "muscleGroups",
+                "useCustomSets"
+              ]
+            }
+          }
+        },
+        "required": ["dateStart", "name", "description", "exercises"],
+        "additionalProperties": false,
+        "title": "UpdateActiveTrainingBody"
+      },
+      "TrainingHistory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "restTime": {
+                  "type": "number"
+                },
+                "sets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "number"
+                      },
+                      "repeatCount": {
+                        "type": "number"
+                      },
+                      "done": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["weight", "repeatCount", "done"],
+                    "additionalProperties": false
+                  }
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "useCustomSets": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "restTime",
+                "sets",
+                "muscleGroups",
+                "useCustomSets"
+              ]
+            }
+          },
+          "dateStart": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "description", "exercises", "dateStart"],
+        "title": "TrainingHistory"
+      },
+      "TrainingHistoryUpdate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "restTime": {
+                  "type": "number"
+                },
+                "sets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "weight": {
+                        "type": "number"
+                      },
+                      "repeatCount": {
+                        "type": "number"
+                      },
+                      "done": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["weight", "repeatCount", "done"],
+                    "additionalProperties": false
+                  }
+                },
+                "muscleGroups": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "useCustomSets": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name",
+                "description",
+                "restTime",
+                "sets",
+                "muscleGroups",
+                "useCustomSets"
+              ]
+            }
+          },
+          "dateStart": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "name", "description", "exercises", "dateStart"],
+        "additionalProperties": false,
+        "title": "TrainingHistoryUpdate"
+      }
+    }
+  }
+}

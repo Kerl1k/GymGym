@@ -6,15 +6,19 @@ import { useQueryClient } from "@tanstack/react-query";
 export function useCreateExercises() {
   const queryClient = useQueryClient();
 
-  const createExercisesMutation = rqClient.useMutation("post", "/exercises", {
-    onSettled: async () => {
-      await queryClient.invalidateQueries(
-        rqClient.queryOptions("get", "/exercises"),
-      );
+  const createExercisesMutation = rqClient.useMutation(
+    "post",
+    "/api/exercise-type",
+    {
+      onSettled: async () => {
+        await queryClient.invalidateQueries(
+          rqClient.queryOptions("get", "/api/exercise-type"),
+        );
+      },
     },
-  });
+  );
 
-  const create = (data: ApiSchemas["CreateExercise"]) => {
+  const create = (data: ApiSchemas["ExerciseTypeCreateBody"]) => {
     createExercisesMutation.mutate({ body: data });
   };
 

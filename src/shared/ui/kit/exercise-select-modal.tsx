@@ -13,7 +13,7 @@ import {
 import { Modal } from "./modalWindow/modal";
 
 type ExerciseSelectModalProps = {
-  exercises: ApiSchemas["Exercise"][];
+  exercises: ApiSchemas["ExerciseType"][];
   onSelect: (exerciseId: string) => void;
   isLoading?: boolean;
   close: () => void;

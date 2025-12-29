@@ -16,13 +16,14 @@ export function TrainingStats({ training }: TrainingStatsProps) {
     0,
   );
   const completedSets = training.exercises.reduce(
-    (sum, ex) => sum + ex.completedSets,
+    (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
     0,
   );
 
   const estimateRemainingTime = () => {
     const restTime = training.exercises.reduce((sum, ex) => {
-      const unCompletedSets = ex.sets.length - ex.completedSets;
+      const unCompletedSets =
+        ex.sets.length - ex.sets.filter((set) => set.done).length;
       return (
         sum + ex.restTime * unCompletedSets + unCompletedSets * AVG_TIME_PER_SET
       );
@@ -82,7 +83,8 @@ export function TrainingStats({ training }: TrainingStatsProps) {
               <div className="text-lg font-bold text-foreground">
                 {
                   training.exercises.filter(
-                    (ex) => ex.sets.length > ex.completedSets,
+                    (ex) =>
+                      ex.sets.length > ex.sets.filter((set) => set.done).length,
                   ).length
                 }
               </div>

@@ -10,7 +10,7 @@ export function useRegister() {
   const session = useSession();
   const registerMutation = publicRqClient.useMutation(
     "post",
-    "/auth/register",
+    "/api/auth/register",
     {
       onSuccess(data) {
         session.login(data.accessToken);
@@ -19,12 +19,12 @@ export function useRegister() {
     },
   );
 
-  const register = (data: ApiSchemas["RegisterRequest"]) => {
+  const register = (data: ApiSchemas["AuthRegisterBody"]) => {
     registerMutation.mutate({ body: data });
   };
 
   const errorMessage = registerMutation.isError
-    ? registerMutation.error.message
+    ? registerMutation.isError
     : undefined;
 
   return {

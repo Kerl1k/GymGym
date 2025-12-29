@@ -8,19 +8,19 @@ export function useLogin() {
   const navigate = useNavigate();
 
   const session = useSession();
-  const loginMutation = publicRqClient.useMutation("post", "/auth/login", {
+  const loginMutation = publicRqClient.useMutation("post", "/api/auth/login", {
     onSuccess(data) {
       session.login(data.accessToken);
       navigate(ROUTES.HOME);
     },
   });
 
-  const login = (data: ApiSchemas["LoginRequest"]) => {
+  const login = (data: ApiSchemas["AuthLoginBody"]) => {
     loginMutation.mutate({ body: data });
   };
 
   const errorMessage = loginMutation.isError
-    ? loginMutation.error.message
+    ? loginMutation.isError
     : undefined;
 
   return {

@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/auth/login": {
+    "/api/auth/login": {
         parameters: {
             query?: never;
             header?: never;
@@ -13,7 +13,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Login user */
         post: {
             parameters: {
                 query?: never;
@@ -21,22 +20,31 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody: {
+            /** @description Body */
+            requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["LoginRequest"];
+                    "application/json": components["schemas"]["AuthLoginBody"];
                 };
             };
             responses: {
-                /** @description Login successful */
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AuthResponse"];
+                        "application/json": components["schemas"]["TokensPair"];
                     };
                 };
-                401: components["responses"]["UnauthorizedError"];
+                /** @description 401 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "InvalidCredentials";
+                    };
+                };
             };
         };
         delete?: never;
@@ -45,7 +53,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/auth/register": {
+    "/api/auth/register": {
         parameters: {
             query?: never;
             header?: never;
@@ -54,7 +62,6 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Register new user */
         post: {
             parameters: {
                 query?: never;
@@ -62,557 +69,30 @@ export interface paths {
                 path?: never;
                 cookie?: never;
             };
-            requestBody: {
+            /** @description Body */
+            requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["RegisterRequest"];
+                    "application/json": components["schemas"]["AuthRegisterBody"];
                 };
             };
             responses: {
-                /** @description Registration successful */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["AuthResponse"];
-                    };
-                };
-                400: components["responses"]["BadRequestError"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh access token */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: {
-                    refreshToken?: string;
-                };
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Access token refreshed successfully */
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["AuthResponse"];
+                        "application/json": components["schemas"]["TokensPair"];
                     };
                 };
-                401: components["responses"]["UnauthorizedError"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/exercises": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get all exercises */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    limit?: number;
-                    favorite?: boolean;
-                    search?: string;
-                    muscleGroup?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of exercises */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ExercisesList"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /** Create a new exercise */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateExercise"];
-                };
-            };
-            responses: {
-                /** @description Exercise created successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Exercise"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/exercises/{exerciseId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get an exercise by id */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    exerciseId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Exercise */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Exercise"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Exercise not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        /** Update an exercise */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    exerciseId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateExercise"];
-                };
-            };
-            responses: {
-                /** @description Exercise updated successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Exercise"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Exercise not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        post?: never;
-        /** Delete an exercise */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    exerciseId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Exercise deleted successfully */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Exercise not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trainings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get all trainings */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    limit?: number;
-                    type?: "cardio" | "strength" | "flexibility" | "balance" | "yoga" | "pilates";
-                    search?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of trainings */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["TrainingsList"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /** Create a new training */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateTraining"];
-                };
-            };
-            responses: {
-                /** @description Training created successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Training"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/trainings/{trainingId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get a training by id */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    trainingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Training */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Training"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Training not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        /** Update a training */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    trainingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateTraining"];
-                };
-            };
-            responses: {
-                /** @description Training updated successfully */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Training"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Training not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        post?: never;
-        /** Delete a training */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    trainingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Training deleted successfully */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Training not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/active-trainings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get all active trainings */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    limit?: number;
-                    startDate?: string;
-                    endDate?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of active trainings */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ActiveTrainingsList"];
-                    };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /** Create a new active training */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["CreateActiveTraining"];
-                };
-            };
-            responses: {
-                /** @description Active training created successfully */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ActiveTraining"];
-                    };
-                };
-                /** @description Invalid input */
+                /** @description 400 */
                 400: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": "AlreadyExists";
                     };
-                    content?: never;
                 };
             };
         };
@@ -622,131 +102,288 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/active-trainings/{trainingId}": {
+    "/api/auth/refresh": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Get active training by id */
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AuthRefreshBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["TokensPair"];
+                    };
+                };
+                /** @description 401 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "Unauthorized";
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Profile"];
+                    };
+                };
+                /** @description 401 */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "Unauthorized";
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exercise-type": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    filter?: string;
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: components["schemas"]["ExerciseType"][];
+                            meta: {
+                                limit: number;
+                                page: number;
+                                pages: number;
+                            };
+                        };
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ExerciseTypeCreateBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExerciseType"];
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ExerciseTypeUpdateBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExerciseType"];
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/exercise-type/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    trainingId: string;
+                    id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Active training */
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ActiveTraining"];
+                        "application/json": components["schemas"]["ExerciseType"];
                     };
                 };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Active training not found */
+                /** @description 404 */
                 404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        /** Update an active training */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    trainingId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": components["schemas"]["UpdateActiveTraining"];
-                };
-            };
-            responses: {
-                /** @description Active training updated successfully */
-                200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ActiveTraining"];
+                        "application/json": "NotFound";
                     };
-                };
-                /** @description Invalid input */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Active training not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
+        put?: never;
         post?: never;
-        /** Delete an active training */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    trainingId: string;
+                    id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Active training deleted successfully */
-                204: {
+                /** @description 200 */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": unknown;
                     };
-                    content?: never;
                 };
-                /** @description Active training not found */
+                /** @description 404 */
                 404: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": "NotFound";
+                    };
                 };
             };
         };
@@ -755,28 +392,220 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/active-trainings/{trainingId}/start": {
+    "/api/training": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: {
+            parameters: {
+                query?: {
+                    filter?: string;
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: components["schemas"]["Training"][];
+                            meta: {
+                                limit: number;
+                                page: number;
+                                pages: number;
+                            };
+                        };
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
         put?: never;
-        /** Start an active training session */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TrainingCreateBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Training"];
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TrainingUpdateBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Training"];
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/training/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
                 path: {
-                    trainingId: string;
+                    id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Training started successfully */
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Training"];
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/active-training": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -785,26 +614,74 @@ export interface paths {
                         "application/json": components["schemas"]["ActiveTraining"];
                     };
                 };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Training not found */
+                /** @description 404 */
                 404: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": "NotFound";
+                    };
                 };
-                /** @description Training already started */
-                409: {
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/active-training/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ActiveTrainingStartBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ActiveTraining"];
+                    };
+                };
+                /** @description 400 */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "AlreadyExists";
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
                 };
             };
         };
@@ -814,7 +691,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/active-trainings/{trainingId}/complete": {
+    "/api/active-training/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -823,23 +700,162 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Complete an active training */
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateActiveTrainingBody"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ActiveTraining"];
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/active-training/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path: {
-                    trainingId: string;
-                };
+                path?: never;
                 cookie?: never;
             };
-            requestBody: {
+            /** @description Body */
+            requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["CompleteTrainingRequest"];
+                    "application/json": unknown;
                 };
             };
             responses: {
-                /** @description Training completed successfully */
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/training-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    filter?: string;
+                    page?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: components["schemas"]["TrainingHistory"][];
+                            meta: {
+                                limit: number;
+                                page: number;
+                                pages: number;
+                            };
+                        };
+                    };
+                };
+                /** @description 422 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["TrainingHistoryUpdate"];
+                };
+            };
+            responses: {
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -848,134 +864,90 @@ export interface paths {
                         "application/json": components["schemas"]["TrainingHistory"];
                     };
                 };
-                /** @description Invalid input */
-                400: {
+                /** @description 422 */
+                422: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": string;
                     };
-                    content?: never;
-                };
-                /** @description Training not found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
-    "/active-trainings/{trainingId}/cancel": {
+    "/api/training-history/{id}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        /** Cancel an active training */
-        post: {
+        get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    trainingId: string;
+                    id: string;
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Training cancelled successfully */
+                /** @description 200 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ActiveTraining"];
+                        "application/json": components["schemas"]["TrainingHistory"];
                     };
                 };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Training not found */
+                /** @description 404 */
                 404: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/training-history": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get training history */
-        get: {
-            parameters: {
-                query?: {
-                    page?: number;
-                    limit?: number;
-                    startDate?: string;
-                    endDate?: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description List of training history */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
                     content: {
-                        "application/json": {
-                            list: components["schemas"]["TrainingHistory"][];
-                            total: number;
-                            totalPages: number;
-                        };
+                        "application/json": "NotFound";
                     };
-                };
-                /** @description Unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
             };
         };
         put?: never;
         post?: never;
-        delete?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -985,195 +957,172 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        LoginRequest: {
-            /** Format: email */
+        /** AuthLoginBody */
+        AuthLoginBody: {
             email: string;
-            /** Format: password */
             password: string;
         };
-        User: {
-            id: string;
-            /** Format: email */
-            email: string;
-        };
-        AuthResponse: {
+        /** TokensPair */
+        TokensPair: {
             accessToken: string;
-            user: components["schemas"]["User"];
+            refreshToken: string;
         };
-        Error: {
-            message: string;
-            code: string;
-        };
-        RegisterRequest: {
-            /** Format: email */
+        /** AuthRegisterBody */
+        AuthRegisterBody: {
             email: string;
-            /** Format: password */
             password: string;
         };
-        Exercise: {
+        /** AuthRefreshBody */
+        AuthRefreshBody: {
+            refreshToken: string;
+        };
+        /** Profile */
+        Profile: {
+            id: string;
+            email: string;
+        };
+        /** ExerciseTypeCreateBody */
+        ExerciseTypeCreateBody: {
+            name: string;
+            favorite?: boolean;
+            description?: string;
+            restTime?: number;
+            muscleGroups?: string[];
+        };
+        /** ExerciseType */
+        ExerciseType: {
             id: string;
             name: string;
             favorite: boolean;
+            description: string;
+            restTime: number;
             muscleGroups: string[];
-            description?: string;
-            videoUrl: string;
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
         };
-        ExercisesList: {
-            list: components["schemas"]["Exercise"][];
-            total: number;
-            totalPages: number;
-        };
-        CreateExercise: {
-            name: string;
-            /** @default false */
-            favorite: boolean;
-            muscleGroups: string[];
-            description?: string;
-            videoUrl: string;
-        };
-        UpdateExercise: {
+        /** ExerciseTypeUpdateBody */
+        ExerciseTypeUpdateBody: {
+            id: string;
             name?: string;
             favorite?: boolean;
-            muscleGroups?: string[];
             description?: string;
-            videoUrl?: string;
+            restTime?: number;
+            muscleGroups?: string[];
         };
-        ExerciseForm: {
-            id: string;
-            exerciseId: string;
+        /** TrainingCreateBody */
+        TrainingCreateBody: {
             name: string;
-            type: string[];
-            notes: string;
+            favorite?: boolean;
+            description?: string;
+            exerciseTypes: {
+                id: string;
+            }[];
         };
+        /** Training */
         Training: {
             id: string;
             name: string;
-            exercises: components["schemas"]["ExerciseForm"][];
-            /** Format: date-time */
-            createdAt?: string;
-            /** Format: date-time */
-            updatedAt?: string;
-        };
-        TrainingsList: {
-            list: components["schemas"]["Training"][];
-            total: number;
-            totalPages: number;
-        };
-        CreateTraining: {
-            name: string;
-            exercises: components["schemas"]["ExerciseForm"][];
-        };
-        UpdateTraining: {
-            name?: string;
-            exercises?: components["schemas"]["ExerciseForm"][];
-        };
-        TrainingSet: {
-            /** @example 1 */
-            id: number;
-            /** @example 103 */
-            weight: number;
-            /** @example 10 */
-            repeatCount: number;
-        };
-        "schemas-Exercise": {
-            /**
-             * Format: uuid
-             * @example 10
-             */
-            id: string;
-            /** @example Скручивания на пресс */
-            name: string;
-            /** @example false */
             favorite: boolean;
-            /** @example Упражнение на пресс */
+            description: string;
+            exerciseTypes: {
+                id: string;
+                name: string;
+                favorite: boolean;
+                description: string;
+                muscleGroups: string[];
+                restTime: number;
+            }[];
+        };
+        /** TrainingUpdateBody */
+        TrainingUpdateBody: {
+            id: string;
+            name?: string;
+            favorite?: boolean;
             description?: string;
-            /** @example [
-             *       "strength",
-             *       "abs"
-             *     ] */
-            muscleGroups: string[];
-            /**
-             * @description Время отдыха в секундах
-             * @example 60
-             */
-            restTime: number;
-            /**
-             * @default false
-             * @example false
-             */
-            useCustomSets: boolean;
-            /**
-             * @description Количество выполненных подходов
-             * @example 3
-             */
-            completedSets: number;
-            sets: components["schemas"]["TrainingSet"][];
+            exerciseTypes: {
+                id: string;
+            }[];
         };
+        /** ActiveTraining */
         ActiveTraining: {
-            /**
-             * Format: uuid
-             * @example 5922f4f1-7989-4e02-80b0-77ecee62a25b
-             */
+            dateStart: string;
+            name: string;
+            description: string;
+            exercises: {
+                id: string;
+                name: string;
+                description: string;
+                restTime: number;
+                sets: {
+                    weight: number;
+                    repeatCount: number;
+                    done: boolean;
+                }[];
+                muscleGroups: string[];
+                useCustomSets: boolean;
+            }[];
+        };
+        /** ActiveTrainingStartBody */
+        ActiveTrainingStartBody: {
             id: string;
-            /**
-             * Format: date-time
-             * @example 2024-01-15T10:30:00Z
-             */
             dateStart: string;
-            exercises: components["schemas"]["schemas-Exercise"][];
         };
-        ActiveTrainingsList: {
-            list: components["schemas"]["ActiveTraining"][];
-            total: number;
-            totalPages: number;
-        };
-        CreateActiveTraining: {
-            /** Format: date-time */
+        /** UpdateActiveTrainingBody */
+        UpdateActiveTrainingBody: {
             dateStart: string;
-            exercises: components["schemas"]["schemas-Exercise"][];
+            name: string;
+            description: string;
+            exercises: {
+                name: string;
+                description: string;
+                restTime: number;
+                sets: {
+                    weight: number;
+                    repeatCount: number;
+                    done: boolean;
+                }[];
+                muscleGroups: string[];
+                useCustomSets: boolean;
+            }[];
         };
-        UpdateActiveTraining: {
-            /** Format: date-time */
-            dateStart?: string;
-            exercises?: components["schemas"]["schemas-Exercise"][];
-        };
-        CompleteTrainingRequest: {
-            /** @description Количество выполненных подходов */
-            completedSets: number;
-            notes?: string;
-        };
+        /** TrainingHistory */
         TrainingHistory: {
-            /** Format: uuid */
             id: string;
-            /** Format: date-time */
+            name: string;
+            description: string;
+            exercises: {
+                name: string;
+                description: string;
+                restTime: number;
+                sets: {
+                    weight: number;
+                    repeatCount: number;
+                    done: boolean;
+                }[];
+                muscleGroups: string[];
+                useCustomSets: boolean;
+            }[];
             dateStart: string;
-            exercises: components["schemas"]["schemas-Exercise"][];
+        };
+        /** TrainingHistoryUpdate */
+        TrainingHistoryUpdate: {
+            id: string;
+            name: string;
+            description: string;
+            exercises: {
+                name: string;
+                description: string;
+                restTime: number;
+                sets: {
+                    weight: number;
+                    repeatCount: number;
+                    done: boolean;
+                }[];
+                muscleGroups: string[];
+                useCustomSets: boolean;
+            }[];
+            dateStart: string;
         };
     };
-    responses: {
-        /** @description Unauthorized */
-        UnauthorizedError: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Error"];
-            };
-        };
-        /** @description Bad request */
-        BadRequestError: {
-            headers: {
-                [name: string]: unknown;
-            };
-            content: {
-                "application/json": components["schemas"]["Error"];
-            };
-        };
-    };
+    responses: never;
     parameters: never;
     requestBodies: never;
     headers: never;

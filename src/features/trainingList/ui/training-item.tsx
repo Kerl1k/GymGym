@@ -15,7 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
-import { href, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { ROUTES } from "@/shared/model/routes";
 import { useDeleteTraining } from "../../../entities/training/use-training-delete";
 import { PenIcon } from "lucide-react";
@@ -24,6 +24,7 @@ import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 import { TrainingCreate } from "./training-create/training-create";
 import { useState } from "react";
+import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 
 export function TrainingItem({
   training,
@@ -31,13 +32,22 @@ export function TrainingItem({
   training: ApiSchemas["Training"];
 }) {
   const { deleteTraining, getIsPending } = useDeleteTraining();
+  const { start } = useStartActiveTraining();
+
   const { open, close, isOpen } = useOpen();
   const [showAllExercises, setShowAllExercises] = useState(false);
+
+  const navigator = useNavigate();
   const {
     open: openDelete,
     close: closeDelete,
     isOpen: isDeleteOpen,
   } = useOpen();
+
+  const startTraining = async (id: string) => {
+    start(id);
+    navigator(ROUTES.ACTIVE_TRAINING);
+  };
 
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow duration-200 border-border">
@@ -54,16 +64,6 @@ export function TrainingItem({
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                   <ClockIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
-                  <span>
-                    {training?.createdAt &&
-                      new Date(training?.createdAt).toLocaleDateString(
-                        "ru-RU",
-                        {
-                          day: "numeric",
-                          month: "short",
-                        },
-                      )}
-                  </span>
                 </div>
               </div>
             </div>
@@ -76,14 +76,13 @@ export function TrainingItem({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <Link
-                to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}
+              <DropdownMenuItem
+                onClick={() => startTraining(training.id)}
+                className="gap-2 text-sm sm:text-base"
               >
-                <DropdownMenuItem className="gap-2 text-sm sm:text-base">
-                  <PlayIcon className="h-4 w-4" />
-                  Начать тренировку
-                </DropdownMenuItem>
-              </Link>
+                <PlayIcon className="h-4 w-4" />
+                Начать тренировку
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => open()}
                 className="gap-2 text-sm sm:text-base"
@@ -108,13 +107,13 @@ export function TrainingItem({
         <div className="mb-2 sm:mb-3">
           <div className="flex items-center gap-2 text-sm sm:text-base font-medium text-muted-foreground mb-2">
             <LayersIcon className="w-4 h-4" />
-            <span>Упражнения ({training.exercises.length})</span>
+            <span>Упражнения ({training.exerciseTypes.length})</span>
           </div>
 
           <div className="space-y-2">
             {(showAllExercises
-              ? training.exercises
-              : training.exercises.slice(0, 5)
+              ? training.exerciseTypes
+              : training.exerciseTypes.slice(0, 5)
             ).map((exercise, index) => (
               <div
                 key={exercise.id}
@@ -135,11 +134,11 @@ export function TrainingItem({
                   variant="secondary"
                   className="text-xs sm:text-sm capitalize"
                 >
-                  {exercise.type}
+                  {exercise.muscleGroups}
                 </Badge>
               </div>
             ))}
-            {training.exercises.length > 5 && (
+            {training.exerciseTypes.length > 5 && (
               <div className="pt-2">
                 <Button
                   variant="outline"
@@ -149,7 +148,7 @@ export function TrainingItem({
                 >
                   {showAllExercises
                     ? "Скрыть упражнения"
-                    : `Показать остальные упражнения (${training.exercises.length - 5})`}
+                    : `Показать остальные упражнения (${training.exerciseTypes.length - 5})`}
                 </Button>
               </div>
             )}
@@ -157,16 +156,15 @@ export function TrainingItem({
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border">
-          <Link to={href(ROUTES.ACTIVE_TRAINING, { trainingId: training.id })}>
-            <Button
-              size="lg"
-              variant="outline"
-              className="gap-2 text-sm sm:text-base w-full sm:w-auto"
-            >
-              <PlayIcon className="w-3 h-3" />
-              Начать
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            variant="outline"
+            className="gap-2 text-sm sm:text-base w-full sm:w-auto"
+            onClick={() => startTraining(training.id)}
+          >
+            <PlayIcon className="w-3 h-3" />
+            Начать
+          </Button>
         </div>
       </CardContent>
       <Modal close={close} isOpen={isOpen} title="Изменение тренировки">

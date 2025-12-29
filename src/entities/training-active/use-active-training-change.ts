@@ -6,23 +6,23 @@ export function useUpdateActiveTraining() {
   const queryClient = useQueryClient();
 
   const createTrainingMutation = rqClient.useMutation(
-    "post",
-    "/active-trainings",
+    "patch",
+    "/api/active-training/update",
     {
       onSettled: async () => {
         return await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/active-trainings"),
+          rqClient.queryOptions("get", "/api/active-training"),
         );
       },
     },
   );
 
-  const toggle = (data: ApiSchemas["CreateActiveTraining"]) => {
+  const change = (data: ApiSchemas["ActiveTraining"]) => {
     createTrainingMutation.mutate({ body: data });
   };
 
   return {
-    toggle,
+    change,
     isPending: createTrainingMutation.isPending,
   };
 }

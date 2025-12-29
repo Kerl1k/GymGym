@@ -1,76 +1,33 @@
 import { rqClient } from "@/entities/instance";
 import { keepPreviousData } from "@tanstack/query-core";
-import { RefCallback, useCallback } from "react";
 
 type UseExercisesListParams = {
   limit?: number;
-  isFavorite?: boolean;
-  search?: string;
-  sort?: "createdAt" | "updatedAt" | "lastOpenedAt" | "name";
 };
 
-export function useExercisesFetchList({
-  limit = 20,
-  isFavorite,
-  search,
-  sort,
-}: UseExercisesListParams) {
-  const { fetchNextPage, data, isFetchingNextPage, isPending, hasNextPage } =
-    rqClient.useInfiniteQuery(
-      "get",
-      "/exercises",
-      {
-        params: {
-          query: {
-            page: 1,
-            limit,
-            isFavorite,
-            search,
-            sort,
-          },
+export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
+  const { data, isPending } = rqClient.useQuery(
+    "get",
+    "/api/exercise-type",
+    {
+      params: {
+        query: {
+          page: 1,
+          limit,
         },
       },
-      {
-        initialPageParam: 1,
-        pageParamName: "page",
-        getNextPageParam: (lastPage, _, lastPageParams) =>
-          Number(lastPageParams) < lastPage.totalPages
-            ? Number(lastPageParams) + 1
-            : null,
-
-        placeholderData: keepPreviousData,
-      },
-    );
-
-  const cursorRef: RefCallback<HTMLDivElement> = useCallback(
-    (el) => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            fetchNextPage();
-          }
-        },
-        { threshold: 0.5 },
-      );
-
-      if (el) {
-        observer.observe(el);
-
-        return () => {
-          observer.disconnect();
-        };
-      }
     },
-    [fetchNextPage],
+    {
+      initialPageParam: 1,
+      pageParamName: "page",
+      placeholderData: keepPreviousData,
+    },
   );
 
-  const exercises = data?.pages.flatMap((page) => page.list) ?? [];
+  const exercises = data?.content ?? [];
 
   return {
     exercises,
-    isFetchingNextPage,
     isPending,
-    hasNextPage,
-    cursorRef,
   };
 }

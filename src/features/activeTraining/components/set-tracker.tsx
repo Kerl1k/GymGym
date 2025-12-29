@@ -9,7 +9,7 @@ interface SetTrackerProps {
 }
 
 export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
-  const currentActive = exercise.completedSets;
+  const currentActive = exercise.sets.findIndex((set) => !set.done);
 
   return (
     <Card>
@@ -20,7 +20,7 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mb-6">
           {exercise.sets.map((set, index) => (
             <div
-              key={set.id}
+              key={index}
               className={`p-3 sm:p-4 rounded-xl text-center ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-card border-2 border-border"}`}
             >
               <div className="text-xs sm:text-sm text-muted-foreground mb-1">
@@ -44,9 +44,10 @@ export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
           className="w-full gap-2 text-base sm:text-lg"
         >
           <CheckIcon className="h-5 w-5" />
-          {exercise.completedSets >= exercise.sets.length
+          {exercise.sets.filter((set) => set.done).length >=
+          exercise.sets.length
             ? "Все подходы выполнены"
-            : `Завершить подход ${exercise.completedSets + 1}`}
+            : `Завершить подход ${exercise.sets.filter((set) => set.done).length + 1}`}
         </Button>
       </CardContent>
     </Card>

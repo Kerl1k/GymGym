@@ -12,13 +12,9 @@ import {
 import { ApiSchemas } from "@/shared/schema";
 
 type CurrentExerciseProps = {
-  exercise: ApiSchemas["ActiveTraining"]["exercises"][0];
+  exercise: ApiSchemas["ActiveTraining"]["exercises"][number];
   setTraining: React.Dispatch<
-    React.SetStateAction<{
-      id: string;
-      dateStart: string;
-      exercises: ApiSchemas["ActiveTraining"]["exercises"];
-    }>
+    React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
   open: () => void;
 };
@@ -31,7 +27,7 @@ export function CurrentExercise({
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [isEditingReps, setIsEditingReps] = useState(false);
 
-  const currentSets = exercise.completedSets;
+  const currentSets = exercise.sets.filter((set) => set.done).length;
 
   const [tempWeight, setTempWeight] = useState(
     exercise.sets[currentSets].weight ?? 0,
@@ -265,14 +261,14 @@ export function CurrentExercise({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
             <span>Прогресс упражнения</span>
             <span>
-              {exercise.completedSets}/{exercise.sets.length} подходов
+              {currentSets}/{exercise.sets.length} подходов
             </span>
           </div>
           <div className="h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{
-                width: `${(exercise.completedSets / exercise.sets.length) * 100}%`,
+                width: `${(currentSets / exercise.sets.length) * 100}%`,
               }}
             />
           </div>

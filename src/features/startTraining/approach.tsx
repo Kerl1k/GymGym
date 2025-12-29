@@ -51,7 +51,6 @@ const Approach: FC<Props> = ({
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -69,9 +68,9 @@ const Approach: FC<Props> = ({
         sets: [
           ...exercise.sets,
           {
-            id: Date.now(),
             weight: 0,
             repeatCount: 0,
+            done: false,
           },
         ],
       };
@@ -79,12 +78,11 @@ const Approach: FC<Props> = ({
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
 
-  const removeSet = (exerciseIndex: number, setIndex: number) => {
+  const removeSet = (exerciseIndex: number) => {
     if (!activeTraining) return;
 
     setActiveTraining((prev) => {
@@ -97,18 +95,12 @@ const Approach: FC<Props> = ({
 
       newExercises[exerciseIndex] = {
         ...exercise,
-        sets: exercise.sets
-          .filter((_, i) => i !== setIndex)
-          .map((set, index) => ({
-            ...set,
-            setNumber: index + 1,
-          })),
+        sets: exercise.sets,
       };
 
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -134,7 +126,6 @@ const Approach: FC<Props> = ({
       return {
         ...prev,
         exercises: newExercises,
-        updatedAt: new Date().toISOString(),
       };
     });
   };
@@ -195,7 +186,7 @@ const Approach: FC<Props> = ({
                     }
                   } else if (newCount < currentCount) {
                     for (let i = currentCount - 1; i >= newCount; i--) {
-                      removeSet(exerciseIndex, i);
+                      removeSet(i);
                     }
                   }
                 }}
@@ -244,7 +235,7 @@ const Approach: FC<Props> = ({
           </div>
           <div className={styles.setsList}>
             {exercise.sets.map((set, setIndex) => (
-              <div key={set.id} className={styles.setItem}>
+              <div key={setIndex} className={styles.setItem}>
                 <div className={styles.setHeader}>
                   <div className={styles.setNumber}>
                     <DumbbellIcon className={styles.setIcon} />
@@ -254,7 +245,7 @@ const Approach: FC<Props> = ({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeSet(exerciseIndex, setIndex)}
+                      onClick={() => removeSet(exerciseIndex)}
                       disabled={exercise.sets.length <= 1}
                       className={styles.removeButton}
                     >
