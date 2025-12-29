@@ -9,8 +9,7 @@ interface SetTrackerProps {
 }
 
 export function SetTracker({ exercise, onCompleteSet }: SetTrackerProps) {
-  const currentActive = exercise.sets.findIndex((set) => !set.done);
-
+  const currentActive = exercise.sets.filter((set) => set.done).length;
   return (
     <Card>
       <CardHeader>

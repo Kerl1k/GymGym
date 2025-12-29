@@ -3,12 +3,14 @@ import { CheckIcon } from "lucide-react";
 import { FC } from "react";
 
 type ActiveTrainingHeaderProps = {
+  name: string;
   finishTraining: () => void;
   trainingLength: number;
   indexCurrentExercise: number;
 };
 
 export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
+  name,
   finishTraining,
   indexCurrentExercise,
   trainingLength,
@@ -17,7 +19,7 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
       <div>
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
-          Забыл добавить название в тип, но оно тут будет, честно
+          {name}
         </h1>
         <p className="text-muted-foreground mt-1 text-sm sm:text-base">
           Упражнение {indexCurrentExercise + 1} из {trainingLength}

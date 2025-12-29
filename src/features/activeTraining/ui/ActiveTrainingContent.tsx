@@ -28,13 +28,13 @@ export const ActiveTrainingContent: FC<{
 
   const indexCurrentExercise = training.exercises.findIndex((ex) => {
     const doneSetsCount = ex.sets.filter((set) => set.done).length;
+    console.log(doneSetsCount, ex.sets.length);
     return doneSetsCount !== ex.sets.length;
   });
 
-  const restTime =
-    training.exercises[indexCurrentExercise].restTime === 0
-      ? 90
-      : training.exercises[indexCurrentExercise].restTime;
+  const restTime = !training.exercises[indexCurrentExercise].restTime
+    ? 90
+    : training.exercises[indexCurrentExercise].restTime;
 
   const [timeLeft, setTimeLeft] = useState(restTime);
 
@@ -54,16 +54,21 @@ export const ActiveTrainingContent: FC<{
     setTraining((prev) => {
       const updatedExercises = prev.exercises.map((ex, index) => {
         if (index === indexCurrentExercise) {
-          // Count how many sets are actually done (have done: true)
           const doneSetsCount = ex.sets.filter((set) => set.done).length;
-          return { ...ex, completedSets: doneSetsCount };
+
+          return {
+            ...ex,
+            sets: ex.sets.map((set, index) =>
+              index === doneSetsCount ? { ...set, done: true } : set,
+            ),
+          };
         }
         return ex;
       });
 
       const currentEx = updatedExercises[indexCurrentExercise];
 
-      const currentExSets = currentEx.sets.filter((set) => !set.done).length;
+      const currentExSets = currentEx.sets.filter((set) => set.done).length;
 
       if (currentExSets >= currentEx.sets.length) {
         setPrevExercise(currentEx.sets);
@@ -101,8 +106,8 @@ export const ActiveTrainingContent: FC<{
   };
 
   const finishTraining = () => {
-    end();
     navigate(ROUTES.TEST);
+    end();
   };
 
   const openChange = () => {
@@ -120,6 +125,7 @@ export const ActiveTrainingContent: FC<{
       <div className="max-w-6xl mx-auto">
         <div className="mb-6 sm:mb-8">
           <ActiveTrainingHeader
+            name={training.name}
             finishTraining={finishTraining}
             trainingLength={training.exercises.length}
             indexCurrentExercise={indexCurrentExercise}
