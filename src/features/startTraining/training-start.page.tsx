@@ -11,6 +11,7 @@ import styles from "./training-start.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
+import { Loader } from "@/shared/ui/kit/loader";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import Approach from "./approach";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
@@ -164,7 +165,11 @@ const TrainingStartPage = () => {
   }, [data, activeTraining]);
 
   if (!activeTraining) {
-    return <div className={styles.loading}>Загрузка тренировки...</div>;
+    return (
+      <div className={styles.loading}>
+        <Loader size="large" />
+      </div>
+    );
   }
 
   if (!data) {

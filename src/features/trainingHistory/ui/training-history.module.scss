@@ -1,0 +1,273 @@
+.trainingHistoryPage {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: var(--muted);
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--card);
+  border-radius: 16px;
+  margin-top: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+  svg {
+    color: var(--muted-foreground);
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: var(--muted-foreground);
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.startTrainingButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(var(--primary), 0.3);
+  }
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.historyItem {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary);
+  }
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--muted);
+  border-bottom: 2px solid var(--border);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+}
+
+.historyDate {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.9rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.historyDuration {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+
+  svg {
+    color: var(--muted-foreground);
+  }
+}
+
+.historyContent {
+  padding: 24px;
+}
+
+.exercisesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.exerciseItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 2px solid var(--border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.exerciseName {
+  font-weight: 600;
+  color: var(--foreground);
+  font-size: 0.9rem;
+}
+
+.exerciseStats {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.trainingStats {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 2px solid var(--border);
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    gap: 12px;
+  }
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 100px;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.statValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.loading {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .trainingHistoryPage {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .historyHeader {
+    padding: 12px 16px;
+  }
+
+  .historyContent {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .historyItem {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .historyDate {
+    width: 100%;
+    text-align: center;
+  }
+
+  .trainingStats {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .statItem {
+    min-width: auto;
+    width: 100%;
+  }
+}

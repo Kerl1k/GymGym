@@ -1,4 +1,5 @@
 import { Skeleton } from "@/shared/ui/kit/skeleton";
+import { Loader } from "@/shared/ui/kit/loader";
 import React from "react";
 
 export function ExercisesListLayout({
@@ -100,8 +101,8 @@ export function ExercisesListLayoutContent({
   return (
     <div className="space-y-4">
       {isPending && (
-        <div className="text-center py-6 sm:py-10 text-sm sm:text-base text-muted-foreground">
-          Загрузка...
+        <div className="flex justify-center py-6 sm:py-10">
+          <Loader size="large" />
         </div>
       )}
       {renderList && (

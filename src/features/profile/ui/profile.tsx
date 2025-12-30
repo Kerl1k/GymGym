@@ -108,7 +108,12 @@ export const Profile = () => {
               <h2 className={styles.sectionTitle}>
                 <Calendar size={20} /> История тренировок
               </h2>
-              <button className={styles.viewAllButton}>Показать все</button>
+              <Link
+                to={ROUTES.TRAINING_HISTORY}
+                className={styles.viewAllButton}
+              >
+                Показать все
+              </Link>
             </div>
 
             <div className={styles.historyList}>

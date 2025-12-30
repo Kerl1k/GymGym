@@ -13,4 +13,5 @@ export const ROUTES = {
   ACTIVE_WORKOUT: "/workout/active",
   CREATE_WORKOUT: "/workout/create",
   PROFILE: "/profile",
+  TRAINING_HISTORY: "/training-history",
 } as const;
