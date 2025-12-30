@@ -364,10 +364,12 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 1rem;
+  margin: 1rem 0;
   border: 2px dashed var(--border);
 
   &:hover {
     border-color: var(--border);
+    cursor: pointer;
   }
 }
 

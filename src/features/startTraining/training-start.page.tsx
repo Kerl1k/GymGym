@@ -6,7 +6,13 @@ import { Label } from "@/shared/ui/kit/label";
 import { Textarea } from "@/shared/ui/kit/Textarea";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Badge } from "@/shared/ui/kit/badge";
-import { TrashIcon, CopyIcon, ArrowUpIcon, ArrowDownIcon } from "lucide-react";
+import {
+  TrashIcon,
+  CopyIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  PlusIcon,
+} from "lucide-react";
 import styles from "./training-start.module.scss";
 import { cn } from "@/shared/lib/css";
 import { ROUTES } from "@/shared/model/routes";
@@ -15,6 +21,8 @@ import { Loader } from "@/shared/ui/kit/loader";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import Approach from "./approach";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 
 const TrainingStartPage = () => {
   const { data } = useActiveTrainingFetch();
@@ -26,6 +34,11 @@ const TrainingStartPage = () => {
   >(data);
 
   const { isPending: isUpdating } = useUpdateActiveTraining();
+  const { exercises, isPending: isExercisesLoading } = useExercisesFetchList(
+    {},
+  );
+
+  const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
 
   const navigate = useNavigate();
 
@@ -150,6 +163,42 @@ const TrainingStartPage = () => {
     });
   };
 
+  const handleAddExercise = (exerciseId: string) => {
+    if (!activeTraining) return;
+
+    // Find the selected exercise from the exercises list
+    const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
+    if (!selectedExercise) return;
+
+    // Create a new exercise object for the training
+    const newExercise: ApiSchemas["ActiveTraining"]["exercises"][0] = {
+      id: selectedExercise.id,
+      name: selectedExercise.name,
+      muscleGroups: selectedExercise.muscleGroups || [],
+      description: selectedExercise.description || "",
+      useCustomSets: false,
+      sets: [
+        {
+          weight: 0,
+          repeatCount: 10,
+          done: false,
+        },
+      ],
+      restTime: 60,
+    };
+
+    setActiveTraining((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        exercises: [...prev.exercises, newExercise],
+      };
+    });
+
+    setIsExerciseModalOpen(false);
+  };
+
   const handleSave = async () => {
     if (!activeTraining) return;
 
@@ -193,6 +242,14 @@ const TrainingStartPage = () => {
             <span className={styles.statLabel}>подходов</span>
           </div>
         </div>
+        <Button
+          onClick={() => setIsExerciseModalOpen(true)}
+          className={styles.addExerciseButton}
+          variant="outline"
+        >
+          <PlusIcon className={styles.addExerciseIcon} />
+          Добавить упражнение
+        </Button>
       </div>
 
       {/* Упражнения */}
@@ -265,7 +322,6 @@ const TrainingStartPage = () => {
               {/* Переключатель разных весов */}
               <div className={styles.customSetsToggle}>
                 <div className={styles.toggleContainer}>
-                  data
                   <Label
                     htmlFor={`custom-${exerciseIndex}`}
                     className={styles.toggleLabel}
@@ -274,7 +330,7 @@ const TrainingStartPage = () => {
                   </Label>
                   <Switch
                     id={`custom-${exerciseIndex}`}
-                    checked={false}
+                    checked={exercise.useCustomSets}
                     onCheckedChange={() => toggleCustomSets(exerciseIndex)}
                   />
                 </div>
@@ -314,6 +370,14 @@ const TrainingStartPage = () => {
           {isUpdating ? "Сохранение..." : "Сохранить параметры"}
         </Button>
       </div>
+
+      <ExerciseSelectModal
+        exercises={exercises}
+        onSelect={handleAddExercise}
+        isOpen={isExerciseModalOpen}
+        close={() => setIsExerciseModalOpen(false)}
+        isLoading={isExercisesLoading}
+      />
     </div>
   );
 };

@@ -130,6 +130,15 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
   const createTraining = () => {
     if (!form.name || isPending) return;
+    if (
+      form.exerciseTypes.length === 0 ||
+      form.exerciseTypes.some((ex) => !ex.id || ex.id === Date.now().toString())
+    ) {
+      alert(
+        "Пожалуйста, заполните название тренировки и выберите хотя бы одно упражнение",
+      );
+      return;
+    }
     create(form);
     close();
   };
@@ -381,7 +390,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
               {!training ? (
                 <Button
                   onClick={createTraining}
-                  disabled={!form.name || isPending}
+                  disabled={
+                    !form.name || form.exerciseTypes.length === 0 || isPending
+                  }
                   className={styles.createButton}
                 >
                   {isPending ? (

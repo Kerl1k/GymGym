@@ -82,7 +82,7 @@ const Approach: FC<Props> = ({
     });
   };
 
-  const removeSet = (exerciseIndex: number) => {
+  const removeSet = (exerciseIndex: number, setIndex?: number) => {
     if (!activeTraining) return;
 
     setActiveTraining((prev) => {
@@ -93,9 +93,12 @@ const Approach: FC<Props> = ({
 
       if (exercise.sets.length <= 1) return prev;
 
+      // Remove the specific set or the last set if no index provided
+      const indexToRemove =
+        setIndex !== undefined ? setIndex : exercise.sets.length - 1;
       newExercises[exerciseIndex] = {
         ...exercise,
-        sets: exercise.sets,
+        sets: exercise.sets.filter((_, i) => i !== indexToRemove),
       };
 
       return {
@@ -107,7 +110,7 @@ const Approach: FC<Props> = ({
 
   const updateAllSets = (
     exerciseIndex: number,
-    field: "weight" | "reps" | "restTime",
+    field: "weight" | "repeatCount" | "restTime",
     value: number,
   ) => {
     if (!activeTraining) return;
@@ -161,7 +164,11 @@ const Approach: FC<Props> = ({
                 type="number"
                 value={exercise.sets[0]?.repeatCount || 10}
                 onChange={(e) =>
-                  updateAllSets(exerciseIndex, "reps", Number(e.target.value))
+                  updateAllSets(
+                    exerciseIndex,
+                    "repeatCount",
+                    Number(e.target.value),
+                  )
                 }
                 className={styles.fieldInput}
                 min="1"
@@ -186,7 +193,7 @@ const Approach: FC<Props> = ({
                     }
                   } else if (newCount < currentCount) {
                     for (let i = currentCount - 1; i >= newCount; i--) {
-                      removeSet(i);
+                      removeSet(exerciseIndex, i);
                     }
                   }
                 }}
@@ -203,13 +210,21 @@ const Approach: FC<Props> = ({
               <Input
                 type="number"
                 value={exercise.restTime || 60}
-                onChange={(e) =>
-                  updateAllSets(
-                    exerciseIndex,
-                    "restTime",
-                    Number(e.target.value),
-                  )
-                }
+                onChange={(e) => {
+                  if (!activeTraining) return;
+                  setActiveTraining((prev) => {
+                    if (!prev) return prev;
+                    const newExercises = [...prev.exercises];
+                    newExercises[exerciseIndex] = {
+                      ...newExercises[exerciseIndex],
+                      restTime: Number(e.target.value),
+                    };
+                    return {
+                      ...prev,
+                      exercises: newExercises,
+                    };
+                  });
+                }}
                 className={styles.fieldInput}
                 min="0"
               />
@@ -226,9 +241,21 @@ const Approach: FC<Props> = ({
             <Input
               type="number"
               value={exercise.restTime || 60}
-              onChange={(e) =>
-                updateAllSets(exerciseIndex, "restTime", Number(e.target.value))
-              }
+              onChange={(e) => {
+                if (!activeTraining) return;
+                setActiveTraining((prev) => {
+                  if (!prev) return prev;
+                  const newExercises = [...prev.exercises];
+                  newExercises[exerciseIndex] = {
+                    ...newExercises[exerciseIndex],
+                    restTime: Number(e.target.value),
+                  };
+                  return {
+                    ...prev,
+                    exercises: newExercises,
+                  };
+                });
+              }}
               className={styles.fieldInput}
               min="0"
             />
@@ -245,7 +272,7 @@ const Approach: FC<Props> = ({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeSet(exerciseIndex)}
+                      onClick={() => removeSet(exerciseIndex, setIndex)}
                       disabled={exercise.sets.length <= 1}
                       className={styles.removeButton}
                     >

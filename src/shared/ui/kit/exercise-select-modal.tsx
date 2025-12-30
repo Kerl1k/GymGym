@@ -20,14 +20,20 @@ type ExerciseSelectModalProps = {
   isOpen: boolean;
 };
 
-type ExerciseType = "strength" | "cardio" | "flexibility" | "other";
-
-const exerciseTypes: Record<ExerciseType, string> = {
-  strength: "Силовые",
-  cardio: "Кардио",
-  flexibility: "Растяжка",
-  other: "Другие",
-};
+const muscleGroups = [
+  "Грудь",
+  "Спина",
+  "Плечи",
+  "Бицепс",
+  "Трицепс",
+  "Пресс",
+  "Ноги",
+  "Ягодицы",
+  "Икры",
+  "Бицепс бедра",
+  "Трапеции",
+  "Предплечья",
+];
 
 export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
   exercises,
@@ -37,7 +43,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
   isLoading = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState<ExerciseType | "all">("all");
+  const [selectedType, setSelectedType] = useState<"all" | string>("all");
   const sortBy = "name";
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -47,15 +53,9 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
     )
     .filter((exercise) => {
       if (selectedType === "all") return true;
-      return exercise.muscleGroups?.some((group) => {
-        const lowerGroup = group.toLowerCase();
-        return (
-          lowerGroup.includes(selectedType) ||
-          (selectedType === "strength" && lowerGroup.includes("strength")) ||
-          (selectedType === "cardio" && lowerGroup.includes("cardio")) ||
-          (selectedType === "flexibility" && lowerGroup.includes("flexibility"))
-        );
-      });
+      return exercise.muscleGroups?.some((group) =>
+        group.toLowerCase().includes(selectedType.toLowerCase()),
+      );
     })
     .sort((a, b) => {
       if (sortBy === "name") {
@@ -107,29 +107,21 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                   className="w-full sm:w-auto whitespace-nowrap"
                 >
                   <FilterIcon className="h-4 w-4 mr-2" />
-                  {selectedType === "all"
-                    ? "Все типы"
-                    : exerciseTypes[selectedType]}
+                  {selectedType === "all" ? "Все типы" : selectedType}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onSelect={() => setSelectedType("all")}>
                   Все типы
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setSelectedType("strength")}>
-                  {exerciseTypes.strength}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setSelectedType("cardio")}>
-                  {exerciseTypes.cardio}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() => setSelectedType("flexibility")}
-                >
-                  {exerciseTypes.flexibility}
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setSelectedType("other")}>
-                  {exerciseTypes.other}
-                </DropdownMenuItem>
+                {muscleGroups.map((group) => (
+                  <DropdownMenuItem
+                    key={group}
+                    onSelect={() => setSelectedType(group)}
+                  >
+                    {group}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -162,7 +154,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                   <Button
                     key={exercise.id}
                     variant="ghost"
-                    className="w-full justify-start h-auto py-3 px-3 text-left hover:bg-accent flex-col items-start"
+                    className="w-full justify-start h-auto py-3 px-3 text-left hover:bg-accent flex-col items-start border-b"
                     onClick={() => handleSelect(exercise.id)}
                   >
                     <div className="flex flex-col items-start w-full gap-2">

@@ -1,6 +1,5 @@
 import { useState, useEffect, FC } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Progress } from "@/shared/ui/kit/progress";
 import { TrainingStats } from "../components/training-stats";
 import { ROUTES } from "@/shared/model/routes";
@@ -12,6 +11,7 @@ import { RestTimer } from "./RestTimer";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
+import { NextExercises } from "./NextExercises/NextExercises";
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
@@ -49,7 +49,6 @@ export const ActiveTrainingContent: FC<{
 
   const progress = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
-  // // Функция для завершения подхода
   const completeSet = () => {
     setTraining((prev) => {
       const updatedExercises = prev.exercises.map((ex, index) => {
@@ -164,43 +163,17 @@ export const ActiveTrainingContent: FC<{
             <SetTracker
               exercise={training.exercises[indexCurrentExercise]}
               onCompleteSet={completeSet}
+              setTraining={setTraining}
+              indexCurrentExercise={indexCurrentExercise}
             />
           </div>
           <div className="space-y-4 sm:space-y-6">
             <TrainingStats training={training} />
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg sm:text-xl">
-                  Следующие упражнения
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 sm:space-y-3">
-                {training.exercises
-                  .slice(indexCurrentExercise + 1)
-                  .map((exercise, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-border bg-card"
-                    >
-                      <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-muted-foreground">
-                        {indexCurrentExercise + index + 2}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-foreground truncate">
-                          {exercise.name}
-                        </div>
-                        <div className="text-sm sm:text-base text-muted-foreground">
-                          {exercise.sets.length} ×
-                          {exercise.sets.reduce(
-                            (sum, set) => sum + set.weight,
-                            0,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
+            <NextExercises
+              setTraining={setTraining}
+              indexCurrentExercise={indexCurrentExercise}
+              training={training}
+            />
           </div>
         </div>
       </div>

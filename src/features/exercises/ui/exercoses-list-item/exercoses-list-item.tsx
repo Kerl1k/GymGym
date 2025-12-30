@@ -29,12 +29,16 @@ interface ExercisesListItemProps {
 const muscleGroupIcons: Record<string, React.ReactNode> = {
   Грудь: <Heart className={styles.muscleGroupIcon} />,
   Спина: <BicepsFlexed className={styles.muscleGroupIcon} />,
-  Ноги: <Activity className={styles.muscleGroupIcon} />,
   Плечи: <Target className={styles.muscleGroupIcon} />,
   Бицепс: <BicepsFlexed className={styles.muscleGroupIcon} />,
   Трицепс: <BicepsFlexed className={styles.muscleGroupIcon} />,
   Пресс: <Zap className={styles.muscleGroupIcon} />,
+  Ноги: <Activity className={styles.muscleGroupIcon} />,
   Ягодицы: <Activity className={styles.muscleGroupIcon} />,
+  Икры: <Activity className={styles.muscleGroupIcon} />,
+  "Бицепс бедра": <BicepsFlexed className={styles.muscleGroupIcon} />,
+  Трапеции: <Target className={styles.muscleGroupIcon} />,
+  Предплечья: <BicepsFlexed className={styles.muscleGroupIcon} />,
 };
 
 const getMuscleGroupClass = (group: string): string => {

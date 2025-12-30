@@ -5,6 +5,8 @@ import { PenIcon, TrashIcon } from "lucide-react";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { ExercisesCreate } from "./exercisesCreate";
+import { useExercisesDelete } from "@/entities/exercises/use-exercises-delete";
+import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 
 export function ExerciseItem({
   exercises,
@@ -12,6 +14,13 @@ export function ExerciseItem({
   exercises: ApiSchemas["ExerciseType"];
 }) {
   const { open, close, isOpen } = useOpen();
+  const {
+    open: openDelete,
+    close: closeDelete,
+    isOpen: isOpenDelete,
+  } = useOpen();
+
+  const { deleteExercises } = useExercisesDelete();
 
   return (
     <>
@@ -31,7 +40,7 @@ export function ExerciseItem({
               Изменить
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => {}}
+              onClick={openDelete}
               variant="destructive"
               className="gap-2"
             >
@@ -44,6 +53,11 @@ export function ExerciseItem({
       <Modal close={close} isOpen={isOpen} title="Редактирование упражнения">
         <ExercisesCreate exercises={exercises} close={close} />
       </Modal>
+      <ModalDelete
+        close={closeDelete}
+        isOpen={isOpenDelete}
+        onConfirm={() => deleteExercises(exercises.id)}
+      />
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -26,14 +26,16 @@ export function CurrentExercise({
 }: CurrentExerciseProps) {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [isEditingReps, setIsEditingReps] = useState(false);
+  const weightInputRef = useRef<HTMLInputElement>(null);
+  const repsInputRef = useRef<HTMLInputElement>(null);
 
   const currentSets = exercise.sets.filter((set) => set.done).length;
 
   const [tempWeight, setTempWeight] = useState(
-    exercise.sets[currentSets].weight ?? 0,
+    exercise.sets[currentSets].weight?.toString() ?? "",
   );
   const [tempReps, setTempReps] = useState(
-    exercise.sets[currentSets].repeatCount ?? 0,
+    exercise.sets[currentSets].repeatCount?.toString() ?? "",
   );
 
   const updateWeight = () => {
@@ -47,7 +49,7 @@ export function CurrentExercise({
               if (index === currentSets) {
                 return {
                   ...set,
-                  weight: tempWeight,
+                  weight: tempWeight === "" ? 0 : Number(tempWeight),
                 };
               }
               return set;
@@ -71,7 +73,7 @@ export function CurrentExercise({
               if (index === currentSets) {
                 return {
                   ...set,
-                  repeatCount: tempReps,
+                  repeatCount: tempReps === "" ? 0 : Number(tempReps),
                 };
               }
               return set;
@@ -124,7 +126,9 @@ export function CurrentExercise({
                     variant="ghost"
                     onClick={() => {
                       setIsEditingWeight(false);
-                      setTempWeight(exercise.sets[currentSets].weight ?? 0);
+                      setTempWeight(
+                        exercise.sets[currentSets].weight?.toString() ?? "",
+                      );
                     }}
                     className="p-1"
                   >
@@ -135,7 +139,10 @@ export function CurrentExercise({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setIsEditingWeight(true)}
+                  onClick={() => {
+                    setIsEditingWeight(true);
+                    setTimeout(() => weightInputRef.current?.focus(), 0);
+                  }}
                   className="p-1"
                 >
                   <EditIcon className="h-3 w-3" />
@@ -146,9 +153,10 @@ export function CurrentExercise({
             {isEditingWeight ? (
               <div className="flex items-center gap-2">
                 <input
+                  ref={weightInputRef}
                   type="number"
                   value={tempWeight}
-                  onChange={(e) => setTempWeight(Number(e.target.value))}
+                  onChange={(e) => setTempWeight(e.target.value)}
                   className="w-16 sm:w-30 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
                   min="0"
                   step="0.5"
@@ -194,7 +202,10 @@ export function CurrentExercise({
                     variant="ghost"
                     onClick={() => {
                       setIsEditingReps(false);
-                      setTempReps(exercise.sets[currentSets].repeatCount ?? 0);
+                      setTempReps(
+                        exercise.sets[currentSets].repeatCount?.toString() ??
+                          "",
+                      );
                     }}
                     className="p-1"
                   >
@@ -205,7 +216,10 @@ export function CurrentExercise({
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => setIsEditingReps(true)}
+                  onClick={() => {
+                    setIsEditingReps(true);
+                    setTimeout(() => repsInputRef.current?.focus(), 0);
+                  }}
                   className="p-1"
                 >
                   <EditIcon className="h-3 w-3" />
@@ -216,9 +230,10 @@ export function CurrentExercise({
             {isEditingReps ? (
               <div className="flex items-center gap-2">
                 <input
+                  ref={repsInputRef}
                   type="number"
                   value={tempReps}
-                  onChange={(e) => setTempReps(Number(e.target.value))}
+                  onChange={(e) => setTempReps(e.target.value)}
                   className="w-16 sm:w-20 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
                   min="0"
                 />
