@@ -68,6 +68,31 @@ export default defineConfig({
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/.*\/api\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "api-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 5 * 60, // 5 минут
+              },
+              cacheableResponse: {
+                statuses: [200],
+              },
+              plugins: [
+                {
+                  cacheWillUpdate: async ({ request, response }) => {
+                    // Не кэшируем мутации (POST, PUT, DELETE)
+                    if (request.method !== "GET") {
+                      return null;
+                    }
+                    return response;
+                  },
+                },
+              ],
+            },
+          },
         ],
       },
     }),

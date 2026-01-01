@@ -129,13 +129,40 @@ export function TrainingItem({
                     </div>
                   </div>
                 </div>
-
-                <Badge
-                  variant="secondary"
-                  className="text-xs sm:text-sm capitalize"
-                >
-                  {exercise.muscleGroups}
-                </Badge>
+                <div className="flex items-center gap-1">
+                  {exercise.muscleGroups.slice(0, 3).map((muscleGroup) => (
+                    <Badge
+                      key={muscleGroup}
+                      variant="secondary"
+                      className="text-xs sm:text-sm capitalize"
+                    >
+                      {muscleGroup}
+                    </Badge>
+                  ))}
+                  {exercise.muscleGroups.length > 3 && (
+                    <div className="relative group">
+                      <Badge
+                        variant="secondary"
+                        className="text-xs sm:text-sm capitalize cursor-pointer"
+                      >
+                        +{exercise.muscleGroups.length - 3}
+                      </Badge>
+                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-background border border-border rounded-md p-2 shadow-lg z-10">
+                        <div className="flex flex-wrap gap-1">
+                          {exercise.muscleGroups.slice(3).map((muscleGroup) => (
+                            <Badge
+                              key={muscleGroup}
+                              variant="secondary"
+                              className="text-xs sm:text-sm capitalize"
+                            >
+                              {muscleGroup}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
             {training.exerciseTypes.length > 5 && (

@@ -2,7 +2,8 @@ import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
 import { Button } from "@/shared/ui/kit/button";
 import { Link } from "react-router-dom";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
+import { useState } from "react";
 
 type AppHeaderProps = {
   darkMode: boolean;
@@ -11,6 +12,7 @@ type AppHeaderProps = {
 
 export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   const { session, logout } = useSession();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   if (!session) {
     return null;
@@ -18,6 +20,10 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
+  };
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
@@ -28,7 +34,22 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             🎄 Gym Note 🎄
           </div>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2 flex-wrap">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleMenu}
+          className="sm:hidden hover:bg-accent hover:text-accent-foreground transition-all"
+          aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+        >
+          {isMenuOpen ? (
+            <XIcon className="h-5 w-5" />
+          ) : (
+            <MenuIcon className="h-5 w-5" />
+          )}
+        </Button>
+        <nav
+          className={`flex items-center gap-1 sm:gap-2 flex-wrap ${isMenuOpen ? "flex" : "hidden sm:flex"} ${isMenuOpen ? "absolute top-full left-0 w-full bg-background/95 backdrop-blur-sm border-b border-border/20 shadow-sm p-4 sm:static sm:w-auto sm:p-0 sm:border-none sm:shadow-none" : ""}`}
+        >
           <Button
             variant="ghost"
             className="justify-start text-sm sm:text-base hover-lift"

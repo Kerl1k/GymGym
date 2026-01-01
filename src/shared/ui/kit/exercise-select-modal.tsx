@@ -158,20 +158,42 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                     onClick={() => handleSelect(exercise.id)}
                   >
                     <div className="flex flex-col items-start w-full gap-2">
-                      <div className="flex items-center w-full flex-wrap gap-2">
+                      <div className="flex items-center w-full flex-wrap gap-1">
                         <span className="font-medium text-left break-words">
                           {exercise.name}
                         </span>
                         {exercise.muscleGroups &&
-                          exercise.muscleGroups.length > 0 &&
-                          exercise.muscleGroups.map((muscleGroup) => (
-                            <span
-                              key={muscleGroup}
-                              className="text-xs bg-muted px-2 py-1 rounded-full flex-shrink-0"
-                            >
-                              {muscleGroup}
-                            </span>
-                          ))}
+                          exercise.muscleGroups.length > 0 && (
+                            <div className="flex flex-wrap gap-1 items-center ml-1">
+                              {exercise.muscleGroups
+                                .slice(0, 3)
+                                .map((muscleGroup) => (
+                                  <span
+                                    key={muscleGroup}
+                                    className="text-xs bg-muted px-2 py-1 rounded-full flex-shrink-0"
+                                  >
+                                    {muscleGroup}
+                                  </span>
+                                ))}
+                              {exercise.muscleGroups.length > 3 && (
+                                <span className="text-xs bg-muted px-2 py-1 rounded-full flex-shrink-0 cursor-help relative group">
+                                  +{exercise.muscleGroups.length - 3}
+                                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-background border rounded-lg p-2 shadow-lg z-10 whitespace-nowrap">
+                                    {exercise.muscleGroups
+                                      .slice(3)
+                                      .map((muscleGroup) => (
+                                        <div
+                                          key={muscleGroup}
+                                          className="text-xs"
+                                        >
+                                          {muscleGroup}
+                                        </div>
+                                      ))}
+                                  </div>
+                                </span>
+                              )}
+                            </div>
+                          )}
                       </div>
                       {exercise.description && (
                         <span className="text-xs text-muted-foreground break-words w-full">
