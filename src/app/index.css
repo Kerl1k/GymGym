@@ -131,6 +131,25 @@
     box-shadow: 0 0 20px rgba(var(--primary), 0.1);
   }
 
+  /* Responsive utilities */
+  @media (max-width: 768px) {
+    .container-responsive {
+      width: 100%;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .no-horizontal-scroll {
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    .grid-responsive {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
   .gradient-primary {
     background: linear-gradient(135deg, var(--primary), rgb(168, 124, 42));
   }

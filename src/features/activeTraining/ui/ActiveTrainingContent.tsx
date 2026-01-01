@@ -121,69 +121,71 @@ export const ActiveTrainingContent: FC<{
   if (training === undefined && training["exercises"] === 0) return null;
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background p-4 sm:p-5 md:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6 sm:mb-8">
-          <ActiveTrainingHeader
-            name={training.name}
-            finishTraining={finishTraining}
-            trainingLength={training.exercises.length}
-            indexCurrentExercise={indexCurrentExercise}
-          />
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
-              <span>Прогресс тренировки</span>
-              <span>
-                {Math.round(progress)}% ({completedSets}/{totalSets} подходов)
-              </span>
+      <div className="max-w-full mx-auto w-full overflow-hidden">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="mb-6 sm:mb-8">
+            <ActiveTrainingHeader
+              name={training.name}
+              finishTraining={finishTraining}
+              trainingLength={training.exercises.length}
+              indexCurrentExercise={indexCurrentExercise}
+            />
+            <div className="space-y-2 sm:space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
+                <span>Прогресс тренировки</span>
+                <span>
+                  {Math.round(progress)}% ({completedSets}/{totalSets} подходов)
+                </span>
+              </div>
+              <Progress value={progress} className="h-3" />
             </div>
-            <Progress value={progress} className="h-3" />
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6">
-            {training.exercises[indexCurrentExercise].sets.length > 0 && (
-              <CurrentExercise
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6 overflow-hidden">
+              {training.exercises[indexCurrentExercise].sets.length > 0 && (
+                <CurrentExercise
+                  exercise={training.exercises[indexCurrentExercise]}
+                  setTraining={setTraining}
+                  open={openChange}
+                />
+              )}
+              {isResting && (
+                <RestTimer
+                  setTimeLeft={setTimeLeft}
+                  timeLeft={timeLeft}
+                  restTime={restTime}
+                  setIsResting={setIsResting}
+                  isResting={isResting}
+                />
+              )}
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
+                Трекер подходов
+              </h3>
+              <SetTracker
                 exercise={training.exercises[indexCurrentExercise]}
+                onCompleteSet={completeSet}
                 setTraining={setTraining}
-                open={openChange}
+                indexCurrentExercise={indexCurrentExercise}
               />
-            )}
-            {isResting && (
-              <RestTimer
-                setTimeLeft={setTimeLeft}
-                timeLeft={timeLeft}
-                restTime={restTime}
-                setIsResting={setIsResting}
-                isResting={isResting}
+            </div>
+            <div className="md:col-span-1 lg:col-span-1 space-y-4 sm:space-y-6">
+              <TrainingStats training={training} />
+              <NextExercises
+                setTraining={setTraining}
+                indexCurrentExercise={indexCurrentExercise}
+                training={training}
               />
-            )}
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
-              Трекер подходов
-            </h3>
-            <SetTracker
-              exercise={training.exercises[indexCurrentExercise]}
-              onCompleteSet={completeSet}
-              setTraining={setTraining}
-              indexCurrentExercise={indexCurrentExercise}
-            />
-          </div>
-          <div className="space-y-4 sm:space-y-6">
-            <TrainingStats training={training} />
-            <NextExercises
-              setTraining={setTraining}
-              indexCurrentExercise={indexCurrentExercise}
-              training={training}
-            />
+            </div>
           </div>
         </div>
+        <NotedWeightModal
+          close={close}
+          currentExercise={training.exercises[indexCurrentExercise]}
+          initialData={prevExercise}
+          isOpen={isOpen}
+          setTraining={setTraining}
+        />
       </div>
-      <NotedWeightModal
-        close={close}
-        currentExercise={training.exercises[indexCurrentExercise]}
-        initialData={prevExercise}
-        isOpen={isOpen}
-        setTraining={setTraining}
-      />
     </div>
   );
 };

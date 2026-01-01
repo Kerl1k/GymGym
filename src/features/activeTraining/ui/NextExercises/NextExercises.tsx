@@ -58,13 +58,13 @@ export const NextExercises: FC<NextExercisesProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="w-full overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg sm:text-xl">
           Следующие упражнения
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 sm:space-y-3">
+      <CardContent className="space-y-2 sm:space-y-3 overflow-hidden">
         {training.exercises
           .slice(indexCurrentExercise + 1)
           .map((exercise, index) => (
