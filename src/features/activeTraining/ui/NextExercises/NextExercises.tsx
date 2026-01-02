@@ -82,8 +82,8 @@ export const NextExercises: FC<NextExercisesProps> = ({
                   {exercise.name}
                 </div>
                 <div className="text-sm sm:text-base text-muted-foreground">
-                  {exercise.sets.length} ×
-                  {exercise.sets.reduce((sum, set) => sum + set.weight, 0)}
+                  {exercise.sets.length} подходов ×{" "}
+                  {exercise.sets.reduce((sum, set) => sum + set.weight, 0)} кг
                 </div>
               </div>
             </div>

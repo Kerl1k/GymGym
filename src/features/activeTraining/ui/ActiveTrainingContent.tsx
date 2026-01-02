@@ -8,7 +8,6 @@ import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Progress } from "@/shared/ui/kit/progress";
 
-
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
 import { TrainingStats } from "../components/training-stats";
@@ -17,8 +16,6 @@ import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 import { NextExercises } from "./NextExercises/NextExercises";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { RestTimer } from "./RestTimer";
-
-
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
@@ -39,9 +36,11 @@ export const ActiveTrainingContent: FC<{
     return doneSetsCount !== ex.sets.length;
   });
 
-  const restTime = !training.exercises[indexCurrentExercise].restTime
-    ? 90
-    : training.exercises[indexCurrentExercise].restTime;
+  const restTime =
+    !training.exercises[indexCurrentExercise].restTime ||
+    indexCurrentExercise === -1
+      ? 90
+      : training.exercises[indexCurrentExercise].restTime;
 
   const [timeLeft, setTimeLeft] = useState(restTime);
 
