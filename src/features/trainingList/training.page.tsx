@@ -1,16 +1,19 @@
-import { Button } from "@/shared/ui/kit/button";
 import { PlusIcon, StarIcon } from "lucide-react";
+
 import { useOpen } from "@/shared/lib/useOpen";
+import { Button } from "@/shared/ui/kit/button";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
+
+import { useTrainingList } from "../../entities/training/use-training-fetch";
+
 import { TrainingCreate } from "./ui/training-create/training-create";
+import { TrainingFilter } from "./ui/training-filter";
+import { TrainingItem } from "./ui/training-item";
 import {
   ExercisesListLayout,
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/training-list-layout";
-import { TrainingItem } from "./ui/training-item";
-import { useTrainingList } from "../../entities/training/use-training-fetch";
-import { TrainingFilter } from "./ui/training-filter";
 
 const TrainingPage = () => {
   const { close, isOpen, open } = useOpen();

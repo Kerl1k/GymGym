@@ -1,7 +1,9 @@
 import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ROUTES } from "@/shared/model/routes";
+
 import { useFetchActiveHistrory } from "@/entities/training-active/use-active-training-history-fetch";
+import { ROUTES } from "@/shared/model/routes";
+
 import styles from "./training-history.module.scss";
 
 export const TrainingHistory = () => {

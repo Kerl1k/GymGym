@@ -1,6 +1,6 @@
-import { SearchInput } from "@/shared/ui/kit/search";
-import { TrainingSortSelect } from "@/entities/training/use-training-sort";
 import { useTrainingsFilters } from "@/entities/training/use-training-filters";
+import { TrainingSortSelect } from "@/entities/training/use-training-sort";
+import { SearchInput } from "@/shared/ui/kit/search";
 
 interface TrainingFilterProps {
   onSearchChange?: (search: string) => void;

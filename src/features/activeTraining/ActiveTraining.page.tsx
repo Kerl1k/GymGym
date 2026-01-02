@@ -1,4 +1,5 @@
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {

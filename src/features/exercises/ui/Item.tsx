@@ -1,12 +1,16 @@
+import { PenIcon, TrashIcon } from "lucide-react";
+
+import { useExercisesDelete } from "@/entities/exercises/use-exercises-delete";
+import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
-import { ExercisesListItem } from "./exercoses-list-item/exercoses-list-item";
-import { PenIcon, TrashIcon } from "lucide-react";
-import { useOpen } from "@/shared/lib/useOpen";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
-import { ExercisesCreate } from "./exercisesCreate";
-import { useExercisesDelete } from "@/entities/exercises/use-exercises-delete";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
+import { Modal } from "@/shared/ui/kit/modalWindow/modal";
+
+import { ExercisesCreate } from "./exercisesCreate";
+import { ExercisesListItem } from "./exercoses-list-item/exercoses-list-item";
+
+
 
 export function ExerciseItem({
   exercises,

@@ -1,3 +1,5 @@
+import React from "react";
+
 import {
   Card,
   CardHeader,
@@ -6,7 +8,6 @@ import {
   CardContent,
   CardFooter,
 } from "@/shared/ui/kit/card";
-import React from "react";
 
 export function AuthLayout({
   form,

@@ -1,15 +1,19 @@
 import { FC, useState } from "react";
-import { Button } from "@/shared/ui/kit/button";
-import { Input } from "@/shared/ui/kit/input";
-import { ScrollArea } from "@/shared/ui/kit/scroll-area";
-import { ApiSchemas } from "@/shared/schema";
+
 import { SearchIcon, FilterIcon, ArrowUpDownIcon } from "lucide-react";
+
+import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
+import { Input } from "@/shared/ui/kit/input";
+import { ScrollArea } from "@/shared/ui/kit/scroll-area";
+
+
 import { Modal } from "./modalWindow/modal";
 
 type ExerciseSelectModalProps = {

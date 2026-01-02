@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { ClockIcon, TrendingUpIcon, AwardIcon, TargetIcon } from "lucide-react";
+
 import { ApiSchemas } from "@/shared/schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 interface TrainingStatsProps {
   training: ApiSchemas["ActiveTraining"];

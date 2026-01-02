@@ -1,6 +1,8 @@
-import { Outlet } from "react-router-dom";
-import { AppHeader } from "@/features/header";
 import { useState, useEffect } from "react";
+
+import { Outlet } from "react-router-dom";
+
+import { AppHeader } from "@/features/header";
 import { Loader } from "@/shared/ui/kit/loader";
 
 export function App() {

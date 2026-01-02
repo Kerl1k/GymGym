@@ -1,5 +1,6 @@
-import { rqClient } from "@/entities/instance";
 import { useQueryClient } from "@tanstack/react-query";
+
+import { rqClient } from "@/entities/instance";
 
 export function useExercisesDelete() {
   const queryClient = useQueryClient();

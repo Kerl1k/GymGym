@@ -1,6 +1,7 @@
 import React from "react";
-import { Modal } from "./modalWindow/modal";
+
 import { Button } from "./button";
+import { Modal } from "./modalWindow/modal";
 
 interface ModalDeleteProps {
   isOpen: boolean;

@@ -1,13 +1,16 @@
-import { ROUTES } from "@/shared/model/routes";
-import { Button } from "@/shared/ui/kit/button";
+import { MoreHorizontalIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import { ROUTES } from "@/shared/model/routes";
+import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
-import { MoreHorizontalIcon } from "lucide-react";
-import { ApiSchemas } from "@/shared/schema";
+
+
 
 interface exercisessListItemProps {
   training: ApiSchemas["Training"];

@@ -1,6 +1,8 @@
-import { Button } from "@/shared/ui/kit/button";
-import { CheckIcon } from "lucide-react";
 import { FC } from "react";
+
+import { CheckIcon } from "lucide-react";
+
+import { Button } from "@/shared/ui/kit/button";
 
 type ActiveTrainingHeaderProps = {
   name: string;

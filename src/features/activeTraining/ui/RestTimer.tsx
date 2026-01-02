@@ -1,8 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { RotateCcwIcon, SkipForwardIcon } from "lucide-react";
-import { Timer } from "../components/timer";
-import { Button } from "@/shared/ui/kit/button";
 import { FC, useEffect } from "react";
+
+import { RotateCcwIcon, SkipForwardIcon } from "lucide-react";
+
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+
+import { Timer } from "../components/timer";
+
+
 
 type RestTimeProps = {
   restTime: number;

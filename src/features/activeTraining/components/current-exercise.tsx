@@ -1,6 +1,5 @@
 import { useState, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Button } from "@/shared/ui/kit/button";
+
 import {
   WeightIcon,
   RepeatIcon,
@@ -9,7 +8,10 @@ import {
   CheckIcon,
   XIcon,
 } from "lucide-react";
+
 import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 type CurrentExerciseProps = {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][number];

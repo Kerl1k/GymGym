@@ -1,6 +1,7 @@
-import { Skeleton } from "@/shared/ui/kit/skeleton";
-import { Loader } from "@/shared/ui/kit/loader";
 import React from "react";
+
+import { Loader } from "@/shared/ui/kit/loader";
+import { Skeleton } from "@/shared/ui/kit/skeleton";
 
 export function ExercisesListLayout({
   header,

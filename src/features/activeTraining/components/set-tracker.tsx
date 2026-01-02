@@ -1,7 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Button } from "@/shared/ui/kit/button";
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
+
 import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 interface SetTrackerProps {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][0];

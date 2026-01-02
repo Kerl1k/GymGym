@@ -1,11 +1,3 @@
-import { Button } from "@/shared/ui/kit/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/shared/ui/kit/dropdown-menu";
-import { Badge } from "@/shared/ui/kit/badge";
-import { Card, CardContent } from "@/shared/ui/kit/card";
 import {
   MoreHorizontal,
   Dumbbell,
@@ -15,9 +7,21 @@ import {
   Zap,
   BicepsFlexed,
 } from "lucide-react";
-import styles from "./exercoses-list-item.module.scss";
+
 import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
+import { Badge } from "@/shared/ui/kit/badge";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent } from "@/shared/ui/kit/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/shared/ui/kit/dropdown-menu";
+
+
+import styles from "./exercoses-list-item.module.scss";
+
 
 interface ExercisesListItemProps {
   exercise: ApiSchemas["ExerciseType"];

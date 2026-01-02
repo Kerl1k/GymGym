@@ -1,9 +1,5 @@
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Input } from "@/shared/ui/kit/input";
-import { Label } from "@/shared/ui/kit/label";
-import { Textarea } from "@/shared/ui/kit/Textarea";
-import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
+import { FC, useEffect, useState } from "react";
+
 import {
   XIcon,
   PlusIcon,
@@ -13,15 +9,24 @@ import {
   ArrowDownIcon,
   LayersIcon,
 } from "lucide-react";
-import { FC, useEffect, useState } from "react";
-import { useCreateTraining } from "@/entities/training/use-training-create";
+
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
-import styles from "./training-create.module.scss";
-import { cn } from "@/shared/lib/css";
-import { ApiSchemas } from "@/shared/schema";
 import { useChangeTraining } from "@/entities/training/use-training-change";
+import { useCreateTraining } from "@/entities/training/use-training-create";
+import { cn } from "@/shared/lib/css";
 import { useOpen } from "@/shared/lib/useOpen";
+import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
 import { Switch } from "@/shared/ui/kit/switch";
+import { Textarea } from "@/shared/ui/kit/Textarea";
+
+
+import styles from "./training-create.module.scss";
+
 
 type TrainingCreateProps = {
   close: () => void;

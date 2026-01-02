@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/shared/ui/kit/button";
+
 import { PlayIcon, PauseIcon, RotateCcwIcon } from "lucide-react";
+
+import { Button } from "@/shared/ui/kit/button";
 
 interface TimerProps {
   duration: number; // в секундах

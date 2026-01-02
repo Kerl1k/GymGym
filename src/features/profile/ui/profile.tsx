@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   User,
   Clock,
@@ -8,17 +9,23 @@ import {
   Award,
   BarChart3,
 } from "lucide-react";
-import styles from "./profile.module.scss";
-import { Link } from "react-router-dom";
-import { ROUTES } from "@/shared/model/routes";
+import { Link, useNavigate } from "react-router-dom";
+
 import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
-import { useFetchActiveHistrory } from "@/entities/training-active/use-active-training-history-fetch";
 import { useTrainingList } from "@/entities/training/use-training-fetch";
+import { useFetchActiveHistrory } from "@/entities/training-active/use-active-training-history-fetch";
+import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
+import { ROUTES } from "@/shared/model/routes";
+
+import styles from "./profile.module.scss";
 
 export const Profile = () => {
   const { profile } = useFetchProfile();
   const { history: trainingHistory } = useFetchActiveHistrory();
   const { trainings } = useTrainingList({});
+  const navigator = useNavigate();
+
+  const { start } = useStartActiveTraining();
 
   const [userData] = useState(profile);
 
@@ -39,6 +46,11 @@ export const Profile = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const startTraining = (id: string) => {
+    start(id);
+    navigator(ROUTES.ACTIVE_TRAINING);
   };
 
   return (
@@ -219,7 +231,10 @@ export const Profile = () => {
                         </span>
                       ))}
                     </div>
-                    <button className={styles.startWorkoutButton}>
+                    <button
+                      onClick={() => startTraining(training.id)}
+                      className={styles.startWorkoutButton}
+                    >
                       Начать тренировку
                     </button>
                   </div>

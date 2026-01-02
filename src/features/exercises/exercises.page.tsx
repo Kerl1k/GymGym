@@ -1,15 +1,18 @@
-import { Button } from "@/shared/ui/kit/button";
 import { PlusIcon } from "lucide-react";
+
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useOpen } from "@/shared/lib/useOpen";
+import { Button } from "@/shared/ui/kit/button";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
-import { ExercisesCreate } from "./ui/exercisesCreate";
+
 import {
   ExercisesListLayout,
   ExercisesListLayoutContent,
   ExercisesListLayoutHeader,
 } from "./ui/exercises-list-layout";
+import { ExercisesCreate } from "./ui/exercisesCreate";
 import { ExerciseItem } from "./ui/Item";
-import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+
 
 const ExercisesPage = () => {
   const { close, isOpen, open } = useOpen();

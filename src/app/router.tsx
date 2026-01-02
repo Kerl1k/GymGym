@@ -1,8 +1,10 @@
-import { ROUTES } from "../shared/model/routes";
 import { createBrowserRouter } from "react-router-dom";
+
+import { ROUTES } from "../shared/model/routes";
+
 import { App } from "./app";
-import { Providers } from "./providers";
 import { protectedLoader, ProtectedRoute } from "./protected-route";
+import { Providers } from "./providers";
 
 export const router = createBrowserRouter([
   {

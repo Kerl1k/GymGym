@@ -1,5 +1,6 @@
-import { rqClient } from "@/entities/instance";
 import { keepPreviousData } from "@tanstack/query-core";
+
+import { rqClient } from "@/entities/instance";
 
 type UseExercisesListParams = {
   limit?: number;

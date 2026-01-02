@@ -1,7 +1,5 @@
-import { ApiSchemas } from "@/shared/schema";
-import styles from "./training-start.module.scss";
-import { Input } from "@/shared/ui/kit/input";
-import { Label } from "@/shared/ui/kit/label";
+import { FC } from "react";
+
 import {
   PlusIcon,
   TrashIcon,
@@ -11,8 +9,13 @@ import {
   ClockIcon,
   DumbbellIcon,
 } from "lucide-react";
-import { FC } from "react";
+
+import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
+import { Input } from "@/shared/ui/kit/input";
+import { Label } from "@/shared/ui/kit/label";
+
+import styles from "./training-start.module.scss";
 
 type Props = {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][0];

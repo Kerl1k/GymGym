@@ -1,16 +1,17 @@
+import { FC, useEffect, useState } from "react";
+
+import { XIcon, PlusIcon } from "lucide-react";
+
+import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
+import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
+import { ApiSchemas } from "@/shared/schema";
+import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-
 import { Textarea } from "@/shared/ui/kit/Textarea";
-import { Badge } from "@/shared/ui/kit/badge";
-import { XIcon, PlusIcon } from "lucide-react";
-import { FC, useEffect, useState } from "react";
-import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
 import { TogleAddFavorite } from "@/shared/ui/kit/togleAddFavorite";
-import { ApiSchemas } from "@/shared/schema";
-import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
 
 type ExercisesCreateProps = {
   close: () => void;

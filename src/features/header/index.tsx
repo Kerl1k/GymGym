@@ -1,9 +1,11 @@
+import { useState } from "react";
+
+import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
 import { Button } from "@/shared/ui/kit/button";
-import { Link } from "react-router-dom";
-import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
-import { useState } from "react";
 
 type AppHeaderProps = {
   darkMode: boolean;

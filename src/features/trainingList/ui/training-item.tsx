@@ -1,8 +1,5 @@
-import { ApiSchemas } from "@/shared/schema";
-import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
-import { Badge } from "@/shared/ui/kit/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Button } from "@/shared/ui/kit/button";
+import { useState } from "react";
+
 import {
   DotsVerticalIcon,
   TrashIcon,
@@ -10,21 +7,28 @@ import {
   ClockIcon,
   LayersIcon,
 } from "@radix-ui/react-icons";
+import { PenIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
+import { useOpen } from "@/shared/lib/useOpen";
+import { ROUTES } from "@/shared/model/routes";
+import { ApiSchemas } from "@/shared/schema";
+import { Badge } from "@/shared/ui/kit/badge";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import {
+  DropdownMenuItem,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
-import { useNavigate } from "react-router-dom";
-import { ROUTES } from "@/shared/model/routes";
-import { useDeleteTraining } from "../../../entities/training/use-training-delete";
-import { PenIcon } from "lucide-react";
-import { useOpen } from "@/shared/lib/useOpen";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
+import { Modal } from "@/shared/ui/kit/modalWindow/modal";
+
+import { useDeleteTraining } from "../../../entities/training/use-training-delete";
+
 import { TrainingCreate } from "./training-create/training-create";
-import { useState } from "react";
-import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 
 export function TrainingItem({
   training,

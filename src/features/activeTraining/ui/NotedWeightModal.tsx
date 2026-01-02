@@ -1,11 +1,13 @@
+import { FC, useState, useEffect, useRef } from "react";
+
+import { Plus, Minus, X, Dumbbell, Repeat, Save, Clock } from "lucide-react";
+
 import { ApiSchemas } from "@/shared/schema";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 import { Button } from "@/shared/ui/kit/button";
+import { Card } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import { Card } from "@/shared/ui/kit/card";
-import { Plus, Minus, X, Dumbbell, Repeat, Save, Clock } from "lucide-react";
-import { FC, useState, useEffect, useRef } from "react";
+import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 type NotedWeightModalProps = {
   isOpen: boolean;

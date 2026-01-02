@@ -1,6 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
+
 import { rqClient } from "@/entities/instance";
 import { ApiSchemas } from "@/shared/schema";
-import { useQueryClient } from "@tanstack/react-query";
 
 export function useUpdateActiveTraining() {
   const queryClient = useQueryClient();

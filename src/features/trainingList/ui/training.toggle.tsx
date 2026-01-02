@@ -1,5 +1,6 @@
-import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
 import { useState } from "react";
+
+import { Tabs, TabsList, TabsTrigger } from "@/shared/ui/kit/tabs";
 
 const ExercisesToggle = () => {
   const [tabs, setTabs] = useState("global");

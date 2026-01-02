@@ -1,17 +1,24 @@
 import { useState, useEffect, FC } from "react";
+
 import { useNavigate } from "react-router-dom";
-import { Progress } from "@/shared/ui/kit/progress";
-import { TrainingStats } from "../components/training-stats";
-import { ROUTES } from "@/shared/model/routes";
+
+import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useOpen } from "@/shared/lib/useOpen";
+import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
+import { Progress } from "@/shared/ui/kit/progress";
+
+
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
-import { RestTimer } from "./RestTimer";
+import { TrainingStats } from "../components/training-stats";
+
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
-import { NotedWeightModal } from "./NotedWeightModal";
-import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { NextExercises } from "./NextExercises/NextExercises";
+import { NotedWeightModal } from "./NotedWeightModal";
+import { RestTimer } from "./RestTimer";
+
+
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];

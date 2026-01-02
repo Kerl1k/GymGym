@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/shared/ui/kit/button";
-import { Card, CardContent } from "@/shared/ui/kit/card";
-import { Label } from "@/shared/ui/kit/label";
-import { Textarea } from "@/shared/ui/kit/Textarea";
-import { Switch } from "@/shared/ui/kit/switch";
-import { Badge } from "@/shared/ui/kit/badge";
+
 import {
   TrashIcon,
   CopyIcon,
@@ -13,16 +7,27 @@ import {
   ArrowDownIcon,
   PlusIcon,
 } from "lucide-react";
-import styles from "./training-start.module.scss";
+import { useNavigate } from "react-router-dom";
+
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
+import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { cn } from "@/shared/lib/css";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
-import { Loader } from "@/shared/ui/kit/loader";
-import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
-import Approach from "./approach";
-import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+import { Badge } from "@/shared/ui/kit/badge";
+import { Button } from "@/shared/ui/kit/button";
+import { Card, CardContent } from "@/shared/ui/kit/card";
 import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
-import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { Label } from "@/shared/ui/kit/label";
+import { Switch } from "@/shared/ui/kit/switch";
+import { Textarea } from "@/shared/ui/kit/Textarea";
+import styles from "./training-start.module.scss";
+
+import { Loader } from "@/shared/ui/kit/loader";
+
+import Approach from "./approach";
+
 
 const TrainingStartPage = () => {
   const { data } = useActiveTrainingFetch();

@@ -1,4 +1,5 @@
 import { FC } from "react";
+
 import { Label } from "./label";
 import { Switch } from "./switch";
 

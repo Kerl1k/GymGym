@@ -1,10 +1,12 @@
+import { FC } from "react";
+
+import { PlusIcon } from "lucide-react";
+
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
-import { PlusIcon } from "lucide-react";
-import { FC } from "react";
 
 type NextExercisesProps = {
   indexCurrentExercise: number;
