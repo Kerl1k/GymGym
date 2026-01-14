@@ -114,7 +114,7 @@ export function ExercisesListLayoutContent({
 
       {isEmpty && !isPending && (
         <div className="text-center py-6 sm:py-10 text-sm sm:text-base text-muted-foreground">
-          Доски не найдены
+          Тренировки не найдены
         </div>
       )}
 

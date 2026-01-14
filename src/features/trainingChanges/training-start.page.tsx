@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, FC } from "react";
 
 import {
   TrashIcon,
@@ -7,33 +7,29 @@ import {
   ArrowDownIcon,
   PlusIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
-import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { cn } from "@/shared/lib/css";
-import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent } from "@/shared/ui/kit/card";
 import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import { Label } from "@/shared/ui/kit/label";
+import { Loader } from "@/shared/ui/kit/loader";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/Textarea";
-import styles from "./training-start.module.scss";
-
-import { Loader } from "@/shared/ui/kit/loader";
 
 import Approach from "./approach";
+import styles from "./training-start.module.scss";
 
+type TrainingChangesProps = {
+  data: ApiSchemas["ActiveTraining"];
+  onSave: (data: ApiSchemas["ActiveTraining"]) => void;
+};
 
-const TrainingStartPage = () => {
-  const { data } = useActiveTrainingFetch();
-
-  const { change } = useUpdateActiveTraining();
-
+export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
   const [activeTraining, setActiveTraining] = useState<
     ApiSchemas["ActiveTraining"] | null
   >(data);
@@ -44,8 +40,6 @@ const TrainingStartPage = () => {
   );
 
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
-
-  const navigate = useNavigate();
 
   const toggleCustomSets = (exerciseIndex: number) => {
     if (!activeTraining) return;
@@ -205,11 +199,9 @@ const TrainingStartPage = () => {
   };
 
   const handleSave = async () => {
-    if (!activeTraining) return;
-
-    change(activeTraining);
-
-    navigate(ROUTES.ACTIVE_TRAINING);
+    if (activeTraining) {
+      onSave(activeTraining);
+    }
   };
 
   useEffect(() => {
@@ -386,5 +378,3 @@ const TrainingStartPage = () => {
     </div>
   );
 };
-
-export const Component = TrainingStartPage;

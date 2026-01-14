@@ -1,13 +1,13 @@
 import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { useFetchActiveHistrory } from "@/entities/training-active/use-active-training-history-fetch";
+import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./training-history.module.scss";
 
 export const TrainingHistory = () => {
-  const { history: trainingHistory, isPending } = useFetchActiveHistrory();
+  const { history: trainingHistory, isPending } = useFetchActiveHistrory({});
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

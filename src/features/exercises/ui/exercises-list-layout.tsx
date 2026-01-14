@@ -112,7 +112,7 @@ export function ExercisesListLayoutContent({
       {!isPending && children}
 
       {isEmpty && !isPending && (
-        <div className="text-center py-10">Доски не найдены</div>
+        <div className="text-center py-10">Упражнения не найдены</div>
       )}
 
       {hasCursor && (

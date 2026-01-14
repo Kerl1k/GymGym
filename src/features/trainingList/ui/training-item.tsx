@@ -50,7 +50,7 @@ export function TrainingItem({
 
   const startTraining = async (id: string) => {
     start(id);
-    navigator(ROUTES.ACTIVE_TRAINING);
+    navigator(ROUTES.START);
   };
 
   return (

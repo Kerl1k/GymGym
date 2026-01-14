@@ -13,15 +13,15 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
 import { useTrainingList } from "@/entities/training/use-training-fetch";
-import { useFetchActiveHistrory } from "@/entities/training-active/use-active-training-history-fetch";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
+import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./profile.module.scss";
 
 export const Profile = () => {
   const { profile } = useFetchProfile();
-  const { history: trainingHistory } = useFetchActiveHistrory();
+  const { history: trainingHistory } = useFetchActiveHistrory({});
   const { trainings } = useTrainingList({});
   const navigator = useNavigate();
 
@@ -50,7 +50,7 @@ export const Profile = () => {
 
   const startTraining = (id: string) => {
     start(id);
-    navigator(ROUTES.ACTIVE_TRAINING);
+    navigator(ROUTES.START);
   };
 
   return (
@@ -155,7 +155,7 @@ export const Profile = () => {
                     </div>
                   </div>
                   <button className={styles.repeatButton}>
-                    <Link to={ROUTES.TEST}>Подробнее</Link>
+                    <Link to={ROUTES.END}>Подробнее</Link>
                   </button>
                 </div>
               ))}

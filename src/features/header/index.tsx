@@ -78,7 +78,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.TEST}>Статистика</Link>
+            <Link to={ROUTES.END}>Статистика</Link>
           </Button>
         </nav>
         <div className="flex items-center gap-3 sm:gap-4">

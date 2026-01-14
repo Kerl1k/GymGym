@@ -6,7 +6,8 @@ export const ROUTES = {
   REGISTER: "/register",
   TRAINING: "/training",
   ACTIVE_TRAINING: "/active",
-  TEST: "/test",
+  START: "/start",
+  END: "/end",
 
   profile: "/profile",
   WORKOUT: "/workout",

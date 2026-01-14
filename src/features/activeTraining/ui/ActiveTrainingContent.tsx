@@ -111,7 +111,7 @@ export const ActiveTrainingContent: FC<{
   };
 
   const finishTraining = () => {
-    navigate(ROUTES.TEST);
+    navigate(ROUTES.END);
     end();
   };
 
