@@ -40,11 +40,11 @@ export const router = createBrowserRouter([
           },
           {
             path: ROUTES.START,
-            lazy: () => import("@/features/trainingEnd/training-end.page"),
+            lazy: () => import("@/features/trainingStart/training-start.page"),
           },
           {
             path: ROUTES.END,
-            lazy: () => import("@/features/trainingStart/training-start.page"),
+            lazy: () => import("@/features/trainingEnd/training-end.page"),
           },
           {
             path: ROUTES.TRAINING_HISTORY,
