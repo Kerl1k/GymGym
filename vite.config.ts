@@ -1,100 +1,129 @@
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import rollupPluginTypescript from "@rollup/plugin-typescript";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
-import { VitePWA } from "vite-plugin-pwa";
+import chokidar from "chokidar";
+import { rollup, InputOptions, OutputOptions } from "rollup";
+import { defineConfig, PluginOption } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+
+const generateCode = async () => {
+  const inputOptions: InputOptions = {
+    input: "gym-sw.ts",
+    plugins: [
+      rollupPluginTypescript({
+        tsconfig: "./tsconfig.sw.json",
+      }),
+      nodeResolve(),
+    ],
+  };
+  const outputOptions: OutputOptions = {
+    file: "dist/gym-sw.js",
+    format: "es",
+  };
+
+  const bundle = await rollup(inputOptions);
+  const { output } = await bundle.generate(outputOptions);
+  return `self.addEventListener('install', (event) => {
+  self.skipWaiting(); 
+});
+${output[0].code}`;
+};
+
+const compileTsServiceWorker = (): PluginOption[] => {
+  const name = "compile-typescript-service-worker";
+  const enforce = "pre";
+
+  let watcher: ReturnType<typeof chokidar.watch>;
+
+  return [
+    {
+      name: `${name}:build`,
+      enforce,
+      apply: "build",
+      async generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "gym-sw.js",
+          source: await generateCode(),
+        });
+      },
+    },
+    {
+      name: `${name}:serve`,
+      enforce,
+      apply: "serve",
+      async configureServer(server) {
+        watcher = chokidar.watch("gym-sw.ts", {
+          ignoreInitial: true,
+        });
+        watcher.on("change", () =>
+          server.ws.send("gym:unregister-sw", {
+            script: `
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for (let registration of registrations) {
+      if (registration.active.scriptURL.endsWith('gym-sw.js')) {
+        registration.update();
+      }
+    }
+  });
+}`,
+          }),
+        );
+        // watcher.on("change", () => {
+        //   server.ws.send({
+        //     type: "full-reload",
+        //   });
+        // });
+
+        server.middlewares.use(async (req, res, next) => {
+          if (req.url === "/gym-sw.js") {
+            res.writeHead(200, {
+              "Content-Type": "application/javascript",
+            });
+            res.end(await generateCode());
+          } else {
+            next();
+          }
+        });
+      },
+      transformIndexHtml(html) {
+        return {
+          html,
+          tags: [
+            {
+              tag: "script",
+              injectTo: "head",
+              attrs: { type: "module" },
+              children: `
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker
+    .register("gym-sw.js")
+    .then((registration) => {
+      console.log("SW registered: ", registration);
+    })
+    .catch((registrationError) => {
+      console.log("SW registration failed: ", registrationError);
+    });
+}
+if (import.meta.hot) {
+  import.meta.hot.on('gym:unregister-sw', (data) => {
+    eval(data.script);      // Executes the script
+  });
+}`,
+            },
+          ],
+        };
+      },
+      async closeBundle() {
+        await watcher.close();
+      },
+    },
+  ];
+};
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    tsconfigPaths(),
-    tailwindcss(),
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "vite.svg"],
-      manifest: {
-        name: "Gym Note",
-        short_name: "GymNote",
-        description: "Тренажерный зал и фитнес приложение",
-        theme_color: "#ffffff",
-        background_color: "#ffffff",
-        display: "standalone",
-        orientation: "portrait",
-        scope: "/",
-        start_url: "/",
-        icons: [
-          {
-            src: "/vite.svg",
-            sizes: "192x192",
-            type: "image/svg+xml",
-            purpose: "any maskable",
-          },
-          {
-            src: "/vite.svg",
-            sizes: "512x512",
-            type: "image/svg+xml",
-            purpose: "any maskable",
-          },
-        ],
-      },
-      workbox: {
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 год
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-            handler: "CacheFirst",
-            options: {
-              cacheName: "gstatic-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 год
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/.*\/api\/.*/i,
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 минут
-              },
-              cacheableResponse: {
-                statuses: [200],
-              },
-              plugins: [
-                {
-                  cacheWillUpdate: async ({ request, response }) => {
-                    // Не кэшируем мутации (POST, PUT, DELETE)
-                    if (request.method !== "GET") {
-                      return null;
-                    }
-                    return response;
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    }),
-  ],
+  plugins: [compileTsServiceWorker(), react(), tsconfigPaths(), tailwindcss()],
 });

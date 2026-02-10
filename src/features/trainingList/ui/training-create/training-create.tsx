@@ -24,9 +24,7 @@ import { Label } from "@/shared/ui/kit/label";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/Textarea";
 
-
 import styles from "./training-create.module.scss";
-
 
 type TrainingCreateProps = {
   close: () => void;
@@ -347,6 +345,19 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+              <div
+                className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-dashed border-border bg-card hover:border-primary cursor-pointer transition-colors"
+                onClick={addExercise}
+              >
+                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-primary">
+                  <PlusIcon className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-primary truncate">
+                    Добавить упражнение
+                  </div>
+                </div>
               </div>
             </div>
 
