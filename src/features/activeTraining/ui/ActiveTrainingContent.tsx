@@ -37,8 +37,8 @@ export const ActiveTrainingContent: FC<{
   });
 
   const restTime =
-    !training.exercises[indexCurrentExercise].restTime ||
-    indexCurrentExercise === -1
+    indexCurrentExercise === -1 ||
+    !training.exercises[indexCurrentExercise].restTime
       ? 90
       : training.exercises[indexCurrentExercise].restTime;
 
@@ -125,6 +125,10 @@ export const ActiveTrainingContent: FC<{
   }, [data]);
 
   if (training === undefined && training["exercises"] === 0) return null;
+
+  if (indexCurrentExercise === -1) {
+    finishTraining();
+  }
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-background p-4 sm:p-5 md:p-6 lg:p-8">
       <div className="max-w-full mx-auto w-full overflow-hidden">

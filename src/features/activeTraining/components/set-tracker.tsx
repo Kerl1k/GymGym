@@ -84,7 +84,6 @@ export function SetTracker({
               key={index}
               className={`p-3 sm:p-4 rounded-xl text-center relative ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-card border-2 border-border"}`}
             >
-              {/* Delete button - only show if there's more than one set and set is not done */}
               {!set.done && exercise.sets.length > 1 && (
                 <button
                   className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors"
@@ -110,7 +109,6 @@ export function SetTracker({
               </div>
             </div>
           ))}
-          {/* Add Set Card - looks like other set cards but functions as a button */}
           <div
             className="p-3 sm:p-4 rounded-xl text-center bg-card border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors"
             onClick={addSet}
