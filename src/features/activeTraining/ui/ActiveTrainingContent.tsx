@@ -110,9 +110,9 @@ export const ActiveTrainingContent: FC<{
     });
   };
 
-  const finishTraining = () => {
+  const finishTraining = async () => {
+    await end();
     navigate(ROUTES.END);
-    end();
   };
 
   const openChange = () => {

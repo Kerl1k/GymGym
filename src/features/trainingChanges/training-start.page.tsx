@@ -143,25 +143,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
     );
   };
 
-  // Функция для обновления заметок упражнения
-  const updateExerciseNotes = (exerciseIndex: number) => {
-    if (!activeTraining) return;
-
-    setActiveTraining((prev) => {
-      if (!prev) return prev;
-
-      const newExercises = [...prev.exercises];
-      newExercises[exerciseIndex] = {
-        ...newExercises[exerciseIndex],
-      };
-
-      return {
-        ...prev,
-        exercises: newExercises,
-      };
-    });
-  };
-
   const handleAddExercise = (exerciseId: string) => {
     if (!activeTraining) return;
 
@@ -346,8 +327,26 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
                   Заметки к упражнению
                 </Label>
                 <Textarea
-                  value={exercise.description}
-                  onChange={() => updateExerciseNotes(exerciseIndex)}
+                  value={
+                    exercise.description !== undefined
+                      ? exercise.description
+                      : ""
+                  }
+                  onChange={(e) => {
+                    if (!activeTraining) return;
+                    setActiveTraining((prev) => {
+                      if (!prev) return prev;
+                      const newExercises = [...prev.exercises];
+                      newExercises[exerciseIndex] = {
+                        ...newExercises[exerciseIndex],
+                        description: e.target.value,
+                      };
+                      return {
+                        ...prev,
+                        exercises: newExercises,
+                      };
+                    });
+                  }}
                   placeholder="Заметки по технике, ощущения..."
                   className={styles.notesTextarea}
                 />
