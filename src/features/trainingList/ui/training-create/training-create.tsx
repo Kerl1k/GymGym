@@ -247,12 +247,13 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             </span>
                           </div>
                           <div>
-                            <div className={styles.exerciseTitle}>
-                              Упражнение {index + 1}
-                            </div>
-                            {getExerciseById(exercise.id)?.name && (
+                            {getExerciseById(exercise.id)?.name ? (
                               <div className={styles.exerciseName}>
                                 {getExerciseById(exercise.id)?.name}
+                              </div>
+                            ) : (
+                              <div className={styles.exerciseName}>
+                                Упражнение не выбрано
                               </div>
                             )}
                           </div>
@@ -304,7 +305,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                         {/* Выбор упражнения */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">
-                            Упражнение
+                            Выбрать упражнение
                           </Label>
                           {isLoading ? (
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
@@ -331,14 +332,15 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                         {/* Примечания к упражнению */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">
-                            Примечания
+                            Описание упражнения
                           </Label>
                           <Textarea
                             value={
-                              getExerciseById(exercise.id)?.description || ""
+                              getExerciseById(exercise.id)?.description ||
+                              "Нет описания"
                             }
                             readOnly={true}
-                            className="h-16 text-sm"
+                            className={`h-16 text-sm ${styles.readonlyTextarea}`}
                           />
                         </div>
                       </div>
@@ -346,17 +348,13 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                   </Card>
                 ))}
               </div>
-              <div
-                className="flex items-center gap-3 p-3 sm:p-4 rounded-lg border border-dashed border-border bg-card hover:border-primary cursor-pointer transition-colors"
-                onClick={addExercise}
-              >
-                <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-primary">
-                  <PlusIcon className="h-5 w-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-primary truncate">
-                    Добавить упражнение
-                  </div>
+              <div className="mt-6">
+                <div
+                  className="add-exercise-dashed flex items-center justify-center gap-3 cursor-pointer"
+                  onClick={addExercise}
+                >
+                  <PlusIcon className="h-6 w-6" />
+                  <span className="font-medium">Добавить ещё упражнение</span>
                 </div>
               </div>
             </div>

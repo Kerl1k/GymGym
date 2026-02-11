@@ -9,7 +9,7 @@ function LoginPage() {
   return (
     <AuthLayout
       title="Вход в систему"
-      description="Введите ваш email и пароль для входа в систему"
+      description="Введите ваш логин и пароль для входа в систему"
       form={<LoginForm />}
       footerText={
         <>

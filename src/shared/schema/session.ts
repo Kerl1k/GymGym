@@ -30,18 +30,20 @@ export async function generateTokens(session: Session) {
   return { accessToken, refreshToken };
 }
 
-export async function verifyToken(token: string): Promise<Session> {
-  const { payload } = await jwtVerify(token, JWT_SECRET);
+export async function verifyToken(accessToken: string): Promise<Session> {
+  const { payload } = await jwtVerify(accessToken, JWT_SECRET);
   return payload as Session;
 }
 
 export async function verifyTokenOrThrow(request: Request): Promise<Session> {
-  const token = request.headers.get("Authorization")?.split(" ")[1];
-  const session = token ? await verifyToken(token).catch(() => null) : null;
+  const accessToken = request.headers.get("Authorization")?.split(" ")[1];
+  const session = accessToken
+    ? await verifyToken(accessToken).catch(() => null)
+    : null;
   if (!session) {
     throw HttpResponse.json(
       {
-        message: "Invalid token",
+        message: "Invalid accessToken",
         code: "INVALID_TOKEN",
       },
       { status: 401 },

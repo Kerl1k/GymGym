@@ -18,10 +18,10 @@ export const publicRqClient = createClient(publicFetchClient);
 
 fetchClient.use({
   async onRequest({ request }) {
-    const token = await useSession.getState().refreshToken();
+    const accessToken = await useSession.getState().refreshToken();
 
-    if (token) {
-      request.headers.set("Authorization", `Bearer ${token}`);
+    if (accessToken) {
+      request.headers.set("Authorization", `Bearer ${accessToken}`);
     } else {
       return;
     }

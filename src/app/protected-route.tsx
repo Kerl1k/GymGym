@@ -1,4 +1,4 @@
-import { Outlet, redirect , Navigate } from "react-router-dom";
+import { Outlet, redirect, Navigate } from "react-router-dom";
 
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
@@ -17,9 +17,9 @@ export function ProtectedRoute() {
 export async function protectedLoader() {
   await enableMocking();
 
-  const token = await useSession.getState().refreshToken();
+  const accessToken = await useSession.getState().refreshToken();
 
-  if (!token) {
+  if (!accessToken) {
     return redirect(ROUTES.LOGIN);
   }
 

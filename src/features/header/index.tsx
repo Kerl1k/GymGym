@@ -64,21 +64,14 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.ACTIVE_TRAINING}>Тренировки</Link>
+            <Link to={ROUTES.ACTIVE_TRAINING}>Активная тренировка</Link>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.TRAINING}>Мои тренировки</Link>
-          </Button>
-          <Button
-            variant="ghost"
-            className="justify-start text-sm sm:text-base hover-lift"
-            asChild
-          >
-            <Link to={ROUTES.END}>Статистика</Link>
+            <Link to={ROUTES.TRAINING}>Тренировки</Link>
           </Button>
         </nav>
         <div className="flex items-center gap-3 sm:gap-4">

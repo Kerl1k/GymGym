@@ -12,16 +12,18 @@ type Session = {
   iat: number;
 };
 
-const TOKEN_KEY = "token";
+const TOKEN_KEY = "accessToken";
 
 let refreshTokenPromise: Promise<string | null> | null = null;
 
 export const useSession = createGStore(() => {
-  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
+  const [accessToken, setToken] = useState(() =>
+    localStorage.getItem(TOKEN_KEY),
+  );
 
-  const login = (token: string) => {
-    localStorage.setItem(TOKEN_KEY, token);
-    setToken(token);
+  const login = (accessToken: string) => {
+    localStorage.setItem(TOKEN_KEY, accessToken);
+    setToken(accessToken);
   };
 
   const logout = () => {
@@ -29,14 +31,14 @@ export const useSession = createGStore(() => {
     setToken(null);
   };
 
-  const session = token ? jwtDecode<Session>(token) : null;
+  const session = accessToken ? jwtDecode<Session>(accessToken) : null;
 
   const refreshToken = async () => {
-    if (!token) {
+    if (!accessToken) {
       return null;
     }
 
-    const session = jwtDecode<Session>(token);
+    const session = jwtDecode<Session>(accessToken);
 
     if (session.exp < Date.now() / 1000) {
       if (!refreshTokenPromise) {
@@ -66,7 +68,7 @@ export const useSession = createGStore(() => {
       }
     }
 
-    return token;
+    return accessToken;
   };
 
   return { refreshToken, login, logout, session };
