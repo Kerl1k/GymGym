@@ -10,7 +10,6 @@ import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import { Textarea } from "@/shared/ui/kit/Textarea";
 import { TogleAddFavorite } from "@/shared/ui/kit/togleAddFavorite";
 
 type ExercisesCreateProps = {
@@ -91,9 +90,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
       <Card className="w-full max-w-2xl max-h-[90vh] overflow-hidden pb-0">
         <CardHeader className="border-b">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">
-              Создание нового упражнения
-            </CardTitle>
+            <CardTitle className="text-xl">Создание упражнения</CardTitle>
             <Button
               variant="ghost"
               size="sm"
@@ -108,10 +105,6 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
         <CardContent className="overflow-y-auto max-h-[calc(90vh-120px)]">
           <div className="space-y-6 py-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                Основная информация
-              </h3>
-
               <div className="space-y-3">
                 <div>
                   <Label htmlFor="name" className="mb-2 block">
@@ -147,22 +140,6 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
                       </Badge>
                     ))}
                   </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="description" className="mb-2 block">
-                    Описание
-                  </Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Опишите технику выполнения, советы, рекомендации..."
-                    value={form.description}
-                    onChange={(e) =>
-                      handleChange("description", e.target.value)
-                    }
-                    className="min-h-[100px] resize-none"
-                    rows={3}
-                  />
                 </div>
               </div>
             </div>

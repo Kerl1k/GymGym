@@ -10,8 +10,8 @@ import { Progress } from "@/shared/ui/kit/progress";
 
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
-import { TrainingStats } from "../components/training-stats";
 
+import styles from "./ActiveTrainingContent.module.scss";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 import { NextExercises } from "./NextExercises/NextExercises";
 import { NotedWeightModal } from "./NotedWeightModal";
@@ -26,10 +26,11 @@ export const ActiveTrainingContent: FC<{
   const { close, isOpen, open } = useOpen();
   const [training, setTraining] = useState(data);
 
-  const [prevExercise, setPrevExercise] = useState(training.exercises[0].sets);
+  const [prevExercise, setPrevExercise] = useState(
+    training.exercises[0]?.sets || [],
+  );
 
   const [isResting, setIsResting] = useState(false);
-
   const indexCurrentExercise = training.exercises.findIndex((ex) => {
     const doneSetsCount = ex.sets.filter((set) => set.done).length;
 
@@ -38,9 +39,9 @@ export const ActiveTrainingContent: FC<{
 
   const restTime =
     indexCurrentExercise === -1 ||
-    !training.exercises[indexCurrentExercise].restTime
+    !training.exercises[indexCurrentExercise]?.restTime
       ? 90
-      : training.exercises[indexCurrentExercise].restTime;
+      : training.exercises[indexCurrentExercise]?.restTime || 90;
 
   const [timeLeft, setTimeLeft] = useState(restTime);
 
@@ -76,7 +77,7 @@ export const ActiveTrainingContent: FC<{
       const currentExSets = currentEx.sets.filter((set) => set.done).length;
 
       if (currentExSets >= currentEx.sets.length) {
-        setPrevExercise(currentEx.sets);
+        setPrevExercise([currentEx.sets[currentExSets - 1]]);
         setIsResting(true);
         open();
 
@@ -116,7 +117,7 @@ export const ActiveTrainingContent: FC<{
   };
 
   const openChange = () => {
-    setPrevExercise(training.exercises[indexCurrentExercise].sets);
+    setPrevExercise(training.exercises[indexCurrentExercise]?.sets || []);
     open();
   };
 
@@ -125,23 +126,22 @@ export const ActiveTrainingContent: FC<{
   }, [data]);
 
   if (training === undefined && training["exercises"] === 0) return null;
-
+  console.log(training);
   if (indexCurrentExercise === -1) {
     finishTraining();
   }
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-background p-4 sm:p-5 md:p-6 lg:p-8">
-      <div className="max-w-full mx-auto w-full overflow-hidden">
-        <div className="max-w-6xl mx-auto w-full">
-          <div className="mb-6 sm:mb-8">
+    <div className={styles.container}>
+      <div className={styles.layoutContainer}>
+        <div className={styles.contentContainer}>
+          <div className={styles.headerSection}>
             <ActiveTrainingHeader
               name={training.name}
               finishTraining={finishTraining}
-              trainingLength={training.exercises.length}
-              indexCurrentExercise={indexCurrentExercise}
             />
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
+            <div className={styles.progressSection}>
+              <div className={styles.progressText}>
                 <span>Прогресс тренировки</span>
                 <span>
                   {Math.round(progress)}% ({completedSets}/{totalSets} подходов)
@@ -150,13 +150,14 @@ export const ActiveTrainingContent: FC<{
               <Progress value={progress} className="h-3" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="md:col-span-2 lg:col-span-2 space-y-4 sm:space-y-6 overflow-hidden">
-              {training.exercises[indexCurrentExercise].sets.length > 0 && (
+          <div className={styles.gridLayout}>
+            <div className={styles.mainContent}>
+              {training.exercises[indexCurrentExercise]?.sets?.length > 0 && (
                 <CurrentExercise
                   exercise={training.exercises[indexCurrentExercise]}
                   setTraining={setTraining}
                   open={openChange}
+                  onCompleteSet={completeSet}
                 />
               )}
               {isResting && (
@@ -168,18 +169,14 @@ export const ActiveTrainingContent: FC<{
                   isResting={isResting}
                 />
               )}
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-3">
-                Трекер подходов
-              </h3>
+              <h3 className={styles.sectionTitle}>Трекер подходов</h3>
               <SetTracker
                 exercise={training.exercises[indexCurrentExercise]}
-                onCompleteSet={completeSet}
                 setTraining={setTraining}
                 indexCurrentExercise={indexCurrentExercise}
               />
             </div>
-            <div className="md:col-span-1 lg:col-span-1 space-y-4 sm:space-y-6">
-              <TrainingStats training={training} />
+            <div className={styles.sidebarContent}>
               <NextExercises
                 setTraining={setTraining}
                 indexCurrentExercise={indexCurrentExercise}
@@ -191,6 +188,7 @@ export const ActiveTrainingContent: FC<{
         <NotedWeightModal
           close={close}
           currentExercise={training.exercises[indexCurrentExercise]}
+          currentExerciseIndex={indexCurrentExercise - 1}
           initialData={prevExercise}
           isOpen={isOpen}
           setTraining={setTraining}

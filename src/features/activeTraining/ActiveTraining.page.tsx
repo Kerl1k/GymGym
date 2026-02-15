@@ -12,6 +12,7 @@ import {
 } from "@/shared/ui/kit/card";
 import { Loader } from "@/shared/ui/kit/loader";
 
+import styles from "./ActiveTraining.module.scss";
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
@@ -20,19 +21,21 @@ const ActiveTraining = () => {
   // Check if error is 404 (Not Found)
   if (error === "NotFound") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md">
+      <div className={styles.container}>
+        <Card className={styles.card}>
           <CardHeader>
-            <CardTitle className="text-center">Тренировка не начата</CardTitle>
+            <CardTitle className={styles.loadingTitle}>
+              Тренировка не начата
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <CardDescription className="text-center">
+          <CardContent className={styles.cardContent}>
+            <CardDescription className={styles.cardDescription}>
               Активная тренировка не найдена. Пожалуйста, начните новую
               тренировку.
             </CardDescription>
-            <div className="flex justify-center">
-              <Link to={ROUTES.TRAINING} className="w-full">
-                <Button className="w-full">Перейти к тренировкам</Button>
+            <div className={styles.buttonContainer}>
+              <Link to={ROUTES.TRAINING} className={styles.button}>
+                <Button className={styles.button}>Перейти к тренировкам</Button>
               </Link>
             </div>
           </CardContent>
@@ -44,12 +47,16 @@ const ActiveTraining = () => {
   // Loading state with nice loader
   if (!data || isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className={styles.container}>
         <Card className="p-8">
-          <CardContent className="flex flex-col items-center space-y-4">
+          <CardContent className={styles.loaderContainer}>
             <Loader size="large" />
-            <CardTitle>Идет загрузка тренировки</CardTitle>
-            <CardDescription>Пожалуйста, подождите...</CardDescription>
+            <CardTitle className={styles.loadingTitle}>
+              Идет загрузка тренировки
+            </CardTitle>
+            <CardDescription className={styles.loadingDescription}>
+              Пожалуйста, подождите...
+            </CardDescription>
           </CardContent>
         </Card>
       </div>

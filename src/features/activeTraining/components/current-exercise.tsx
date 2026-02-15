@@ -19,12 +19,14 @@ type CurrentExerciseProps = {
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
   open: () => void;
+  onCompleteSet: () => void;
 };
 
 export function CurrentExercise({
   exercise,
   setTraining,
   open,
+  onCompleteSet,
 }: CurrentExerciseProps) {
   const [isEditingWeight, setIsEditingWeight] = useState(false);
   const [isEditingReps, setIsEditingReps] = useState(false);
@@ -273,23 +275,17 @@ export function CurrentExercise({
           </div>
         </div>
 
-        {/* Прогресс упражнения */}
-        <div className="space-y-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm sm:text-base text-muted-foreground gap-1">
-            <span>Прогресс упражнения</span>
-            <span>
-              {currentSets}/{exercise.sets.length} подходов
-            </span>
-          </div>
-          <div className="h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary transition-all duration-300"
-              style={{
-                width: `${(currentSets / exercise.sets.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
+        <Button
+          onClick={onCompleteSet}
+          size="lg"
+          className="w-full gap-2 text-base sm:text-lg"
+        >
+          <CheckIcon className="h-5 w-5" />
+          {exercise.sets.filter((set) => set.done).length >=
+          exercise.sets.length
+            ? "Все подходы выполнены"
+            : `Завершить подход ${exercise.sets.filter((set) => set.done).length + 1}`}
+        </Button>
       </CardContent>
     </Card>
   );

@@ -8,7 +8,7 @@ import { defineConfig, PluginOption } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 const generateCode = async () => {
-  const inputOptions = {
+  const inputOptions: InputOptions = {
     input: "gym-sw.ts",
     plugins: [
       rollupPluginTypescript({
@@ -17,7 +17,7 @@ const generateCode = async () => {
       nodeResolve(),
     ],
   };
-  const outputOptions = {
+  const outputOptions: OutputOptions = {
     file: "dist/gym-sw.js",
     format: "es",
   };
@@ -30,11 +30,11 @@ const generateCode = async () => {
 ${output[0].code}`;
 };
 
-const compileTsServiceWorker = () => {
+const compileTsServiceWorker = (): PluginOption[] => {
   const name = "compile-typescript-service-worker";
   const enforce = "pre";
 
-  let watcher;
+  let watcher: ReturnType<typeof chokidar.watch>;
 
   return [
     {
