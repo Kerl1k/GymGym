@@ -220,14 +220,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
             <span className={styles.statLabel}>подходов</span>
           </div>
         </div>
-        <Button
-          onClick={() => setIsExerciseModalOpen(true)}
-          className={styles.addExerciseButton}
-          variant="outline"
-        >
-          <PlusIcon className={styles.addExerciseIcon} />
-          Добавить упражнение
-        </Button>
       </div>
 
       {/* Упражнения */}
@@ -354,6 +346,14 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
             </CardContent>
           </Card>
         ))}
+        <Button
+          onClick={() => setIsExerciseModalOpen(true)}
+          className={styles.addExerciseButton}
+          variant="outline"
+        >
+          <PlusIcon className={styles.addExerciseIcon} />
+          Добавить упражнение
+        </Button>
       </div>
 
       <div className={styles.footer}>

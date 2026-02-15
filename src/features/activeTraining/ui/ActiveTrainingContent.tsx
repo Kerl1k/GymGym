@@ -6,6 +6,7 @@ import { useEndActiveTraining } from "@/entities/training-active/use-active-trai
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
+import { Loader } from "@/shared/ui/kit/loader";
 import { Progress } from "@/shared/ui/kit/progress";
 
 import { CurrentExercise } from "../components/current-exercise";
@@ -126,9 +127,14 @@ export const ActiveTrainingContent: FC<{
   }, [data]);
 
   if (training === undefined && training["exercises"] === 0) return null;
-  console.log(training);
+
   if (indexCurrentExercise === -1) {
-    finishTraining();
+    return (
+      <div className="flex items-center justify-center h-full">
+        <Loader size="large" />
+        <span className="ml-4">Идет завершение тренировки</span>
+      </div>
+    );
   }
 
   return (
