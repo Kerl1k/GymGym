@@ -7,7 +7,7 @@ export const ROUTES = {
   TRAINING: "/training",
   ACTIVE_TRAINING: "/active",
   START: "/start",
-  END: "/end",
+  END: "/end/:id",
 
   profile: "/profile",
   WORKOUT: "/workout",

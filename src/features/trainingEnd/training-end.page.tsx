@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
 import { useChangeTrainingHistory } from "@/entities/training-history/use-training-history-change";
+import { useTrainingHistoryFetchId } from "@/entities/training-history/use-training-history-fetch-id";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 
@@ -47,24 +47,25 @@ const convertActiveTrainingToTrainingHistoryUpdate = (
 };
 
 const TrainingEndPage = () => {
-  const { history } = useFetchActiveHistrory({ limit: 1 });
+  const { id } = useParams<{ id: string }>();
+  const { data: history } = useTrainingHistoryFetchId(id || "");
 
   const { change } = useChangeTrainingHistory();
 
   const navigate = useNavigate();
 
   const onSave = (data: ApiSchemas["ActiveTraining"]) => {
-    if (history[0]) {
+    if (history) {
       const trainingHistoryUpdate =
-        convertActiveTrainingToTrainingHistoryUpdate(data, history[0].id);
+        convertActiveTrainingToTrainingHistoryUpdate(data, history.id);
       change(trainingHistoryUpdate);
     }
 
     navigate(ROUTES.HOME);
   };
 
-  const activeTrainingData = history[0]
-    ? convertTrainingHistoryToActiveTraining(history[0])
+  const activeTrainingData = history
+    ? convertTrainingHistoryToActiveTraining(history)
     : null;
 
   if (!activeTrainingData) {
