@@ -5,7 +5,7 @@ import { rollup, InputOptions, OutputOptions } from "rollup";
 import { PluginOption } from "vite";
 
 const generateCode = async () => {
-  const inputOptions: InputOptions = {
+  const inputOptions = {
     input: "gym-sw.ts",
     plugins: [
       rollupPluginTypescript({
@@ -14,7 +14,7 @@ const generateCode = async () => {
       nodeResolve(),
     ],
   };
-  const outputOptions: OutputOptions = {
+  const outputOptions = {
     file: "dist/gym-sw.js",
     format: "es",
   };
@@ -27,11 +27,11 @@ const generateCode = async () => {
 ${output[0].code}`;
 };
 
-export const compileTsServiceWorker = (): PluginOption[] => {
-  const name = "compile-typescript-service-worker";
-  const enforce = "pre";
+const name = "compile-typescript-service-worker";
+const enforce = "pre";
 
-  let watcher: ReturnType<typeof chokidar.watch>;
+export const compileTsServiceWorker = () => {
+  let watcher;
 
   return [
     {
