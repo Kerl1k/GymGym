@@ -24,9 +24,7 @@ import { Label } from "@/shared/ui/kit/label";
 import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/Textarea";
 
-
 import styles from "./training-create.module.scss";
-
 
 type TrainingCreateProps = {
   close: () => void;
@@ -249,12 +247,13 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             </span>
                           </div>
                           <div>
-                            <div className={styles.exerciseTitle}>
-                              Упражнение {index + 1}
-                            </div>
-                            {getExerciseById(exercise.id)?.name && (
+                            {getExerciseById(exercise.id)?.name ? (
                               <div className={styles.exerciseName}>
                                 {getExerciseById(exercise.id)?.name}
+                              </div>
+                            ) : (
+                              <div className={styles.exerciseName}>
+                                Упражнение не выбрано
                               </div>
                             )}
                           </div>
@@ -306,7 +305,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                         {/* Выбор упражнения */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">
-                            Упражнение
+                            Выбрать упражнение
                           </Label>
                           {isLoading ? (
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
@@ -333,20 +332,30 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                         {/* Примечания к упражнению */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">
-                            Примечания
+                            Описание упражнения
                           </Label>
                           <Textarea
                             value={
-                              getExerciseById(exercise.id)?.description || ""
+                              getExerciseById(exercise.id)?.description ||
+                              "Нет описания"
                             }
                             readOnly={true}
-                            className="h-16 text-sm"
+                            className={`h-16 text-sm ${styles.readonlyTextarea}`}
                           />
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+              <div className="mt-6">
+                <div
+                  className="add-exercise-dashed flex items-center justify-center gap-3 cursor-pointer"
+                  onClick={addExercise}
+                >
+                  <PlusIcon className="h-6 w-6" />
+                  <span className="font-medium">Добавить ещё упражнение</span>
+                </div>
               </div>
             </div>
 

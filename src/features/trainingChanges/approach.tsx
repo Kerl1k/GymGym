@@ -48,7 +48,7 @@ const Approach: FC<Props> = ({
       const newExercises = [...prev.exercises];
       newExercises[exerciseIndex].sets[setIndex] = {
         ...newExercises[exerciseIndex].sets[setIndex],
-        [field]: value,
+        [field]: value === "" ? (field === "repeatCount" ? 1 : 0) : value,
       };
 
       return {
@@ -114,7 +114,7 @@ const Approach: FC<Props> = ({
   const updateAllSets = (
     exerciseIndex: number,
     field: "weight" | "repeatCount" | "restTime",
-    value: number,
+    value: number | string,
   ) => {
     if (!activeTraining) return;
 
@@ -125,7 +125,7 @@ const Approach: FC<Props> = ({
       newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.map(
         (set) => ({
           ...set,
-          [field]: value,
+          [field]: value === "" ? (field === "repeatCount" ? 1 : 0) : value,
         }),
       );
 
@@ -148,9 +148,17 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.weight || 0}
+                value={
+                  exercise.sets[0]?.weight !== undefined
+                    ? exercise.sets[0]?.weight
+                    : ""
+                }
                 onChange={(e) =>
-                  updateAllSets(exerciseIndex, "weight", Number(e.target.value))
+                  updateAllSets(
+                    exerciseIndex,
+                    "weight",
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
                 }
                 className={styles.fieldInput}
                 min="0"
@@ -165,12 +173,16 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.sets[0]?.repeatCount || 10}
+                value={
+                  exercise.sets[0]?.repeatCount !== undefined
+                    ? exercise.sets[0]?.repeatCount
+                    : ""
+                }
                 onChange={(e) =>
                   updateAllSets(
                     exerciseIndex,
                     "repeatCount",
-                    Number(e.target.value),
+                    e.target.value === "" ? "" : Number(e.target.value),
                   )
                 }
                 className={styles.fieldInput}
@@ -212,7 +224,7 @@ const Approach: FC<Props> = ({
               </Label>
               <Input
                 type="number"
-                value={exercise.restTime || 60}
+                value={exercise.restTime !== undefined ? exercise.restTime : ""}
                 onChange={(e) => {
                   if (!activeTraining) return;
                   setActiveTraining((prev) => {
@@ -220,7 +232,8 @@ const Approach: FC<Props> = ({
                     const newExercises = [...prev.exercises];
                     newExercises[exerciseIndex] = {
                       ...newExercises[exerciseIndex],
-                      restTime: Number(e.target.value),
+                      restTime:
+                        e.target.value === "" ? 0 : Number(e.target.value),
                     };
                     return {
                       ...prev,
@@ -243,7 +256,7 @@ const Approach: FC<Props> = ({
             </Label>
             <Input
               type="number"
-              value={exercise.restTime || 60}
+              value={exercise.restTime !== undefined ? exercise.restTime : ""}
               onChange={(e) => {
                 if (!activeTraining) return;
                 setActiveTraining((prev) => {
@@ -251,7 +264,8 @@ const Approach: FC<Props> = ({
                   const newExercises = [...prev.exercises];
                   newExercises[exerciseIndex] = {
                     ...newExercises[exerciseIndex],
-                    restTime: Number(e.target.value),
+                    restTime:
+                      e.target.value === "" ? 0 : Number(e.target.value),
                   };
                   return {
                     ...prev,
@@ -289,13 +303,13 @@ const Approach: FC<Props> = ({
                     <Label className={styles.setFieldLabel}>Вес (кг)</Label>
                     <Input
                       type="number"
-                      value={set.weight}
+                      value={set.weight !== undefined ? set.weight : ""}
                       onChange={(e) =>
                         handleSetChange(
                           exerciseIndex,
                           setIndex,
                           "weight",
-                          Number(e.target.value),
+                          e.target.value === "" ? "" : Number(e.target.value),
                         )
                       }
                       className={styles.setInput}
@@ -308,13 +322,15 @@ const Approach: FC<Props> = ({
                     <Label className={styles.setFieldLabel}>Повторения</Label>
                     <Input
                       type="number"
-                      value={set.repeatCount}
+                      value={
+                        set.repeatCount !== undefined ? set.repeatCount : ""
+                      }
                       onChange={(e) =>
                         handleSetChange(
                           exerciseIndex,
                           setIndex,
                           "repeatCount",
-                          Number(e.target.value),
+                          e.target.value === "" ? "" : Number(e.target.value),
                         )
                       }
                       className={styles.setInput}

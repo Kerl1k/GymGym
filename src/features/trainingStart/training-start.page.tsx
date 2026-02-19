@@ -16,7 +16,7 @@ import {
 import { TrainingChanges } from "../trainingChanges/training-start.page";
 
 const TrainingStartPage = () => {
-  const { data, error } = useActiveTrainingFetch();
+  const { data, error, isLoading } = useActiveTrainingFetch();
 
   const { change } = useUpdateActiveTraining();
 
@@ -57,7 +57,7 @@ const TrainingStartPage = () => {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-center">
-              Какая-то ошибка, я сам хз
+              {isLoading ? "Лоадинг" : "Какая-то ошибка, я сам хз"}
             </CardTitle>
           </CardHeader>
         </Card>

@@ -4,12 +4,12 @@ import {
   DotsVerticalIcon,
   TrashIcon,
   PlayIcon,
-  ClockIcon,
   LayersIcon,
 } from "@radix-ui/react-icons";
 import { PenIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
@@ -23,11 +23,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
+import { Loader } from "@/shared/ui/kit/loader";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { useDeleteTraining } from "../../../entities/training/use-training-delete";
 
+import { TrainingAlreadyStartedModal } from "./training-already-started-modal";
 import { TrainingCreate } from "./training-create/training-create";
 
 export function TrainingItem({
@@ -36,7 +38,8 @@ export function TrainingItem({
   training: ApiSchemas["Training"];
 }) {
   const { deleteTraining, getIsPending } = useDeleteTraining();
-  const { start } = useStartActiveTraining();
+  const { start, isPending } = useStartActiveTraining();
+  const { end: endCurrentTraining } = useEndActiveTraining();
 
   const { open, close, isOpen } = useOpen();
   const [showAllExercises, setShowAllExercises] = useState(false);
@@ -47,10 +50,34 @@ export function TrainingItem({
     close: closeDelete,
     isOpen: isDeleteOpen,
   } = useOpen();
+  const {
+    open: openAlreadyStarted,
+    close: closeAlreadyStarted,
+    isOpen: isAlreadyStartedOpen,
+  } = useOpen();
 
   const startTraining = async (id: string) => {
-    start(id);
-    navigator(ROUTES.START);
+    try {
+      await start(id);
+      navigator(ROUTES.START);
+    } catch (error) {
+      if (error === "AlreadyExists") {
+        openAlreadyStarted();
+      } else {
+        throw error;
+      }
+    }
+  };
+
+  const handleEndCurrentAndStartNew = async () => {
+    try {
+      await endCurrentTraining();
+      await start(training.id);
+      closeAlreadyStarted();
+      navigator(ROUTES.START);
+    } catch (error) {
+      console.error("Failed to end current training:", error);
+    }
   };
 
   return (
@@ -65,11 +92,6 @@ export function TrainingItem({
               <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
                 {training.name}
               </CardTitle>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-                  <ClockIcon className="w-3 sm:w-4 h-3 sm:h-4 mr-1" />
-                </div>
-              </div>
             </div>
           </div>
 
@@ -83,9 +105,14 @@ export function TrainingItem({
               <DropdownMenuItem
                 onClick={() => startTraining(training.id)}
                 className="gap-2 text-sm sm:text-base"
+                disabled={isPending}
               >
-                <PlayIcon className="h-4 w-4" />
-                Начать тренировку
+                {isPending ? (
+                  <Loader size="small" className="h-4 w-4" />
+                ) : (
+                  <PlayIcon className="h-4 w-4" />
+                )}
+                {isPending ? "Загрузка..." : "Начать тренировку"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => open()}
@@ -192,9 +219,14 @@ export function TrainingItem({
             variant="outline"
             className="gap-2 text-sm sm:text-base w-full sm:w-auto"
             onClick={() => startTraining(training.id)}
+            disabled={isPending}
           >
-            <PlayIcon className="w-3 h-3" />
-            Начать
+            {isPending ? (
+              <Loader size="small" className="w-3 h-3" />
+            ) : (
+              <PlayIcon className="w-3 h-3" />
+            )}
+            {isPending ? "Загрузка..." : "Начать"}
           </Button>
         </div>
       </CardContent>
@@ -208,6 +240,12 @@ export function TrainingItem({
         isLoading={getIsPending(training.id)}
         title="Удаление тренировки"
         description={`Вы уверены, что хотите удалить тренировку "${training.name}"? Все данные будут безвозвратно удалены.`}
+      />
+      <TrainingAlreadyStartedModal
+        isOpen={isAlreadyStartedOpen}
+        close={closeAlreadyStarted}
+        onEndCurrentAndStartNew={handleEndCurrentAndStartNew}
+        trainingName={training.name}
       />
     </Card>
   );

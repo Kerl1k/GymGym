@@ -19,9 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 
-
 import styles from "./exercoses-list-item.module.scss";
-
 
 interface ExercisesListItemProps {
   exercise: ApiSchemas["ExerciseType"];
@@ -103,13 +101,13 @@ export function ExercisesListItem({
 
                 <p className="m-2">{exercise.name}</p>
 
-                <p className={styles.description}>
+                <div className={styles.description}>
                   {exercise.description && (
                     <div title={exercise.description}>
                       {exercise.description}
                     </div>
                   )}
-                </p>
+                </div>
               </div>
 
               <div className={styles.actionsWrapper}>

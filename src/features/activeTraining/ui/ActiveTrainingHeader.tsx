@@ -7,15 +7,11 @@ import { Button } from "@/shared/ui/kit/button";
 type ActiveTrainingHeaderProps = {
   name: string;
   finishTraining: () => void;
-  trainingLength: number;
-  indexCurrentExercise: number;
 };
 
 export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
   name,
   finishTraining,
-  indexCurrentExercise,
-  trainingLength,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -23,9 +19,6 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
           {name}
         </h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-          Упражнение {indexCurrentExercise + 1} из {trainingLength}
-        </p>
       </div>
       <div className="flex items-center gap-2">
         <Button

@@ -1,4 +1,5 @@
 import { rqClient } from "@/entities/instance";
+import { ApiSchemas } from "@/shared/schema";
 
 export function useEndActiveTraining() {
   const endActiveTraining = rqClient.useMutation(
@@ -7,10 +8,14 @@ export function useEndActiveTraining() {
     {},
   );
 
-  const end = async () => {
-    await endActiveTraining.mutateAsync({
+  const end = async (): Promise<string> => {
+    const result = await endActiveTraining.mutateAsync({
       body: {},
     });
+
+    // Эндпоинт возвращает TrainingHistory, из которого можно получить ID
+    const trainingHistory = result as ApiSchemas["TrainingHistory"];
+    return trainingHistory.id;
   };
 
   return {

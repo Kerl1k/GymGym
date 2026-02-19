@@ -155,7 +155,9 @@ export const Profile = () => {
                     </div>
                   </div>
                   <button className={styles.repeatButton}>
-                    <Link to={ROUTES.END}>Подробнее</Link>
+                    <Link to={`${ROUTES.END.replace(/:id/, training.id)}`}>
+                      Подробнее
+                    </Link>
                   </button>
                 </div>
               ))}

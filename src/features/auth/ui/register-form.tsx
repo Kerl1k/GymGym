@@ -16,11 +16,9 @@ import { Input } from "@/shared/ui/kit/input";
 import { useRegister } from "../../../entities/auth/use-register";
 
 const registerSchema = z.object({
-  email: z
-    .string({
-      required_error: "Email обязателен",
-    })
-    .email("Неверный email"),
+  email: z.string({
+    required_error: "Логин обязателен",
+  }),
   password: z
     .string({
       required_error: "Пароль обязателен",
@@ -45,9 +43,9 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Логин</FormLabel>
               <FormControl>
-                <Input placeholder="admin@gmail.com" {...field} />
+                <Input placeholder="kerlik" {...field} />
               </FormControl>
 
               <FormMessage />
