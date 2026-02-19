@@ -1,8 +1,7 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import rollupPluginTypescript from "@rollup/plugin-typescript";
 import chokidar from "chokidar";
-import { rollup, InputOptions, OutputOptions } from "rollup";
-import { PluginOption } from "vite";
+import { rollup } from "rollup";
 
 const generateCode = async () => {
   const inputOptions = {
