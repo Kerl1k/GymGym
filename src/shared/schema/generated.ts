@@ -759,7 +759,7 @@ export interface paths {
             /** @description Body */
             requestBody?: {
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["ActiveTraining"];
                 };
             };
             responses: {

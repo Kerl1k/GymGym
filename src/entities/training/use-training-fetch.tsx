@@ -4,9 +4,21 @@ import { rqClient } from "@/entities/instance";
 
 type UseTrainingListParams = {
   limit?: number;
+  filter?: { favorite?: true };
+  sort?: string;
+  search?: string;
 };
 
-export function useTrainingList({ limit = 20 }: UseTrainingListParams) {
+export function useTrainingList({
+  limit = 20,
+  filter,
+  sort,
+  search,
+}: UseTrainingListParams) {
+  const orderBy = sort ? { [sort]: "asc" } : undefined;
+
+  const filterBy = search ? { ...filter, name: { contains: search } } : filter;
+
   const { data, isPending } = rqClient.useQuery(
     "get",
     "/api/training",
@@ -15,6 +27,8 @@ export function useTrainingList({ limit = 20 }: UseTrainingListParams) {
         query: {
           page: 1,
           limit,
+          filter: JSON.stringify(filterBy),
+          orderBy: JSON.stringify(orderBy),
         },
       },
     },
@@ -26,8 +40,6 @@ export function useTrainingList({ limit = 20 }: UseTrainingListParams) {
   );
 
   const trainings = data?.content ?? [];
-
-  console.log(trainings);
 
   return {
     trainings,

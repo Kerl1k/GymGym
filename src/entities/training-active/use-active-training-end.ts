@@ -9,11 +9,8 @@ export function useEndActiveTraining() {
   );
 
   const end = async (): Promise<string> => {
-    const result = await endActiveTraining.mutateAsync({
-      body: {},
-    });
+    const result = await endActiveTraining.mutateAsync({});
 
-    // Эндпоинт возвращает TrainingHistory, из которого можно получить ID
     const trainingHistory = result as ApiSchemas["TrainingHistory"];
     return trainingHistory.id;
   };

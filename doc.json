@@ -709,7 +709,9 @@
           "description": "Body",
           "content": {
             "application/json": {
-              "schema": {}
+              "schema": {
+                "$ref": "#/components/schemas/ActiveTraining"
+              }
             }
           }
         },

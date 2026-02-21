@@ -11,7 +11,7 @@ export function useLogin() {
   const session = useSession();
   const loginMutation = publicRqClient.useMutation("post", "/api/auth/login", {
     onSuccess(data) {
-      session.login(data.accessToken);
+      session.login(data.accessToken, data.refreshToken);
       navigate(ROUTES.HOME);
     },
   });

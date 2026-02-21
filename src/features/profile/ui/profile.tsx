@@ -21,8 +21,10 @@ import styles from "./profile.module.scss";
 
 export const Profile = () => {
   const { profile } = useFetchProfile();
-  const { history: trainingHistory } = useFetchActiveHistrory({});
-  const { trainings } = useTrainingList({});
+  const { history: trainingHistory } = useFetchActiveHistrory({
+    sort: "dateStart",
+  });
+  const { trainings } = useTrainingList({ filter: { favorite: true } });
   const navigator = useNavigate();
 
   const { start } = useStartActiveTraining();
@@ -213,34 +215,32 @@ export const Profile = () => {
             </div>
 
             <div className={styles.workoutsList}>
-              {trainings
-                .filter((w) => w.favorite)
-                .map((training) => (
-                  <div key={training.id} className={styles.workoutCard}>
-                    <div className={styles.workoutHeader}>
-                      <h3 className={styles.workoutName}>{training.name}</h3>
-                      <button className={styles.workoutFavorite}>
-                        <Star size={16} fill="currentColor" />
-                      </button>
-                    </div>
-                    <div className={styles.workoutExercises}>
-                      {training.exerciseTypes.map((exercise) => (
-                        <span
-                          key={exercise.id}
-                          className={styles.workoutExercise}
-                        >
-                          {exercise.name}
-                        </span>
-                      ))}
-                    </div>
-                    <button
-                      onClick={() => startTraining(training.id)}
-                      className={styles.startWorkoutButton}
-                    >
-                      Начать тренировку
+              {trainings.map((training) => (
+                <div key={training.id} className={styles.workoutCard}>
+                  <div className={styles.workoutHeader}>
+                    <h3 className={styles.workoutName}>{training.name}</h3>
+                    <button className={styles.workoutFavorite}>
+                      <Star size={16} fill="currentColor" />
                     </button>
                   </div>
-                ))}
+                  <div className={styles.workoutExercises}>
+                    {training.exerciseTypes.map((exercise) => (
+                      <span
+                        key={exercise.id}
+                        className={styles.workoutExercise}
+                      >
+                        {exercise.name}
+                      </span>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => startTraining(training.id)}
+                    className={styles.startWorkoutButton}
+                  >
+                    Начать тренировку
+                  </button>
+                </div>
+              ))}
             </div>
           </section>
         </div>

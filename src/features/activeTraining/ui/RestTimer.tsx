@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 
 import { RotateCcwIcon, SkipForwardIcon } from "lucide-react";
 
@@ -7,28 +7,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 import { Timer } from "../components/timer";
 
-
-
 type RestTimeProps = {
   restTime: number;
   isResting: boolean;
   setIsResting: React.Dispatch<React.SetStateAction<boolean>>;
-  timeLeft: number;
-  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 };
 
 export const RestTimer: FC<RestTimeProps> = ({
-  restTime,
   isResting,
   setIsResting,
-  timeLeft,
-  setTimeLeft,
+  restTime,
 }) => {
+  const [timeLeft, setTimeLeft] = useState(restTime);
+
   const skipRest = () => {
     setIsResting(false);
   };
 
   useEffect(() => {
+    if (isResting) {
+      setTimeLeft(restTime);
+    } else {
+      setIsResting(true);
+    }
     if (isResting && restTime <= 0) {
       setIsResting(false);
     }

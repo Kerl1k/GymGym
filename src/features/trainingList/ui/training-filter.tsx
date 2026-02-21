@@ -1,5 +1,4 @@
 import { useTrainingsFilters } from "@/entities/training/use-training-filters";
-import { TrainingSortSelect } from "@/entities/training/use-training-sort";
 import { SearchInput } from "@/shared/ui/kit/search";
 
 interface TrainingFilterProps {
@@ -16,16 +15,8 @@ interface TrainingFilterProps {
 
 export function TrainingFilter({
   onSearchChange,
-  onSortChange,
   searchValue = "",
-  sortValue = "lastOpenedAt",
   searchPlaceholder = "Поиск тренировок...",
-  sortItems = [
-    { value: "createdAt", label: "По дате создания" },
-    { value: "updatedAt", label: "По дате обновления" },
-    { value: "lastOpenedAt", label: "По дате открытия" },
-    { value: "name", label: "По имени" },
-  ],
   showSearch = true,
   showSort = true,
   actions,
@@ -37,14 +28,6 @@ export function TrainingFilter({
       onSearchChange(value);
     } else {
       filters.setSearch(value);
-    }
-  };
-
-  const handleSortChange = (value: string) => {
-    if (onSortChange) {
-      onSortChange(value);
-    } else {
-      filters.setSort(value);
     }
   };
 
@@ -67,13 +50,6 @@ export function TrainingFilter({
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <div className="text-sm text-muted-foreground whitespace-nowrap hidden sm:block">
             Сортировка
-          </div>
-          <div className="w-full sm:w-[200px]">
-            <TrainingSortSelect
-              value={(onSortChange ? sortValue : filters.sort) as string}
-              onValueChange={handleSortChange}
-              items={sortItems}
-            />
           </div>
         </div>
       )}

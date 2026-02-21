@@ -76,7 +76,7 @@ export function SetTracker({
           {exercise.sets.map((set, index) => (
             <div
               key={index}
-              className={`p-3 sm:p-4 rounded-xl text-center relative ${index < currentActive ? "bg-green-50 border-2 border-green-200" : "bg-card border-2 border-border"}`}
+              className={`p-3 sm:p-4 rounded-xl text-center relative ${index < currentActive ? "bg-green-700 border-2 border-green-700" : "bg-card border-2 border-border"}`}
             >
               {!set.done && exercise.sets.length > 1 && (
                 <button
@@ -97,7 +97,7 @@ export function SetTracker({
                 Вес {set.weight}
               </div>
               <div
-                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-600" : "text-muted-foreground"}`}
+                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-100" : "text-muted-foreground"}`}
               >
                 {index < currentActive ? "✓ Выполнен" : "Ожидает"}
               </div>

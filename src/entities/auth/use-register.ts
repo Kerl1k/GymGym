@@ -14,7 +14,7 @@ export function useRegister() {
     "/api/auth/register",
     {
       onSuccess(data) {
-        session.login(data.accessToken);
+        session.login(data.accessToken, data.refreshToken);
         navigate(ROUTES.HOME);
       },
     },

@@ -1,10 +1,15 @@
+import { useState } from "react";
+
+import clsx from "clsx";
 import { PlusIcon, StarIcon } from "lucide-react";
 
+import { useDebounce } from "@/shared/lib/useDebounce";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Button } from "@/shared/ui/kit/button";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { useTrainingList } from "../../entities/training/use-training-fetch";
+import { TrainingSortSelect } from "../../entities/training/use-training-sort";
 
 import { TrainingCreate } from "./ui/training-create/training-create";
 import { TrainingFilter } from "./ui/training-filter";
@@ -18,16 +23,52 @@ import {
 const TrainingPage = () => {
   const { close, isOpen, open } = useOpen();
 
-  const trainingsQuery = useTrainingList({});
+  const [filter, setFilter] = useState<{
+    favorite?: true;
+  }>({
+    favorite: undefined,
+  });
+
+  const [sort, setSort] = useState<string>("favorite");
+  const [search, setSearch] = useState<string>("");
+  const debouncedSearch = useDebounce(search, 500);
+
+  const sortOptions = [
+    { value: "favorite", label: "Избранное" },
+    { value: "name", label: "Название" },
+  ];
+
+  const trainingsQuery = useTrainingList({
+    filter,
+    sort,
+    search: debouncedSearch,
+  });
 
   return (
     <div className="container mx-auto p-4 sm:p-6 animate-fade-in">
       <ExercisesListLayout
         filters={
           <TrainingFilter
+            onSearchChange={setSearch}
+            searchValue={search}
             actions={
               <div className="flex gap-2">
-                <StarIcon className="w-5 h-5 text-yellow-500" />
+                <TrainingSortSelect
+                  value={sort}
+                  onValueChange={setSort}
+                  items={sortOptions}
+                />
+                <StarIcon
+                  onClick={() =>
+                    setFilter({
+                      ...filter,
+                      favorite: filter.favorite ? undefined : true,
+                    })
+                  }
+                  className={clsx("w-5 h-5 text-yellow-500 ", {
+                    "fill-yellow-500": filter.favorite,
+                  })}
+                />
               </div>
             }
           />

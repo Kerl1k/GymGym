@@ -27,27 +27,24 @@ export const ActiveTrainingContent: FC<{
 
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
+  const [trainingData, setTrainingData] =
+    useState<ApiSchemas["ActiveTraining"]>(data);
   const [prevExercise, setPrevExercise] = useState(
     data.exercises[0]?.sets || [],
   );
 
   const [isResting, setIsResting] = useState(false);
-  const indexCurrentExercise = data.exercises.findIndex((ex) => {
+  const indexCurrentExercise = trainingData.exercises.findIndex((ex) => {
     const doneSetsCount = ex.sets.filter((set) => set.done).length;
 
     return doneSetsCount !== ex.sets.length;
   });
 
-  const restTime =
-    indexCurrentExercise === -1 ||
-    !data.exercises[indexCurrentExercise]?.restTime
-      ? 90
-      : data.exercises[indexCurrentExercise]?.restTime || 90;
-
-  const [timeLeft, setTimeLeft] = useState(restTime);
-
-  const totalSets = data.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-  const completedSets = data.exercises.reduce(
+  const totalSets = trainingData.exercises.reduce(
+    (sum, ex) => sum + ex.sets.length,
+    0,
+  );
+  const completedSets = trainingData.exercises.reduce(
     (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
     0,
   );
@@ -55,7 +52,7 @@ export const ActiveTrainingContent: FC<{
   const progress = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
   const completeSet = async () => {
-    const updatedExercises = data.exercises.map((ex, index) => {
+    const updatedExercises = trainingData.exercises.map((ex, index) => {
       if (index === indexCurrentExercise) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
 
@@ -73,7 +70,7 @@ export const ActiveTrainingContent: FC<{
     const currentExSets = currentEx.sets.filter((set) => set.done).length;
 
     const updatedData = {
-      ...data,
+      ...trainingData,
       exercises: updatedExercises,
     };
 
@@ -94,14 +91,9 @@ export const ActiveTrainingContent: FC<{
     } else {
       setPrevExercise([currentEx.sets[currentExSets - 1]]);
       open();
-
-      if (isResting) {
-        setTimeLeft(restTime);
-      } else {
-        setIsResting(true);
-      }
     }
 
+    setTrainingData(updatedData);
     change(updatedData);
   };
 
@@ -111,7 +103,7 @@ export const ActiveTrainingContent: FC<{
   };
 
   const openChange = () => {
-    setPrevExercise(data.exercises[indexCurrentExercise]?.sets || []);
+    setPrevExercise(trainingData.exercises[indexCurrentExercise]?.sets || []);
     open();
   };
 
@@ -119,18 +111,22 @@ export const ActiveTrainingContent: FC<{
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
   ) => {
     if (typeof value === "function") {
-      const newData = value(data);
+      const newData = value(trainingData);
+      setTrainingData(newData);
       change(newData);
     } else {
+      setTrainingData(value);
       change(value);
     }
   };
 
   useEffect(() => {
+    setTrainingData(data);
     setPrevExercise(data.exercises[0]?.sets || []);
   }, [data]);
 
-  if (data === undefined && data["exercises"] === 0) return null;
+  if (trainingData === undefined && trainingData["exercises"] === 0)
+    return null;
 
   if (indexCurrentExercise === -1) {
     return (
@@ -149,7 +145,7 @@ export const ActiveTrainingContent: FC<{
         <div className={styles.contentContainer}>
           <div className={styles.headerSection}>
             <ActiveTrainingHeader
-              name={data.name}
+              name={trainingData.name}
               finishTraining={finishTraining}
             />
             <div className={styles.progressSection}>
@@ -164,9 +160,10 @@ export const ActiveTrainingContent: FC<{
           </div>
           <div className={styles.gridLayout}>
             <div className={styles.mainContent}>
-              {data.exercises[indexCurrentExercise]?.sets?.length > 0 && (
+              {trainingData.exercises[indexCurrentExercise]?.sets?.length >
+                0 && (
                 <CurrentExercise
-                  exercise={data.exercises[indexCurrentExercise]}
+                  exercise={trainingData.exercises[indexCurrentExercise]}
                   setTraining={setTrainingWrapper}
                   open={openChange}
                   onCompleteSet={completeSet}
@@ -174,16 +171,16 @@ export const ActiveTrainingContent: FC<{
               )}
               {isResting && (
                 <RestTimer
-                  setTimeLeft={setTimeLeft}
-                  timeLeft={timeLeft}
-                  restTime={restTime}
+                  restTime={
+                    trainingData.exercises[indexCurrentExercise]?.restTime
+                  }
                   setIsResting={setIsResting}
                   isResting={isResting}
                 />
               )}
               <h3 className={styles.sectionTitle}>Трекер подходов</h3>
               <SetTracker
-                exercise={data.exercises[indexCurrentExercise]}
+                exercise={trainingData.exercises[indexCurrentExercise]}
                 setTraining={setTrainingWrapper}
                 indexCurrentExercise={indexCurrentExercise}
               />
@@ -192,14 +189,14 @@ export const ActiveTrainingContent: FC<{
               <NextExercises
                 setTraining={setTrainingWrapper}
                 indexCurrentExercise={indexCurrentExercise}
-                training={data}
+                training={trainingData}
               />
             </div>
           </div>
         </div>
         <NotedWeightModal
           close={close}
-          currentExercise={data.exercises[indexCurrentExercise]}
+          currentExercise={trainingData.exercises[indexCurrentExercise]}
           currentExerciseIndex={indexCurrentExercise - 1}
           initialData={prevExercise}
           isOpen={isOpen}

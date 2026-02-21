@@ -123,21 +123,17 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         if (exIndex === currentExerciseIndex) {
           const updatedSets = [...ex.sets];
 
-          // Обновляем или добавляем новые сеты
           newSets.forEach((newSet, index) => {
             const existingSetIndex = updatedSets.findIndex(
               (_, i) => i === index,
             );
             if (existingSetIndex >= 0) {
-              // Если сет с таким индексом уже существует, обновляем его
               updatedSets[existingSetIndex] = newSet;
             } else {
-              // Если сета с таким индексом нет, добавляем новый
               updatedSets.push(newSet);
             }
           });
 
-          // Обновляем время отдыха если оно было изменено
           const updatedRestTime = restTime !== null ? restTime : ex.restTime;
 
           return { ...ex, sets: updatedSets, restTime: updatedRestTime };
