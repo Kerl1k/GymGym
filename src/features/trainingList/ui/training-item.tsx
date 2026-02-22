@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useOpen } from "@/shared/lib/useOpen";
+import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
@@ -165,7 +166,7 @@ export function TrainingItem({
                     <Badge
                       key={muscleGroup}
                       variant="secondary"
-                      className="text-xs sm:text-sm capitalize"
+                      className={`text-xs sm:text-sm capitalize ${getMuscleGroupColor(muscleGroup)}`}
                     >
                       {muscleGroup}
                     </Badge>
@@ -184,7 +185,7 @@ export function TrainingItem({
                             <Badge
                               key={muscleGroup}
                               variant="secondary"
-                              className="text-xs sm:text-sm capitalize"
+                              className={`text-xs sm:text-sm capitalize ${getMuscleGroupColor(muscleGroup)}`}
                             >
                               {muscleGroup}
                             </Badge>

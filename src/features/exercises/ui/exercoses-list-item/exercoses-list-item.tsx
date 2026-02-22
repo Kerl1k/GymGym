@@ -1,14 +1,7 @@
-import {
-  MoreHorizontal,
-  Dumbbell,
-  Heart,
-  Activity,
-  Target,
-  Zap,
-  BicepsFlexed,
-} from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 
 import { cn } from "@/shared/lib/css";
+import { getMuscleGroupIcon, getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
@@ -28,34 +21,6 @@ interface ExercisesListItemProps {
   onClick?: () => void;
   isSelected?: boolean;
 }
-const muscleGroupIcons: Record<string, React.ReactNode> = {
-  Грудь: <Heart className={styles.muscleGroupIcon} />,
-  Спина: <BicepsFlexed className={styles.muscleGroupIcon} />,
-  Плечи: <Target className={styles.muscleGroupIcon} />,
-  Бицепс: <BicepsFlexed className={styles.muscleGroupIcon} />,
-  Трицепс: <BicepsFlexed className={styles.muscleGroupIcon} />,
-  Пресс: <Zap className={styles.muscleGroupIcon} />,
-  Ноги: <Activity className={styles.muscleGroupIcon} />,
-  Ягодицы: <Activity className={styles.muscleGroupIcon} />,
-  Икры: <Activity className={styles.muscleGroupIcon} />,
-  "Бицепс бедра": <BicepsFlexed className={styles.muscleGroupIcon} />,
-  Трапеции: <Target className={styles.muscleGroupIcon} />,
-  Предплечья: <BicepsFlexed className={styles.muscleGroupIcon} />,
-};
-
-const getMuscleGroupClass = (group: string): string => {
-  const groupMap: Record<string, string> = {
-    Грудь: styles.chest,
-    Спина: styles.back,
-    Ноги: styles.legs,
-    Плечи: styles.shoulders,
-    Бицепс: styles.biceps,
-    Трицепс: styles.triceps,
-    Пресс: styles.abs,
-    Ягодицы: styles.glutes,
-  };
-  return groupMap[group] || styles.general;
-};
 
 export function ExercisesListItem({
   exercise,
@@ -65,10 +30,7 @@ export function ExercisesListItem({
   isSelected = false,
 }: ExercisesListItemProps) {
   const primaryMuscleGroup = exercise.muscleGroups[0] || "Общее";
-  const muscleGroupClass = getMuscleGroupClass(primaryMuscleGroup);
-  const muscleGroupIcon = muscleGroupIcons[primaryMuscleGroup] || (
-    <Dumbbell className={styles.muscleGroupIcon} />
-  );
+  const muscleGroupIcon = getMuscleGroupIcon(primaryMuscleGroup);
 
   return (
     <Card
@@ -77,7 +39,7 @@ export function ExercisesListItem({
     >
       <CardContent className={styles.cardContent}>
         <div className={styles.contentWrapper}>
-          <div className={cn(styles.muscleGroupBadge, muscleGroupClass)}>
+          <div className={cn(styles.muscleGroupBadge, styles.general)}>
             {muscleGroupIcon}
           </div>
 
@@ -86,12 +48,14 @@ export function ExercisesListItem({
               <div className={styles.titleWrapper}>
                 <div className={styles.muscleGroupsContainer}>
                   {exercise.muscleGroups.map((group, index) => {
-                    const groupClass = getMuscleGroupClass(group);
                     return (
                       <Badge
                         key={index}
                         variant="secondary"
-                        className={cn(styles.muscleGroupBadgeSmall, groupClass)}
+                        className={cn(
+                          styles.muscleGroupBadgeSmall,
+                          getMuscleGroupColor(group),
+                        )}
                       >
                         {group}
                       </Badge>

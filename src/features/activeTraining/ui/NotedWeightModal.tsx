@@ -2,6 +2,7 @@ import { FC, useState, useEffect, useRef } from "react";
 
 import { Plus, Minus, Dumbbell, Repeat, Save, Clock } from "lucide-react";
 
+import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
@@ -20,6 +21,7 @@ type NotedWeightModalProps = {
   initialData?:
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
+  completeSet: () => void;
 };
 
 const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -33,34 +35,13 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   currentExerciseIndex,
   setTraining,
   initialData,
+  completeSet,
 }) => {
   const [sets, setSets] = useState<
     ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
   >([{ weight: 0, repeatCount: 0, done: false }]);
   const [restTime, setRestTime] = useState<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (initialData && Array.isArray(initialData)) {
-      setSets(
-        initialData.length > 0
-          ? initialData
-          : [{ weight: 0, repeatCount: 0, done: false }],
-      );
-    } else {
-      setSets([{ weight: 0, repeatCount: 0, done: false }]);
-    }
-
-    if (!initialData) {
-      setRestTime(currentExercise.restTime || 90);
-    } else {
-      setRestTime(currentExercise.restTime || null);
-    }
-
-    if (contentRef.current && isOpen) {
-      contentRef.current.scrollTop = 0;
-    }
-  }, [initialData, isOpen, currentExercise.restTime]);
 
   const handleSetChange = (
     index: number,
@@ -107,23 +88,13 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   };
 
   const handleSave = () => {
-    const validSets = sets.filter(
-      (set) => set.weight !== null && set.repeatCount !== null,
-    );
-
-    if (validSets.length === 0) {
-      return;
-    }
-
-    const newSets = validSets;
-
     setTraining((prev) => ({
       ...prev,
       exercises: prev.exercises.map((ex, exIndex) => {
         if (exIndex === currentExerciseIndex) {
           const updatedSets = [...ex.sets];
 
-          newSets.forEach((newSet, index) => {
+          sets.forEach((newSet, index) => {
             const existingSetIndex = updatedSets.findIndex(
               (_, i) => i === index,
             );
@@ -133,20 +104,47 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
               updatedSets.push(newSet);
             }
           });
-
           const updatedRestTime = restTime !== null ? restTime : ex.restTime;
 
           return { ...ex, sets: updatedSets, restTime: updatedRestTime };
         }
+
         return ex;
       }),
     }));
+    closeModal();
+  };
+
+  const closeModal = () => {
+    completeSet();
     close();
   };
 
+  useEffect(() => {
+    if (initialData && Array.isArray(initialData)) {
+      setSets(
+        initialData.length > 0
+          ? initialData
+          : [{ weight: 0, repeatCount: 0, done: false }],
+      );
+    } else {
+      setSets([{ weight: 0, repeatCount: 0, done: false }]);
+    }
+
+    if (!initialData) {
+      setRestTime(currentExercise.restTime || 90);
+    } else {
+      setRestTime(currentExercise.restTime || null);
+    }
+
+    if (contentRef.current && isOpen) {
+      contentRef.current.scrollTop = 0;
+    }
+  }, [initialData, isOpen, currentExercise.restTime]);
+
   return (
     <Modal
-      close={close}
+      close={closeModal}
       isOpen={isOpen}
       title="Запись весов и повторений"
       className="max-h-[90vh]"
@@ -170,7 +168,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                   {currentExercise.muscleGroups.map((group, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800"
+                      className={`px-2 py-1 text-xs rounded-full ${getMuscleGroupColor(group)}`}
                     >
                       {group}
                     </span>
@@ -374,7 +372,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={close}
+            onClick={closeModal}
             className="text-sm sm:text-base w-full sm:w-auto"
           >
             Отмена

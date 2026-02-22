@@ -8,6 +8,7 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { MUSCLE_GROUPS, getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -28,36 +29,6 @@ type ExerciseSelectModalProps = {
   isLoading?: boolean;
   close: () => void;
   isOpen: boolean;
-};
-
-const muscleGroups = [
-  "Грудь",
-  "Спина",
-  "Плечи",
-  "Бицепс",
-  "Трицепс",
-  "Пресс",
-  "Ноги",
-  "Ягодицы",
-  "Икры",
-  "Бицепс бедра",
-  "Трапеции",
-  "Предплечья",
-];
-
-const muscleGroupColors: Record<string, string> = {
-  Грудь: "bg-red-500/20 text-red-600 border border-red-500/30",
-  Спина: "bg-green-500/20 text-green-600 border border-green-500/30",
-  Плечи: "bg-blue-500/20 text-blue-600 border border-blue-500/30",
-  Бицепс: "bg-purple-500/20 text-purple-600 border border-purple-500/30",
-  Трицепс: "bg-yellow-500/20 text-yellow-600 border border-yellow-500/30",
-  Пресс: "bg-orange-500/20 text-orange-600 border border-orange-500/30",
-  Ноги: "bg-indigo-500/20 text-indigo-600 border border-indigo-500/30",
-  Ягодицы: "bg-pink-500/20 text-pink-600 border border-pink-500/30",
-  Икры: "bg-teal-500/20 text-teal-600 border border-teal-500/30",
-  "Бицепс бедра": "bg-lime-500/20 text-lime-600 border border-lime-500/30",
-  Трапеции: "bg-cyan-500/20 text-cyan-600 border border-cyan-500/30",
-  Предплечья: "bg-amber-500/20 text-amber-600 border border-amber-500/30",
 };
 
 export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
@@ -149,7 +120,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                 <DropdownMenuItem onSelect={() => setSelectedType("all")}>
                   <span className="text-sm">Все группы мышц</span>
                 </DropdownMenuItem>
-                {muscleGroups.map((group) => (
+                {MUSCLE_GROUPS.map((group) => (
                   <DropdownMenuItem
                     key={group}
                     onSelect={() => setSelectedType(group)}
@@ -229,7 +200,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                               .map((muscleGroup) => (
                                 <span
                                   key={muscleGroup}
-                                  className={`text-xs px-2 py-1 rounded-full font-medium ${muscleGroupColors[muscleGroup] || "bg-muted text-muted-foreground border border-border"}`}
+                                  className={`text-xs px-2 py-1 rounded-full font-medium ${getMuscleGroupColor(muscleGroup)}`}
                                 >
                                   {muscleGroup}
                                 </span>

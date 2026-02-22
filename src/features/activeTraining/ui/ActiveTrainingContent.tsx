@@ -12,6 +12,7 @@ import { Progress } from "@/shared/ui/kit/progress";
 
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
+import { getIndex } from "../model/utils";
 
 import styles from "./ActiveTrainingContent.module.scss";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
@@ -27,29 +28,27 @@ export const ActiveTrainingContent: FC<{
 
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
+
   const [trainingData, setTrainingData] =
     useState<ApiSchemas["ActiveTraining"]>(data);
   const [prevExercise, setPrevExercise] = useState(
     data.exercises[0]?.sets || [],
   );
-
   const [isResting, setIsResting] = useState(false);
-  const indexCurrentExercise = trainingData.exercises.findIndex((ex) => {
-    const doneSetsCount = ex.sets.filter((set) => set.done).length;
 
-    return doneSetsCount !== ex.sets.length;
-  });
+  const indexCurrentExercise = getIndex(trainingData.exercises);
 
   const totalSets = trainingData.exercises.reduce(
     (sum, ex) => sum + ex.sets.length,
     0,
   );
-  const completedSets = trainingData.exercises.reduce(
-    (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
-    0,
-  );
+  const completedSets =
+    trainingData.exercises.reduce(
+      (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
+      0,
+    ) / totalSets;
 
-  const progress = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
+  const progress = totalSets > 0 ? completedSets * 100 : 0;
 
   const completeSet = async () => {
     const updatedExercises = trainingData.exercises.map((ex, index) => {
@@ -66,35 +65,30 @@ export const ActiveTrainingContent: FC<{
       return ex;
     });
 
-    const currentEx = updatedExercises[indexCurrentExercise];
-    const currentExSets = currentEx.sets.filter((set) => set.done).length;
-
-    const updatedData = {
+    setTrainingWrapper({
       ...trainingData,
       exercises: updatedExercises,
-    };
+    });
 
-    if (currentExSets >= currentEx.sets.length) {
-      setPrevExercise([currentEx.sets[currentExSets - 1]]);
-      setIsResting(true);
-      open();
+    const nextIndex = getIndex(updatedExercises);
 
-      const nextIndex = updatedData.exercises.findIndex(
-        (ex) => ex.sets.filter((set) => set.done).length !== ex.sets.length,
-      );
-
-      if (nextIndex === -1) {
-        await change(updatedData);
-        finishTraining();
-        return;
-      }
-    } else {
-      setPrevExercise([currentEx.sets[currentExSets - 1]]);
-      open();
+    if (nextIndex === -1) {
+      finishTraining();
     }
+  };
 
-    setTrainingData(updatedData);
-    change(updatedData);
+  const handleSetCompletion = () => {
+    const currentSets = trainingData.exercises[
+      indexCurrentExercise
+    ]?.sets.filter((set) => set.done).length;
+
+    setPrevExercise(
+      trainingData.exercises[indexCurrentExercise]?.sets?.[currentSets]
+        ? [trainingData.exercises[indexCurrentExercise]?.sets?.[currentSets]]
+        : [],
+    );
+    setIsResting(true);
+    open();
   };
 
   const finishTraining = async () => {
@@ -122,8 +116,7 @@ export const ActiveTrainingContent: FC<{
 
   useEffect(() => {
     setTrainingData(data);
-    setPrevExercise(data.exercises[0]?.sets || []);
-  }, [data]);
+  }, []);
 
   if (trainingData === undefined && trainingData["exercises"] === 0)
     return null;
@@ -152,7 +145,7 @@ export const ActiveTrainingContent: FC<{
               <div className={styles.progressText}>
                 <span>Прогресс тренировки</span>
                 <span>
-                  {Math.round(progress)}% ({completedSets}/{totalSets} подходов)
+                  {Math.round(progress)}% ({completedSets} подходов)
                 </span>
               </div>
               <Progress value={progress} className="h-3" />
@@ -166,7 +159,7 @@ export const ActiveTrainingContent: FC<{
                   exercise={trainingData.exercises[indexCurrentExercise]}
                   setTraining={setTrainingWrapper}
                   open={openChange}
-                  onCompleteSet={completeSet}
+                  onCompleteSet={handleSetCompletion}
                 />
               )}
               {isResting && (
@@ -201,6 +194,7 @@ export const ActiveTrainingContent: FC<{
           initialData={prevExercise}
           isOpen={isOpen}
           setTraining={setTrainingWrapper}
+          completeSet={completeSet}
         />
       </div>
     </div>

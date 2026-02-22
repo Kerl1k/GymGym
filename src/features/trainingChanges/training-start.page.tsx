@@ -11,6 +11,7 @@ import {
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { cn } from "@/shared/lib/css";
+import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
@@ -237,7 +238,11 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
                     <h3 className={styles.exerciseName}>{exercise.name}</h3>
                     <div className={styles.exerciseTags}>
                       {exercise.muscleGroups?.map((group, i) => (
-                        <Badge key={i} variant="outline" className={styles.tag}>
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className={` ${styles.tag} ${getMuscleGroupColor(group)}`}
+                        >
                           {group}
                         </Badge>
                       ))}
