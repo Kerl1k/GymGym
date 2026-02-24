@@ -12,6 +12,7 @@ import {
   Form,
 } from "@/shared/ui/kit/form";
 import { Input } from "@/shared/ui/kit/input";
+import { PasswordToggle } from "@/shared/ui/kit/password-toggle";
 
 import { useRegister } from "../../../entities/auth/use-register";
 
@@ -59,7 +60,15 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Пароль</FormLabel>
               <FormControl>
-                <Input placeholder="******" type="password" {...field} />
+                <div className="relative">
+                  <Input
+                    id="register-password"
+                    placeholder="******"
+                    type="password"
+                    {...field}
+                  />
+                  <PasswordToggle inputId="register-password" />
+                </div>
               </FormControl>
 
               <FormMessage />

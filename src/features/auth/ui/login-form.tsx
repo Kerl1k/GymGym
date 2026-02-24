@@ -12,6 +12,7 @@ import {
   Form,
 } from "@/shared/ui/kit/form";
 import { Input } from "@/shared/ui/kit/input";
+import { PasswordToggle } from "@/shared/ui/kit/password-toggle";
 
 import { useLogin } from "../../../entities/auth/use-login";
 
@@ -59,7 +60,15 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>Пароль</FormLabel>
               <FormControl>
-                <Input placeholder="******" type="password" {...field} />
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    placeholder="******"
+                    type="password"
+                    {...field}
+                  />
+                  <PasswordToggle inputId="login-password" />
+                </div>
               </FormControl>
 
               <FormMessage />
