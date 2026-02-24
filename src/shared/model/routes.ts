@@ -15,4 +15,5 @@ export const ROUTES = {
   CREATE_WORKOUT: "/workout/create",
   PROFILE: "/profile",
   TRAINING_HISTORY: "/training-history",
+  STATISTICS: "/statistics",
 } as const;

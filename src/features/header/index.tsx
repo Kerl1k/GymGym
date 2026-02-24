@@ -71,6 +71,13 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
+            <Link to={ROUTES.STATISTICS}>Статистика</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="justify-start text-sm sm:text-base hover-lift"
+            asChild
+          >
             <Link to={ROUTES.TRAINING}>Тренировки</Link>
           </Button>
         </nav>

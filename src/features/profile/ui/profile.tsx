@@ -15,6 +15,7 @@ import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
 import { useTrainingList } from "@/entities/training/use-training-fetch";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./profile.module.scss";
@@ -24,6 +25,22 @@ export const Profile = () => {
   const { history: trainingHistory } = useFetchActiveHistrory({
     sort: "dateStart",
   });
+
+  const { history: benchPressHistory } = useFetchTrainingHistoryWithFilters({
+    sort: "dateStart",
+    exerciseName: "Жим",
+  });
+
+  const benchPressWeights = benchPressHistory.flatMap((training) => {
+    const benchExercises = training.exercises.filter(
+      (exercise) => exercise.name === "Жим",
+    );
+    return benchExercises.flatMap(
+      (exercise) => exercise.sets?.map((set) => set.weight) || [],
+    );
+  });
+
+  console.log(benchPressWeights);
   const { trainings } = useTrainingList({ filter: { favorite: true } });
   const navigator = useNavigate();
 
@@ -32,7 +49,7 @@ export const Profile = () => {
   const [userData] = useState(profile);
 
   const stats = {
-    totalTrainings: 0,
+    totalTrainings: benchPressHistory.length,
     totalDuration: 0,
     totalCalories: 0,
     favoriteExerciseCount: 0,
@@ -85,7 +102,7 @@ export const Profile = () => {
           </div>
           <div className={styles.statContent}>
             <div className={styles.statValue}>{stats.totalTrainings}</div>
-            <div className={styles.statLabel}>Тренировок</div>
+            <div className={styles.statLabel}>Тренировок c жимом</div>
           </div>
         </div>
 
@@ -179,15 +196,13 @@ export const Profile = () => {
             <div className={styles.progressChart}>
               <div className={styles.chartPlaceholder}>
                 <div className={styles.chartBars}>
-                  {[65, 80, 45, 90, 75, 85, 70, 95, 60, 82, 78, 88].map(
-                    (height, index) => (
-                      <div
-                        key={index}
-                        className={styles.chartBar}
-                        style={{ height: `${height}%` }}
-                      />
-                    ),
-                  )}
+                  {benchPressWeights.map((height, index) => (
+                    <div
+                      key={index}
+                      className={styles.chartBar}
+                      style={{ height: `${height}%` }}
+                    />
+                  ))}
                 </div>
                 <div className={styles.chartLabels}>
                   <span>Янв</span>
