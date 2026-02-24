@@ -138,7 +138,6 @@ export const Statistics = () => {
                     />
                     <XAxis
                       dataKey="date"
-                      angle={-45}
                       interval={0}
                       tick={{ transform: "translate(0, 10)" }}
                       tickFormatter={(value) => value}
@@ -148,20 +147,6 @@ export const Statistics = () => {
                     <Tooltip
                       formatter={(value) => [`${value} кг`, "Вес"]}
                       labelFormatter={(label) => `Дата: ${label}`}
-                      contentStyle={{
-                        backgroundColor: "var(--card)",
-                        border: "1px solid var(--border)",
-                        color: "var(--foreground)",
-                        borderRadius: "0.375rem",
-                        padding: "0.75rem",
-                        fontSize: "0.875rem",
-                        lineHeight: 1.5,
-                        whiteSpace: "nowrap",
-                        overflow: "visible",
-                      }}
-                      wrapperStyle={{
-                        zIndex: 100,
-                      }}
                     />
                     <Line
                       type="monotone"
@@ -182,7 +167,7 @@ export const Statistics = () => {
         </div>
       ) : (
         <div className="text-center py-8 text-muted-foreground">
-          Пожалуйста, выберите упражнение для просмотра статистики
+          Пожалуйста, выберите упражнение для просмот
         </div>
       )}
     </div>
