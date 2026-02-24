@@ -87,7 +87,10 @@ export const ActiveTrainingContent: FC<{
         ? [trainingData.exercises[indexCurrentExercise]?.sets?.[currentSets]]
         : [],
     );
-    setIsResting(true);
+    if (trainingData.exercises[indexCurrentExercise]?.restTime !== 0) {
+      setIsResting(true);
+    }
+
     open();
   };
 
