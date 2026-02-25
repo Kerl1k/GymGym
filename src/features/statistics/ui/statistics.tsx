@@ -140,7 +140,7 @@ export const Statistics = () => {
                       dataKey="date"
                       interval={0}
                       tick={{ transform: "translate(0, 10)" }}
-                      tickFormatter={(value) => value}
+                      tickFormatter={(value: string) => value}
                       tickSize={12}
                     />
                     <YAxis />
