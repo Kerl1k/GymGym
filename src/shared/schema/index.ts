@@ -1,12 +1,8 @@
 import { components, paths } from "./generated";
 
 export async function enableMocking() {
-  if (import.meta.env.PROD) {
-    return;
-  }
-
-  const { worker } = await import("@/shared/api/browser");
-  return worker.start();
+  // Mocking disabled
+  return Promise.resolve();
 }
 
 export type ApiPaths = paths;

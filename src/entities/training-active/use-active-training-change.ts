@@ -19,7 +19,12 @@ export function useUpdateActiveTraining() {
   );
 
   const change = async (data: ApiSchemas["ActiveTraining"]) => {
-    await createTrainingMutation.mutateAsync({ body: data });
+    await createTrainingMutation
+      .mutateAsync({ body: data })
+      .then(() => {})
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   return {

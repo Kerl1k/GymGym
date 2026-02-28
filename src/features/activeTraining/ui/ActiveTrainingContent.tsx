@@ -107,14 +107,9 @@ export const ActiveTrainingContent: FC<{
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
   ) => {
-    if (typeof value === "function") {
-      const newData = value(trainingData);
-      setTrainingData(newData);
-      change(newData);
-    } else {
-      setTrainingData(value);
-      change(value);
-    }
+    const newData = typeof value === "function" ? value(trainingData) : value;
+    setTrainingData(newData);
+    change(newData);
   };
 
   useEffect(() => {

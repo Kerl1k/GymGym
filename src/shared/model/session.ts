@@ -59,8 +59,8 @@ export const useSession = createGStore(() => {
 
         refreshTokenPromise = publicFetchClient
           .POST("/api/auth/refresh", {
-            headers: {
-              Cookie: `refreshToken=${storedRefreshToken}`,
+            body: {
+              refreshToken: storedRefreshToken,
             },
           })
           .then((r) => {

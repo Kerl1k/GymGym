@@ -82,12 +82,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     }
   };
 
-  const handleRestTimeChange = (value: string) => {
-    const numValue = value === "" ? null : Number(value);
-    setRestTime(numValue);
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     setTraining((prev) => ({
       ...prev,
       exercises: prev.exercises.map((ex, exIndex) => {
@@ -116,7 +111,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   };
 
   const closeModal = () => {
-    completeSet();
+    if (sets.length === 1) {
+      completeSet();
+    }
     close();
   };
 
@@ -197,7 +194,11 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                     type="number"
                     min="0"
                     value={restTime === null ? "" : restTime}
-                    onChange={(e) => handleRestTimeChange(e.target.value)}
+                    onChange={(e) =>
+                      setRestTime(
+                        e.target.value === "" ? null : Number(e.target.value),
+                      )
+                    }
                     placeholder="90"
                     className="w-16 text-center text-sm"
                   />
@@ -221,7 +222,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                   <button
                     key={time}
                     type="button"
-                    onClick={() => handleRestTimeChange(time.toString())}
+                    onClick={() => setRestTime(time)}
                     className={`px-2 py-1 text-xs rounded ${restTime === time ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
                   >
                     {time}с
