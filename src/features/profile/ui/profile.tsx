@@ -15,6 +15,7 @@ import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
 import { useTrainingList } from "@/entities/training/use-training-fetch";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -40,11 +41,11 @@ export const Profile = () => {
     );
   });
 
-  console.log(benchPressWeights);
   const { trainings } = useTrainingList({ filter: { favorite: true } });
   const navigator = useNavigate();
 
   const { start } = useStartActiveTraining();
+  const { deleteExercises } = useActiveTrainingDelete();
 
   const [userData] = useState(profile);
 
@@ -173,11 +174,22 @@ export const Profile = () => {
                       </span>
                     </div>
                   </div>
-                  <button className={styles.repeatButton}>
-                    <Link to={`${ROUTES.END.replace(/:id/, training.id)}`}>
+                  <div className={styles.historyActions}>
+                    <button
+                      className={styles.repeatButton}
+                      onClick={() =>
+                        navigator(`${ROUTES.END.replace(/:id/, training.id)}`)
+                      }
+                    >
                       Подробнее
-                    </Link>
-                  </button>
+                    </button>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => deleteExercises(training.id)}
+                    >
+                      Удалить
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

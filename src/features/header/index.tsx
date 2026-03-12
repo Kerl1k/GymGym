@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,10 +16,6 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   const { session, logout } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  if (!session) {
-    return null;
-  }
-
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
@@ -27,6 +23,35 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const header = document.querySelector("header");
+      const menuButton = document.querySelector(
+        'button[aria-label="Close menu"]',
+      ) as HTMLElement;
+
+      if (
+        isMenuOpen &&
+        header &&
+        !header.contains(target) &&
+        menuButton &&
+        !menuButton.contains(target)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border/20 shadow-sm py-4 px-4 sm:px-6 mb-6 sticky top-0 z-50">
@@ -57,28 +82,39 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.HOME}>Упражнения</Link>
+            <Link to={ROUTES.HOME} onClick={() => setIsMenuOpen(false)}>
+              Упражнения
+            </Link>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.ACTIVE_TRAINING}>Активная тренировка</Link>
+            <Link
+              to={ROUTES.ACTIVE_TRAINING}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Активная тренировка
+            </Link>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.STATISTICS}>Статистика</Link>
+            <Link to={ROUTES.STATISTICS} onClick={() => setIsMenuOpen(false)}>
+              Статистика
+            </Link>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-sm sm:text-base hover-lift"
             asChild
           >
-            <Link to={ROUTES.TRAINING}>Тренировки</Link>
+            <Link to={ROUTES.TRAINING} onClick={() => setIsMenuOpen(false)}>
+              Тренировки
+            </Link>
           </Button>
         </nav>
         <div className="flex items-center gap-3 sm:gap-4">

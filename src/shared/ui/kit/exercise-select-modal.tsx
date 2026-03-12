@@ -5,7 +5,6 @@ import {
   FilterIcon,
   ArrowUpDownIcon,
   DumbbellIcon,
-  XIcon,
 } from "lucide-react";
 
 import { MUSCLE_GROUPS, getMuscleGroupColor } from "@/shared/lib/utils";
@@ -38,15 +37,11 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
   close,
   isLoading = false,
 }) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState<"all" | string>("all");
   const sortBy = "name";
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const filteredExercises = exercises
-    .filter((exercise) =>
-      exercise.name.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
     .filter((exercise) => {
       if (selectedType === "all") return true;
       return exercise.muscleGroups?.some((group) =>
@@ -77,7 +72,6 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
   };
 
   const clearFilters = () => {
-    setSearchTerm("");
     setSelectedType("all");
   };
 
@@ -94,18 +88,8 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Найти упражнение..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 h-10 text-sm sm:text-base"
             />
-            {searchTerm && (
-              <button
-                onClick={() => setSearchTerm("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <XIcon className="h-4 w-4" />
-              </button>
-            )}
           </div>
 
           <div className="flex flex-wrap gap-2 items-center">
@@ -142,7 +126,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
               {sortDirection === "asc" ? " ↑" : " ↓"}
             </Button>
 
-            {(searchTerm || selectedType !== "all") && (
+            {selectedType !== "all" && (
               <Button
                 variant="ghost"
                 onClick={clearFilters}
