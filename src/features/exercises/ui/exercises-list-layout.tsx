@@ -40,10 +40,14 @@ export function ExercisesListLayoutHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
       <div>
-        <h1 className="text-2xl font-bold">{title}</h1>
-        {description && <p className="text-gray-500">{description}</p>}
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{title}</h1>
+        {description && (
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
+            {description}
+          </p>
+        )}
       </div>
 
       <div className="flex gap-2">{actions}</div>

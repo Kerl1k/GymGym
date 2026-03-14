@@ -789,6 +789,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/active-training/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/active-training/repeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            /** @description Body */
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ActiveTrainingRepeatParams"];
+                };
+            };
+            responses: {
+                /** @description 200 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ActiveTraining"];
+                    };
+                };
+                /** @description 400 */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "AlreadyExists";
+                    };
+                };
+                /** @description 404 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": "NotFound";
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/training-history": {
         parameters: {
             query?: never;
@@ -1082,6 +1189,11 @@ export interface components {
                 muscleGroups: string[];
                 useCustomSets: boolean;
             }[];
+        };
+        /** ActiveTrainingRepeatParams */
+        ActiveTrainingRepeatParams: {
+            trainingHistoryId: string;
+            dateStart: string;
         };
         /** TrainingHistory */
         TrainingHistory: {

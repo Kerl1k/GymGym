@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import { Link } from "react-router-dom";
 
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
@@ -13,12 +15,17 @@ import {
 import { Loader } from "@/shared/ui/kit/loader";
 
 import styles from "./ActiveTraining.module.scss";
+import { TrainingHistoryList } from "./components/TrainingHistoryList";
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
   const { data, error, isLoading } = useActiveTrainingFetch();
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // Check if error is 404 (Not Found)
+  const handleTrainingRepeated = () => {
+    setRefreshKey((prev) => prev + 1);
+  };
+
   if (error === "NotFound") {
     return (
       <div className={styles.container}>
@@ -38,6 +45,10 @@ const ActiveTraining = () => {
                 <Button className={styles.button}>Перейти к тренировкам</Button>
               </Link>
             </div>
+            <TrainingHistoryList
+              key={refreshKey}
+              onTrainingRepeated={handleTrainingRepeated}
+            />
           </CardContent>
         </Card>
       </div>
