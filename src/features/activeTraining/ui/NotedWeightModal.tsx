@@ -1,6 +1,6 @@
 import { FC, useState, useEffect, useRef } from "react";
 
-import { Plus, Minus, Dumbbell, Repeat, Save, Clock } from "lucide-react";
+import { Plus, Minus, Dumbbell, Repeat, Save } from "lucide-react";
 
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
@@ -13,34 +13,33 @@ import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 type NotedWeightModalProps = {
   isOpen: boolean;
   currentExercise: ApiSchemas["ActiveTraining"]["exercises"][0];
-  currentExerciseIndex: number;
   close: () => void;
-  setTraining: React.Dispatch<
-    React.SetStateAction<ApiSchemas["ActiveTraining"]>
-  >;
   initialData?:
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
-  completeSet: () => void;
+  completeSet: ({
+    weight,
+    repeatCount,
+  }: {
+    weight: number;
+    repeatCount: number;
+  }) => void;
 };
 
 const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
 const repPresets = [5, 8, 10, 12, 15, 20];
-const restTimePresets = [30, 45, 60, 75, 90, 120, 150, 180];
 
 export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   close,
   isOpen,
   currentExercise,
-  currentExerciseIndex,
-  setTraining,
   initialData,
   completeSet,
 }) => {
   const [sets, setSets] = useState<
     ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
   >([{ weight: 0, repeatCount: 0, done: false }]);
-  const [restTime, setRestTime] = useState<number | null>(null);
+
   const contentRef = useRef<HTMLDivElement>(null);
 
   const handleSetChange = (
@@ -83,37 +82,12 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   };
 
   const handleSave = async () => {
-    setTraining((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((ex, exIndex) => {
-        if (exIndex === currentExerciseIndex) {
-          const updatedSets = [...ex.sets];
-
-          sets.forEach((newSet, index) => {
-            const existingSetIndex = updatedSets.findIndex(
-              (_, i) => i === index,
-            );
-            if (existingSetIndex >= 0) {
-              updatedSets[existingSetIndex] = newSet;
-            } else {
-              updatedSets.push(newSet);
-            }
-          });
-          const updatedRestTime = restTime !== null ? restTime : ex.restTime;
-
-          return { ...ex, sets: updatedSets, restTime: updatedRestTime };
-        }
-
-        return ex;
-      }),
-    }));
-    closeModal();
+    completeSet({ weight: sets[0].weight, repeatCount: sets[0].repeatCount });
+    close();
   };
 
   const closeModal = () => {
-    if (sets.length === 1) {
-      completeSet();
-    }
+    completeSet({ weight: sets[0].weight, repeatCount: sets[0].repeatCount });
     close();
   };
 
@@ -126,12 +100,6 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       );
     } else {
       setSets([{ weight: 0, repeatCount: 0, done: false }]);
-    }
-
-    if (!initialData) {
-      setRestTime(currentExercise.restTime || 90);
-    } else {
-      setRestTime(currentExercise.restTime || null);
     }
 
     if (contentRef.current && isOpen) {
@@ -172,63 +140,6 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-2 mt-2">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  Время отдыха:
-                </span>
-                <div className="flex items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setRestTime(restTime === null ? 90 : restTime - 5)
-                    }
-                    className="w-8 h-8 p-0"
-                  >
-                    <Minus className="w-3 h-3" />
-                  </Button>
-
-                  <Input
-                    type="number"
-                    min="0"
-                    value={restTime === null ? "" : restTime}
-                    onChange={(e) =>
-                      setRestTime(
-                        e.target.value === "" ? null : Number(e.target.value),
-                      )
-                    }
-                    placeholder="90"
-                    className="w-16 text-center text-sm"
-                  />
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      setRestTime(restTime === null ? 90 : restTime + 5)
-                    }
-                    className="w-8 h-8 p-0"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </Button>
-                </div>
-                <span className="text-sm text-muted-foreground">сек</span>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {restTimePresets.map((time) => (
-                  <button
-                    key={time}
-                    type="button"
-                    onClick={() => setRestTime(time)}
-                    className={`px-2 py-1 text-xs rounded ${restTime === time ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
-                  >
-                    {time}с
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </Card>

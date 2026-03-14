@@ -50,7 +50,14 @@ export const ActiveTrainingContent: FC<{
 
   const progress = totalSets > 0 ? completedSets * 100 : 0;
 
-  const completeSet = async () => {
+  const completeSet = async ({
+    weight,
+    repeatCount,
+  }: {
+    weight: number;
+    repeatCount: number;
+  }) => {
+    console.log(weight, repeatCount);
     const updatedExercises = trainingData.exercises.map((ex, index) => {
       if (index === indexCurrentExercise) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
@@ -58,7 +65,9 @@ export const ActiveTrainingContent: FC<{
         return {
           ...ex,
           sets: ex.sets.map((set, setIndex) =>
-            setIndex === doneSetsCount ? { ...set, done: true } : set,
+            setIndex === doneSetsCount
+              ? { done: true, repeatCount: repeatCount, weight: weight }
+              : set,
           ),
         };
       }
@@ -188,10 +197,8 @@ export const ActiveTrainingContent: FC<{
         <NotedWeightModal
           close={close}
           currentExercise={trainingData.exercises[indexCurrentExercise]}
-          currentExerciseIndex={indexCurrentExercise - 1}
           initialData={prevExercise}
           isOpen={isOpen}
-          setTraining={setTrainingWrapper}
           completeSet={completeSet}
         />
       </div>
