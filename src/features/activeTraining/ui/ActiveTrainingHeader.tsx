@@ -40,7 +40,9 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
           className="gap-2 text-sm sm:text-base sm:size-auto"
         >
           <X className="h-5 w-5" />
-          <span className="hidden sm:inline">Отменить</span>
+          <span className="hidden sm:inline cursor-pointer text-red-500">
+            Отменить
+          </span>
         </Button>
         <Button
           onClick={finishTraining}
@@ -49,7 +51,7 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
           className="gap-2 text-sm sm:text-base sm:size-auto"
         >
           <CheckIcon className="h-5 w-5" />
-          <span className="hidden sm:inline">Завершить</span>
+          <span className="hidden sm:inline cursor-pointer">Завершить</span>
         </Button>
       </div>
     </div>

@@ -99,7 +99,7 @@ export function CurrentExercise({
           <CardTitle className="text-xl sm:text-2xl md:text-3xl">
             {exercise.name}
           </CardTitle>
-          <Button onClick={open} size="sm" className="sm:size-auto">
+          <Button disabled onClick={open} size="sm" className="sm:size-auto">
             Изменить
           </Button>
         </div>

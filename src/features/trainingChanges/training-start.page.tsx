@@ -60,8 +60,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
           sets: exercise.sets.map((set) => ({
             ...set,
             weight: firstSet.weight,
-            reps: firstSet.repeatCount,
-            restTime: firstSet.repeatCount,
             done: false,
           })),
         };
@@ -147,11 +145,9 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
   const handleAddExercise = (exerciseId: string) => {
     if (!activeTraining) return;
 
-    // Find the selected exercise from the exercises list
     const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
     if (!selectedExercise) return;
 
-    // Create a new exercise object for the training
     const newExercise: ApiSchemas["ActiveTraining"]["exercises"][0] = {
       id: selectedExercise.id,
       name: selectedExercise.name,
@@ -208,7 +204,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
     <div className={styles.container}>
       {/* Шапка */}
       <div className={styles.header}>
-        <h1 className={styles.title}>{"Тренировка"}</h1>
+        <h1 className={styles.title}>{"Тренировка: " + activeTraining.name}</h1>
         <div className={styles.stats}>
           <div className={styles.statItem}>
             <span className={styles.statValue}>

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 
 import {
   PlusIcon,
@@ -32,6 +32,7 @@ const Approach: FC<Props> = ({
   setActiveTraining,
   exerciseIndex,
 }) => {
+  const [setsCountInput, setSetsCountInput] = useState<string>("");
   const handleSetChange = (
     exerciseIndex: number,
     setIndex: number,
@@ -48,7 +49,8 @@ const Approach: FC<Props> = ({
       const newExercises = [...prev.exercises];
       newExercises[exerciseIndex].sets[setIndex] = {
         ...newExercises[exerciseIndex].sets[setIndex],
-        [field]: value === "" ? (field === "repeatCount" ? 1 : 0) : value,
+        [field]:
+          value === "" ? (field === "repeatCount" ? 1 : 0) : Number(value),
       };
 
       return {
@@ -65,14 +67,14 @@ const Approach: FC<Props> = ({
       if (!prev) return prev;
 
       const newExercises = [...prev.exercises];
-
       newExercises[exerciseIndex] = {
         ...exercise,
         sets: [
           ...exercise.sets,
           {
-            weight: 0,
-            repeatCount: 0,
+            weight: exercise.sets[exercise.sets.length - 1]?.weight || 0,
+            repeatCount:
+              exercise.sets[exercise.sets.length - 1]?.repeatCount || 0,
             done: false,
           },
         ],
@@ -125,7 +127,12 @@ const Approach: FC<Props> = ({
       newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.map(
         (set) => ({
           ...set,
-          [field]: value === "" ? (field === "repeatCount" ? 1 : 0) : value,
+          [field]:
+            field === "restTime" && value === ""
+              ? 0
+              : value === ""
+                ? value
+                : Number(value),
         }),
       );
 
@@ -154,11 +161,7 @@ const Approach: FC<Props> = ({
                     : ""
                 }
                 onChange={(e) =>
-                  updateAllSets(
-                    exerciseIndex,
-                    "weight",
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
+                  updateAllSets(exerciseIndex, "weight", e.target.value)
                 }
                 className={styles.fieldInput}
                 min="0"
@@ -179,11 +182,7 @@ const Approach: FC<Props> = ({
                     : ""
                 }
                 onChange={(e) =>
-                  updateAllSets(
-                    exerciseIndex,
-                    "repeatCount",
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
+                  updateAllSets(exerciseIndex, "repeatCount", e.target.value)
                 }
                 className={styles.fieldInput}
                 min="1"
@@ -196,11 +195,21 @@ const Approach: FC<Props> = ({
                 Подходы
               </Label>
               <Input
-                type="number"
-                value={exercise.sets.length}
+                value={setsCountInput || exercise.sets.length}
                 onChange={(e) => {
-                  const newCount = Number(e.target.value);
+                  setSetsCountInput(e.target.value);
+                }}
+                onBlur={(e) => {
+                  const inputValue = e.target.value;
                   const currentCount = exercise.sets.length;
+
+                  // Если поле пустое, возвращаем текущее количество
+                  if (inputValue === "") {
+                    setSetsCountInput("");
+                    return;
+                  }
+
+                  const newCount = Number(inputValue);
 
                   if (newCount > currentCount) {
                     for (let i = currentCount; i < newCount; i++) {
@@ -211,9 +220,15 @@ const Approach: FC<Props> = ({
                       removeSet(exerciseIndex, i);
                     }
                   }
+
+                  // Сбрасываем локальное состояние после применения изменений
+                  setSetsCountInput("");
+                }}
+                onFocus={() => {
+                  // При фокусе очищаем поле для ввода нового значения
+                  setSetsCountInput("");
                 }}
                 className={styles.fieldInput}
-                min="1"
               />
             </div>
 
@@ -309,7 +324,7 @@ const Approach: FC<Props> = ({
                           exerciseIndex,
                           setIndex,
                           "weight",
-                          e.target.value === "" ? "" : Number(e.target.value),
+                          e.target.value,
                         )
                       }
                       className={styles.setInput}
@@ -330,7 +345,7 @@ const Approach: FC<Props> = ({
                           exerciseIndex,
                           setIndex,
                           "repeatCount",
-                          e.target.value === "" ? "" : Number(e.target.value),
+                          e.target.value,
                         )
                       }
                       className={styles.setInput}
