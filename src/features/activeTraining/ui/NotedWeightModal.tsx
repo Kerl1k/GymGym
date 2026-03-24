@@ -86,11 +86,6 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     close();
   };
 
-  const closeModal = () => {
-    completeSet({ weight: sets[0].weight, repeatCount: sets[0].repeatCount });
-    close();
-  };
-
   useEffect(() => {
     if (initialData && Array.isArray(initialData)) {
       setSets(
@@ -109,7 +104,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
   return (
     <Modal
-      close={closeModal}
+      close={close}
       isOpen={isOpen}
       title="Запись весов и повторений"
       className="max-h-[90vh]"
@@ -284,7 +279,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={closeModal}
+            onClick={close}
             className="text-sm sm:text-base w-full sm:w-auto"
           >
             Отмена

@@ -34,12 +34,13 @@ export function CurrentExercise({
   const repsInputRef = useRef<HTMLInputElement>(null);
 
   const currentSets = exercise.sets.filter((set) => set.done).length;
+  const activeSetIndex = Math.min(currentSets, Math.max(exercise.sets.length - 1, 0));
 
   const [tempWeight, setTempWeight] = useState(
-    exercise.sets[currentSets].weight?.toString() ?? "",
+    exercise.sets[activeSetIndex]?.weight?.toString() ?? "",
   );
   const [tempReps, setTempReps] = useState(
-    exercise.sets[currentSets].repeatCount?.toString() ?? "",
+    exercise.sets[activeSetIndex]?.repeatCount?.toString() ?? "",
   );
 
   const updateWeight = () => {
@@ -50,7 +51,7 @@ export function CurrentExercise({
           return {
             ...ex,
             sets: ex.sets.map((set, index) => {
-              if (index === currentSets) {
+              if (index === activeSetIndex) {
                 return {
                   ...set,
                   weight: tempWeight === "" ? 0 : Number(tempWeight),
@@ -74,7 +75,7 @@ export function CurrentExercise({
           return {
             ...ex,
             sets: ex.sets.map((set, index) => {
-              if (index === currentSets) {
+              if (index === activeSetIndex) {
                 return {
                   ...set,
                   repeatCount: tempReps === "" ? 0 : Number(tempReps),
@@ -131,7 +132,7 @@ export function CurrentExercise({
                     onClick={() => {
                       setIsEditingWeight(false);
                       setTempWeight(
-                        exercise.sets[currentSets].weight?.toString() ?? "",
+                        exercise.sets[activeSetIndex]?.weight?.toString() ?? "",
                       );
                     }}
                     className="p-1"
@@ -172,7 +173,7 @@ export function CurrentExercise({
               </div>
             ) : (
               <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                {exercise.sets[currentSets].weight}
+                {exercise.sets[activeSetIndex]?.weight ?? 0}
                 <span className="text-muted-foreground text-lg sm:text-xl">
                   {" "}
                   кг
@@ -207,7 +208,7 @@ export function CurrentExercise({
                     onClick={() => {
                       setIsEditingReps(false);
                       setTempReps(
-                        exercise.sets[currentSets].repeatCount?.toString() ??
+                        exercise.sets[activeSetIndex]?.repeatCount?.toString() ??
                           "",
                       );
                     }}
@@ -248,7 +249,7 @@ export function CurrentExercise({
               </div>
             ) : (
               <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                {exercise.sets[currentSets].repeatCount}
+                {exercise.sets[activeSetIndex]?.repeatCount ?? 0}
                 <span className="text-muted-foreground text-lg sm:text-xl">
                   {" "}
                   раз

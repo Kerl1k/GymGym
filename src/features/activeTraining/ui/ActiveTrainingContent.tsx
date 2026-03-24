@@ -1,5 +1,6 @@
-import { useState, useEffect, FC } from "react";
+import { useState, useEffect, FC, useMemo } from "react";
 
+import { CheckCircle2Icon, PencilIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
@@ -7,6 +8,7 @@ import { useEndActiveTraining } from "@/entities/training-active/use-active-trai
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Loader } from "@/shared/ui/kit/loader";
 import { Progress } from "@/shared/ui/kit/progress";
 
@@ -35,8 +37,20 @@ export const ActiveTrainingContent: FC<{
     data.exercises[0]?.sets || [],
   );
   const [isResting, setIsResting] = useState(false);
+  const [selectedCompletedExerciseIndex, setSelectedCompletedExerciseIndex] =
+    useState<number | null>(null);
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
+  const activeExerciseIndex = selectedCompletedExerciseIndex ?? indexCurrentExercise;
+  const activeExercise = trainingData.exercises[activeExerciseIndex];
+
+  const completedExercises = useMemo(
+    () =>
+      trainingData.exercises
+        .map((exercise, index) => ({ exercise, index }))
+        .filter(({ exercise }) => exercise.sets.length > 0 && exercise.sets.every((set) => set.done)),
+    [trainingData.exercises],
+  );
 
   const totalSets = trainingData.exercises.reduce(
     (sum, ex) => sum + ex.sets.length,
@@ -59,7 +73,7 @@ export const ActiveTrainingContent: FC<{
   }) => {
     console.log(weight, repeatCount);
     const updatedExercises = trainingData.exercises.map((ex, index) => {
-      if (index === indexCurrentExercise) {
+      if (index === activeExerciseIndex) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
 
         return {
@@ -87,16 +101,20 @@ export const ActiveTrainingContent: FC<{
   };
 
   const handleSetCompletion = () => {
-    const currentSets = trainingData.exercises[
-      indexCurrentExercise
-    ]?.sets.filter((set) => set.done).length;
+    const currentExercise = trainingData.exercises[activeExerciseIndex];
+    const currentSets = currentExercise?.sets.filter((set) => set.done).length;
+    const isSelectedCompletedExercise =
+      selectedCompletedExerciseIndex !== null &&
+      selectedCompletedExerciseIndex !== indexCurrentExercise &&
+      currentExercise?.sets.every((set) => set.done);
 
     setPrevExercise(
-      trainingData.exercises[indexCurrentExercise]?.sets?.[currentSets]
-        ? [trainingData.exercises[indexCurrentExercise]?.sets?.[currentSets]]
+      currentExercise?.sets?.[currentSets]
+        ? [currentExercise?.sets?.[currentSets]]
         : [],
     );
-    if (trainingData.exercises[indexCurrentExercise]?.restTime !== 0) {
+
+    if (!isSelectedCompletedExercise && currentExercise?.restTime !== 0) {
       setIsResting(true);
     }
 
@@ -109,7 +127,7 @@ export const ActiveTrainingContent: FC<{
   };
 
   const openChange = () => {
-    setPrevExercise(trainingData.exercises[indexCurrentExercise]?.sets || []);
+    setPrevExercise(trainingData.exercises[activeExerciseIndex]?.sets || []);
     open();
   };
 
@@ -123,7 +141,16 @@ export const ActiveTrainingContent: FC<{
 
   useEffect(() => {
     setTrainingData(data);
-  }, []);
+  }, [data]);
+
+  useEffect(() => {
+    if (selectedCompletedExerciseIndex === null) return;
+
+    const selectedExercise = trainingData.exercises[selectedCompletedExerciseIndex];
+    if (!selectedExercise || !selectedExercise.sets.every((set) => set.done)) {
+      setSelectedCompletedExerciseIndex(null);
+    }
+  }, [selectedCompletedExerciseIndex, trainingData.exercises]);
 
   if (trainingData === undefined && trainingData["exercises"] === 0)
     return null;
@@ -160,10 +187,10 @@ export const ActiveTrainingContent: FC<{
           </div>
           <div className={styles.gridLayout}>
             <div className={styles.mainContent}>
-              {trainingData.exercises[indexCurrentExercise]?.sets?.length >
+              {activeExercise?.sets?.length >
                 0 && (
                 <CurrentExercise
-                  exercise={trainingData.exercises[indexCurrentExercise]}
+                  exercise={activeExercise}
                   setTraining={setTrainingWrapper}
                   open={openChange}
                   onCompleteSet={handleSetCompletion}
@@ -180,9 +207,9 @@ export const ActiveTrainingContent: FC<{
               )}
               <h3 className={styles.sectionTitle}>Трекер подходов</h3>
               <SetTracker
-                exercise={trainingData.exercises[indexCurrentExercise]}
+                exercise={activeExercise}
                 setTraining={setTrainingWrapper}
-                indexCurrentExercise={indexCurrentExercise}
+                indexCurrentExercise={activeExerciseIndex}
               />
             </div>
             <div className={styles.sidebarContent}>
@@ -191,12 +218,66 @@ export const ActiveTrainingContent: FC<{
                 indexCurrentExercise={indexCurrentExercise}
                 training={trainingData}
               />
+              <Card className="w-full overflow-hidden">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg sm:text-xl">
+                    Выполненные упражнения
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2.5 sm:space-y-3">
+                  {selectedCompletedExerciseIndex !== null && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCompletedExerciseIndex(null)}
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/40"
+                    >
+                      Вернуться к текущему упражнению
+                    </button>
+                  )}
+                  {completedExercises.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+                      Выполненных упражнений пока нет.
+                    </div>
+                  )}
+                  {completedExercises.map(({ exercise, index }) => {
+                    const isSelected = activeExerciseIndex === index;
+                    return (
+                      <button
+                        key={`${exercise.id}-${index}`}
+                        type="button"
+                        onClick={() => setSelectedCompletedExerciseIndex(index)}
+                        className={`w-full rounded-xl border p-3 text-left transition-all sm:p-4 ${
+                          isSelected
+                            ? "border-primary/50 bg-primary/10"
+                            : "border-border bg-card hover:border-primary/40 hover:bg-accent/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="truncate font-medium text-foreground">
+                              {exercise.name}
+                            </div>
+                            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
+                              <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
+                              {exercise.sets.length} / {exercise.sets.length} подходов
+                            </div>
+                          </div>
+                          <span className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground">
+                            <PencilIcon className="h-3.5 w-3.5" />
+                            Редактировать
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
         <NotedWeightModal
           close={close}
-          currentExercise={trainingData.exercises[indexCurrentExercise]}
+          currentExercise={activeExercise}
           initialData={prevExercise}
           isOpen={isOpen}
           completeSet={completeSet}
