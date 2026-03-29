@@ -25,7 +25,9 @@ export function useRegister() {
   };
 
   const errorMessage = registerMutation.isError
-    ? registerMutation.isError
+    ? registerMutation.error === "AlreadyExists"
+      ? "Пользователь уже существует"
+      : "Не удалось зарегистрироваться"
     : undefined;
 
   return {

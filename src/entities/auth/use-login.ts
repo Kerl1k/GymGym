@@ -21,7 +21,9 @@ export function useLogin() {
   };
 
   const errorMessage = loginMutation.isError
-    ? loginMutation.isError
+    ? loginMutation.error === "InvalidCredentials"
+      ? "Неправильно введены данные"
+      : "Не удалось выполнить вход"
     : undefined;
 
   return {
