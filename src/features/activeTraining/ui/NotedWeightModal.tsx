@@ -114,17 +114,13 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       close={close}
       isOpen={isOpen}
       title="Запись весов и повторений"
-      className="max-h-[90vh]"
+      className="max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 [&_[data-slot=dialog-header]]:px-4 [&_[data-slot=dialog-header]]:pt-6 [&_[data-slot=dialog-header]]:pb-2 sm:[&_[data-slot=dialog-header]]:px-6 sm:[&_[data-slot=dialog-header]]:pt-7 sm:[&_[data-slot=dialog-header]]:pb-3"
     >
       <div
         ref={contentRef}
-        className="space-y-6 overflow-y-auto pr-2"
-        style={{
-          maxHeight: "calc(90vh - 140px)",
-          scrollBehavior: "smooth",
-        }}
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 pb-4 pt-4 sm:px-6 sm:pb-6 sm:pt-4"
       >
-        <Card className="p-3 sm:p-4 bg-muted sticky top-0 z-10">
+        <Card className="p-3 sm:p-4 bg-muted">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div>
               <h3 className="font-semibold text-base sm:text-lg">
@@ -212,7 +208,11 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         onClick={() =>
                           handleSetChange(index, "weight", weight.toString())
                         }
-                        className={`px-1 sm:px-2 py-1 text-xs rounded ${set.weight === weight ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
+                        className={`px-2 py-1 text-xs rounded-md border transition-colors ${
+                          set.weight === weight
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted hover:bg-muted/80 border-border"
+                        }`}
                       >
                         {weight}кг
                       </button>
@@ -274,7 +274,11 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                         onClick={() =>
                           handleSetChange(index, "repeatCount", reps.toString())
                         }
-                        className={`px-1 sm:px-2 py-1 text-xs rounded ${set.repeatCount === reps ? "bg-blue-500 text-white" : "bg-muted hover:bg-muted/80"}`}
+                        className={`px-2 py-1 text-xs rounded-md border transition-colors ${
+                          set.repeatCount === reps
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted hover:bg-muted/80 border-border"
+                        }`}
                       >
                         {reps} раз
                       </button>
@@ -287,7 +291,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         </div>
       </div>
 
-      <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 rounded-b-lg border-t bg-card px-6 pb-6 pt-4 sm:pt-5">
+      <div className="border-t bg-card px-4 py-4 sm:px-6 sm:py-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <Button
             type="button"
@@ -302,7 +306,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
             <Button
               type="button"
               onClick={handleSave}
-              className="flex items-center gap-2 text-sm sm:text-base flex-1 sm:flex-none"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <Save className="w-4 h-4" />
               Сохранить
