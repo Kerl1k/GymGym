@@ -46,22 +46,20 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <div>
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+      <div className="w-full flex justify-center items-center">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground ">
           {name}
         </h1>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="w-full flex justify-center items-center gap-2">
         <Button
           onClick={handleCancelClick}
           size="sm"
           variant="ghost"
           className="gap-2 text-sm sm:text-base sm:size-auto"
         >
-          <X className="h-5 w-5" />
-          <span className="hidden sm:inline cursor-pointer text-red-500">
-            Отменить
-          </span>
+          <X className="h-5 w-5 color-red-500" />
+          <span className="cursor-pointer text-red-500">Отменить</span>
         </Button>
         <Button
           onClick={handleFinishClick}
@@ -70,7 +68,7 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
           className="gap-2 text-sm sm:text-base sm:size-auto"
         >
           <CheckIcon className="h-5 w-5" />
-          <span className="hidden sm:inline cursor-pointer">Завершить</span>
+          <span className="cursor-pointer">Завершить</span>
         </Button>
       </div>
       <ModalDelete

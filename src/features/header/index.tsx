@@ -116,8 +116,47 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
               Тренировки
             </Link>
           </Button>
+
+          <div className="sm:hidden w-full pt-3 mt-3 border-t border-border/20 flex items-center justify-between gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                toggleDarkMode();
+                setIsMenuOpen(false);
+              }}
+              className="hover:bg-accent hover:text-accent-foreground transition-all"
+              aria-label={
+                darkMode ? "Switch to light mode" : "Switch to dark mode"
+              }
+            >
+              {darkMode ? (
+                <SunIcon className="h-5 w-5" />
+              ) : (
+                <MoonIcon className="h-5 w-5" />
+              )}
+            </Button>
+
+            <Link to={ROUTES.PROFILE} onClick={() => setIsMenuOpen(false)}>
+              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                {session.email}
+              </span>
+            </Link>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                logout();
+                setIsMenuOpen(false);
+              }}
+              className="hover:bg-destructive/10 border-destructive/20 hover:border-destructive/40 transition-all"
+            >
+              Выйти
+            </Button>
+          </div>
         </nav>
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="hidden sm:flex items-center gap-3 sm:gap-4">
           <Button
             variant="ghost"
             size="sm"
