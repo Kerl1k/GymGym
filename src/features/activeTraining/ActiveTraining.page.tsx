@@ -1,7 +1,9 @@
 import { useState } from "react";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
+import { rqClient } from "@/entities/instance";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { ROUTES } from "@/shared/model/routes";
 import { Button } from "@/shared/ui/kit/button";
@@ -19,11 +21,15 @@ import { TrainingHistoryList } from "./components/TrainingHistoryList";
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
+  const queryClient = useQueryClient();
   const { data, error, isLoading } = useActiveTrainingFetch();
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleTrainingRepeated = () => {
+  const handleTrainingRepeated = async () => {
     setRefreshKey((prev) => prev + 1);
+    await queryClient.invalidateQueries(
+      rqClient.queryOptions("get", "/api/active-training"),
+    );
   };
 
   if (error === "NotFound") {
