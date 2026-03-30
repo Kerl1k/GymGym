@@ -29,6 +29,12 @@ type NotedWeightModalProps = {
 const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
 const repPresets = [5, 8, 10, 12, 15, 20];
 
+function stripLeadingZerosFromNumericInput(value: string): string {
+  if (value === "") return "";
+  if (/^0[.,]\d*$/.test(value)) return value;
+  return value.replace(/^0+(?=\d)/, "");
+}
+
 export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   close,
   isOpen,
@@ -48,7 +54,8 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     value: string,
   ) => {
     const newSets = [...sets];
-    const numValue = value === "" ? null : Number(value);
+    const normalized = stripLeadingZerosFromNumericInput(value);
+    const numValue = normalized === "" ? null : Number(normalized);
     newSets[index] = { ...newSets[index], [field]: numValue };
     setSets(newSets);
   };
@@ -179,6 +186,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                       onChange={(e) =>
                         handleSetChange(index, "weight", e.target.value)
                       }
+                      onFocus={(e) => {
+                        if (e.target.value === "0") e.target.select();
+                      }}
                       placeholder="0"
                       className="text-center text-sm sm:text-base"
                     />
@@ -238,6 +248,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                       onChange={(e) =>
                         handleSetChange(index, "repeatCount", e.target.value)
                       }
+                      onFocus={(e) => {
+                        if (e.target.value === "0") e.target.select();
+                      }}
                       placeholder="0"
                       className="text-center text-sm sm:text-base"
                     />
@@ -274,8 +287,8 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
         </div>
       </div>
 
-      <div className="sticky bottom bg-card pt-3 sm:pt-4 border-t">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <div className="sticky bottom-0 z-10 -mx-6 -mb-6 mt-2 rounded-b-lg border-t bg-card px-6 pb-6 pt-4 sm:pt-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <Button
             type="button"
             variant="outline"

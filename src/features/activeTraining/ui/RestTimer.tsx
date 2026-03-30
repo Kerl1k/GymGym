@@ -2,6 +2,7 @@ import { FC, useEffect, useState } from "react";
 
 import { RotateCcwIcon, SkipForwardIcon } from "lucide-react";
 
+import { requestRestTimerNotificationPermission } from "@/shared/lib/restTimerNotification";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
@@ -27,13 +28,15 @@ export const RestTimer: FC<RestTimeProps> = ({
   useEffect(() => {
     if (isResting) {
       setTimeLeft(restTime);
-    } else {
-      setIsResting(true);
     }
     if (isResting && restTime <= 0) {
       setIsResting(false);
     }
   }, [isResting, restTime, setIsResting]);
+
+  useEffect(() => {
+    void requestRestTimerNotificationPermission();
+  }, []);
 
   return (
     <Card className="border-border bg-card">
@@ -45,6 +48,7 @@ export const RestTimer: FC<RestTimeProps> = ({
       </CardHeader>
       <CardContent>
         <Timer
+          key={restTime}
           setTimeLeft={setTimeLeft}
           timeLeft={timeLeft}
           duration={restTime}

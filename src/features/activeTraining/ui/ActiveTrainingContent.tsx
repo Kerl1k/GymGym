@@ -41,14 +41,18 @@ export const ActiveTrainingContent: FC<{
     useState<number | null>(null);
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
-  const activeExerciseIndex = selectedCompletedExerciseIndex ?? indexCurrentExercise;
+  const activeExerciseIndex =
+    selectedCompletedExerciseIndex ?? indexCurrentExercise;
   const activeExercise = trainingData.exercises[activeExerciseIndex];
 
   const completedExercises = useMemo(
     () =>
       trainingData.exercises
         .map((exercise, index) => ({ exercise, index }))
-        .filter(({ exercise }) => exercise.sets.length > 0 && exercise.sets.every((set) => set.done)),
+        .filter(
+          ({ exercise }) =>
+            exercise.sets.length > 0 && exercise.sets.every((set) => set.done),
+        ),
     [trainingData.exercises],
   );
 
@@ -146,7 +150,8 @@ export const ActiveTrainingContent: FC<{
   useEffect(() => {
     if (selectedCompletedExerciseIndex === null) return;
 
-    const selectedExercise = trainingData.exercises[selectedCompletedExerciseIndex];
+    const selectedExercise =
+      trainingData.exercises[selectedCompletedExerciseIndex];
     if (!selectedExercise || !selectedExercise.sets.every((set) => set.done)) {
       setSelectedCompletedExerciseIndex(null);
     }
@@ -178,17 +183,14 @@ export const ActiveTrainingContent: FC<{
             <div className={styles.progressSection}>
               <div className={styles.progressText}>
                 <span>Прогресс тренировки</span>
-                <span>
-                  {Math.round(progress)}% ({completedSets} подходов)
-                </span>
+                <span>{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-3" />
             </div>
           </div>
           <div className={styles.gridLayout}>
             <div className={styles.mainContent}>
-              {activeExercise?.sets?.length >
-                0 && (
+              {activeExercise?.sets?.length > 0 && (
                 <CurrentExercise
                   exercise={activeExercise}
                   setTraining={setTrainingWrapper}
@@ -199,7 +201,7 @@ export const ActiveTrainingContent: FC<{
               {isResting && (
                 <RestTimer
                   restTime={
-                    trainingData.exercises[indexCurrentExercise]?.restTime
+                    trainingData.exercises[indexCurrentExercise]?.restTime ?? 0
                   }
                   setIsResting={setIsResting}
                   isResting={isResting}
@@ -259,7 +261,8 @@ export const ActiveTrainingContent: FC<{
                             </div>
                             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
                               <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
-                              {exercise.sets.length} / {exercise.sets.length} подходов
+                              {exercise.sets.length} / {exercise.sets.length}{" "}
+                              подходов
                             </div>
                           </div>
                           <span className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground">

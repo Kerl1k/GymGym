@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PlayIcon, PauseIcon, RotateCcwIcon } from "lucide-react";
 
+import { showRestTimerDoneNotification } from "@/shared/lib/restTimerNotification";
 import { Button } from "@/shared/ui/kit/button";
 
 interface TimerProps {
@@ -11,6 +12,8 @@ interface TimerProps {
   setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
 }
 
+const TICK_MS = 250;
+
 export function Timer({
   duration,
   onComplete,
@@ -19,33 +22,80 @@ export function Timer({
 }: TimerProps) {
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-  const progress = ((duration - timeLeft) / duration) * 100;
+  const progress =
+    duration > 0 ? ((duration - timeLeft) / duration) * 100 : 0;
 
   const [isRunning, setIsRunning] = useState(true);
 
-  const toggleTimer = () => setIsRunning(!isRunning);
+  const endAtMsRef = useRef<number | null>(null);
+  const completedRef = useRef(false);
+  const timeLeftRef = useRef(timeLeft);
+  timeLeftRef.current = timeLeft;
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
-  const resetTimer = () => {
-    setTimeLeft(duration);
-    setIsRunning(false);
-  };
+  const toggleTimer = () => setIsRunning((v) => !v);
+
+  const finishTimer = useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    endAtMsRef.current = null;
+    setTimeLeft(0);
+    void showRestTimerDoneNotification();
+    onCompleteRef.current();
+  }, [setTimeLeft]);
+
+  const syncFromDeadline = useCallback(() => {
+    if (!endAtMsRef.current || completedRef.current) return;
+    const left = Math.max(
+      0,
+      Math.ceil((endAtMsRef.current - Date.now()) / 1000),
+    );
+    setTimeLeft(left);
+    if (left <= 0) finishTimer();
+  }, [finishTimer, setTimeLeft]);
 
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning) {
+      endAtMsRef.current = null;
+      return;
+    }
 
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          onComplete();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    completedRef.current = false;
+    endAtMsRef.current = Date.now() + timeLeftRef.current * 1000;
 
-    return () => clearInterval(interval);
-  }, [isRunning, onComplete, setTimeLeft]);
+    const tick = () => {
+      if (!endAtMsRef.current || completedRef.current) return;
+      const left = Math.max(
+        0,
+        Math.ceil((endAtMsRef.current - Date.now()) / 1000),
+      );
+      setTimeLeft(left);
+      if (left <= 0) finishTimer();
+    };
+
+    tick();
+    const interval = window.setInterval(tick, TICK_MS);
+
+    return () => window.clearInterval(interval);
+  }, [isRunning, finishTimer, setTimeLeft]);
+
+  useEffect(() => {
+    const onVis = () => syncFromDeadline();
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    return () => {
+      document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("focus", onVis);
+    };
+  }, [syncFromDeadline]);
+
+  const resetTimer = () => {
+    completedRef.current = false;
+    setTimeLeft(duration);
+    setIsRunning(false);
+    endAtMsRef.current = null;
+  };
 
   return (
     <div className="text-center">
@@ -59,7 +109,6 @@ export function Timer({
         </div>
       </div>
 
-      {/* Прогресс бар */}
       <div className="mb-6">
         <div className="h-2 sm:h-3 bg-muted rounded-full overflow-hidden">
           <div
@@ -69,7 +118,6 @@ export function Timer({
         </div>
       </div>
 
-      {/* Кнопки управления */}
       <div className="flex gap-2">
         <Button
           onClick={toggleTimer}
@@ -78,12 +126,12 @@ export function Timer({
         >
           {isRunning ? (
             <>
-              <PauseIcon className="h-4 w-4" />
+              <PauseIcon className="w-4 h-4" />
               Пауза
             </>
           ) : (
             <>
-              <PlayIcon className="h-4 w-4" />
+              <PlayIcon className="w-4 h-4" />
               Продолжить
             </>
           )}
@@ -94,7 +142,7 @@ export function Timer({
           variant="ghost"
           className="gap-2 p-2 sm:p-3"
         >
-          <RotateCcwIcon className="h-4 w-4" />
+          <RotateCcwIcon className="w-4 h-4" />
           <span className="hidden sm:inline">Сброс</span>
         </Button>
       </div>
