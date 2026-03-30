@@ -75,7 +75,6 @@ export const ActiveTrainingContent: FC<{
     weight: number;
     repeatCount: number;
   }) => {
-    console.log(weight, repeatCount);
     const updatedExercises = trainingData.exercises.map((ex, index) => {
       if (index === activeExerciseIndex) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;

@@ -13,9 +13,7 @@ function registerGymServiceWorker() {
   // В dev service worker уже может регистрироваться через vite-плагин,
   // но повторная регистрация того же скрипта безопасна.
   window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("/gym-sw.js")
-      .catch(() => undefined);
+    void navigator.serviceWorker.register("/gym-sw.js");
   });
 }
 

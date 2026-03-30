@@ -6,7 +6,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
   const fallback: NotificationOptions = {
     body: "Можно приступать к следующему подходу.",
     tag: "gym-rest-timer",
-    icon: "/vite.svg",
+    requireInteraction: true,
   };
   event.waitUntil(
     self.registration.showNotification(data.title ?? "Отдых окончен", data.options ?? fallback),
