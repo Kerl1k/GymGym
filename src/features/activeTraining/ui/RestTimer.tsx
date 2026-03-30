@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import { RotateCcwIcon, SkipForwardIcon } from "lucide-react";
 
@@ -20,6 +20,9 @@ export const RestTimer: FC<RestTimeProps> = ({
   restTime,
 }) => {
   const [timeLeft, setTimeLeft] = useState(restTime);
+  const [notifPermission, setNotifPermission] = useState<
+    NotificationPermission | "unsupported"
+  >(typeof Notification === "undefined" ? "unsupported" : Notification.permission);
 
   const skipRest = () => {
     setIsResting(false);
@@ -34,9 +37,14 @@ export const RestTimer: FC<RestTimeProps> = ({
     }
   }, [isResting, restTime, setIsResting]);
 
-  useEffect(() => {
-    void requestRestTimerNotificationPermission();
-  }, []);
+  const canAskNotif = useMemo(
+    () => notifPermission !== "unsupported" && notifPermission !== "granted",
+    [notifPermission],
+  );
+  const requestNotif = async () => {
+    const perm = await requestRestTimerNotificationPermission();
+    setNotifPermission(perm);
+  };
 
   return (
     <Card className="border-border bg-card">
@@ -47,6 +55,16 @@ export const RestTimer: FC<RestTimeProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {canAskNotif && (
+          <Button
+            type="button"
+            onClick={requestNotif}
+            variant="secondary"
+            className="mb-3 w-full text-sm sm:text-base"
+          >
+            Включить уведомления об окончании отдыха
+          </Button>
+        )}
         <Timer
           key={restTime}
           setTimeLeft={setTimeLeft}

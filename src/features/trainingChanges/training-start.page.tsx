@@ -161,7 +161,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
           done: false,
         },
       ],
-      restTime: 60,
+      restTime: 0,
     };
 
     setActiveTraining((prev) => {

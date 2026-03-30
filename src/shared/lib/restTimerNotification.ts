@@ -13,13 +13,12 @@ export async function requestRestTimerNotificationPermission(): Promise<RestTime
 }
 
 /**
- * Показывает уведомление, когда вкладка/окно в фоне или свернуто.
+ * Показывает уведомление, когда приложение в фоне/без фокуса.
  * Если пользователь полностью закрыл вкладку, JS не выполняется — нужен push с сервера.
  */
 export async function showRestTimerDoneNotification(): Promise<void> {
   if (typeof Notification === "undefined") return;
   if (Notification.permission !== "granted") return;
-  if (document.visibilityState !== "hidden") return;
 
   const title = "Отдых окончен";
   const body = "Можно приступать к следующему подходу.";
@@ -31,7 +30,9 @@ export async function showRestTimerDoneNotification(): Promise<void> {
 
   try {
     if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.ready;
+      const reg =
+        (await navigator.serviceWorker.getRegistration()) ??
+        (await navigator.serviceWorker.ready);
       if (reg.active) {
         reg.active.postMessage({
           type: "SHOW_REST_NOTIFICATION",
