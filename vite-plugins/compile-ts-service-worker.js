@@ -38,11 +38,14 @@ export const compileTsServiceWorker = () => {
       enforce,
       apply: "build",
       async generateBundle() {
-        this.emitFile({
+        console.log("[compile-ts-service-worker]: build started");
+        const file = this.emitFile({
           type: "asset",
           fileName: "gym-sw.js",
           source: await generateCode(),
         });
+        console.log("[compile-ts-service-worker]: file emitted", file);
+        console.log("[compile-ts-service-worker]: build finished");
       },
     },
     {
@@ -107,7 +110,7 @@ if (import.meta.hot) {
         };
       },
       async closeBundle() {
-        await watcher.close();
+        await watcher?.close();
       },
     },
   ];
