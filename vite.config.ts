@@ -6,12 +6,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { compileTsServiceWorker } from "./vite-plugins/compile-ts-service-worker";
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => {
-  const isDev = mode === "development";
-
+export default defineConfig(() => {
   return {
     plugins: [
-      isDev && compileTsServiceWorker(),
+      compileTsServiceWorker(),
       react(),
       tsconfigPaths(),
       tailwindcss(),
