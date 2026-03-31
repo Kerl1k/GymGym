@@ -103,7 +103,7 @@ export const ActiveTrainingContent: FC<{
     }
   };
 
-  const handleSetCompletion = () => {
+  const handleSetCompletion = async () => {
     const currentExercise = trainingData.exercises[activeExerciseIndex];
     const currentSets = currentExercise?.sets.filter((set) => set.done).length;
     const isSelectedCompletedExercise =
@@ -119,6 +119,34 @@ export const ActiveTrainingContent: FC<{
 
     if (!isSelectedCompletedExercise && currentExercise?.restTime !== 0) {
       setIsResting(true);
+      try {
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          const readyReg = reg ?? (await navigator.serviceWorker.ready);
+
+          const NOTIFICATION_TAG = "gym-rest-timer";
+          const title = "Отдых окончен";
+          const body = "Можно приступать к следующему подходу.";
+          const options: NotificationOptions = {
+            body,
+            tag: NOTIFICATION_TAG,
+            requireInteraction: true,
+          };
+
+          if (readyReg.active) {
+            readyReg.active.postMessage({
+              type: "SCHEDULE_REST_NOTIFICATION",
+              title,
+              options,
+            });
+            return;
+          }
+          await readyReg.showNotification(title, options);
+          return;
+        }
+      } catch {
+        /* fallback */
+      }
     }
 
     open();

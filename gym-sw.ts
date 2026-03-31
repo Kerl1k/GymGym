@@ -1,16 +1,31 @@
 declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
-  const data = event.data as { type?: string; title?: string; options?: NotificationOptions } | undefined;
-  if (data?.type !== "SHOW_REST_NOTIFICATION") return;
-  const fallback: NotificationOptions = {
-    body: "Можно приступать к следующему подходу.",
-    tag: "gym-rest-timer",
-    requireInteraction: true,
-  };
-  event.waitUntil(
-    self.registration.showNotification(data.title ?? "Отдых окончен", data.options ?? fallback),
-  );
+  const data = event.data as
+    | { type?: string; title?: string; options?: NotificationOptions }
+    | undefined;
+  // if (data?.type !== "SHOW_REST_NOTIFICATION") return;
+  // const fallback: NotificationOptions = {
+  //   body: "Можно приступать к следующему подходу.",
+  //   tag: "gym-rest-timer",
+  //   requireInteraction: true,
+  // };
+  // event.waitUntil(
+  //   self.registration.showNotification(
+  //     data.title ?? "Отдых окончен",
+  //     data.options ?? fallback,
+  //   ),
+  // );
+  if (data?.type === "SCHEDULE_REST_NOTIFICATION") {
+    setTimeout(
+      () =>
+        self.registration.showNotification(
+          data.title ?? "Отдых окончен",
+          data.options ?? {},
+        ),
+      10000,
+    );
+  }
 });
 
 const addHeader = async (event: FetchEvent) => {
