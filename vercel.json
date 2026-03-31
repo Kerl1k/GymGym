@@ -1,6 +1,10 @@
 {
   "rewrites": [
     {
+      "source": "/gym-sw.js",
+      "destination": "/gym-sw.js"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
