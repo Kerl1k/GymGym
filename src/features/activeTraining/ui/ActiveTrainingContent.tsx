@@ -142,7 +142,6 @@ export const ActiveTrainingContent: FC<{
             return;
           }
           await readyReg.showNotification(title, options);
-          return;
         }
       } catch {
         /* fallback */
