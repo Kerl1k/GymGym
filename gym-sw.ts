@@ -23,7 +23,7 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
           data.title ?? "Отдых окончен",
           data.options ?? {},
         ),
-      10000,
+      60 * 1000,
     );
   }
 });
