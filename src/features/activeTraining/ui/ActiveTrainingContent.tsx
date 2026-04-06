@@ -139,7 +139,6 @@ export const ActiveTrainingContent: FC<{
               title,
               options,
             });
-            return;
           }
           await readyReg.showNotification(title, options);
         }
