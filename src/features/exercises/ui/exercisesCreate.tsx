@@ -42,6 +42,8 @@ const GYM_UNIT_PRESETS = [
   "%",
 ] as const;
 
+const MAX_UNITS = 5;
+
 type UnitRow = { id: string; value: string };
 
 function newUnitRow(value = ""): UnitRow {
@@ -65,16 +67,18 @@ type GymUnitComboProps = {
 function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(() => {
+    if (typeof document === "undefined") return null;
+    return document.body;
+  });
   const [menuBox, setMenuBox] = useState<{
     top: number;
     left: number;
     width: number;
   } | null>(null);
 
-  const q = value.trim().toLowerCase();
-  const filtered = q
-    ? GYM_UNIT_PRESETS.filter((u) => u.toLowerCase().includes(q))
-    : [...GYM_UNIT_PRESETS];
+  const filtered = [...GYM_UNIT_PRESETS];
 
   const syncMenuPosition = () => {
     const el = anchorRef.current;
@@ -115,16 +119,51 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
     };
   }, [open, value]);
 
+  useEffect(() => {
+    if (!open) return;
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+    const dialogContent = anchor.closest('[data-slot="dialog-content"]') as
+      | HTMLElement
+      | null;
+    setPortalTarget(dialogContent ?? document.body);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const t = e.target as Node | null;
+      if (!t) return;
+      if (anchorRef.current?.contains(t)) return;
+      if (listRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   const list =
     open && filtered.length > 0 && menuBox ? (
       <ul
         role="listbox"
+        ref={listRef}
         style={{
           position: "fixed",
           top: menuBox.top,
           left: menuBox.left,
           width: menuBox.width,
-          zIndex: 100,
+          zIndex: 10000,
+          pointerEvents: "auto",
         }}
         className="max-h-48 overflow-auto rounded-md border border-input bg-popover text-popover-foreground shadow-md"
       >
@@ -133,11 +172,13 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
             <button
               type="button"
               className="hover:bg-accent w-full px-3 py-2 text-left text-sm"
-              onMouseDown={(e) => {
+              onPointerDown={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 onChange(u);
                 setOpen(false);
               }}
+              onClick={(e) => e.stopPropagation()}
             >
               {u}
             </button>
@@ -157,12 +198,9 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        onBlur={() => {
-          window.setTimeout(() => setOpen(false), 120);
-        }}
         className="h-11 w-full min-w-0"
       />
-      {list ? createPortal(list, document.body) : null}
+      {list ? createPortal(list, portalTarget ?? document.body) : null}
     </div>
   );
 }
@@ -220,7 +258,10 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
     create({
       ...form,
       muscleGroups: selectedMuscles,
-      units: normalizeUnits(unitRows),
+      units:
+        normalizeUnits(unitRows).length > 0
+          ? normalizeUnits(unitRows)
+          : normalizeUnits(defaultUnitRows()),
     });
 
     close();
@@ -232,7 +273,10 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
       ...form,
       id: exercises.id,
       muscleGroups: selectedMuscles,
-      units: normalizeUnits(unitRows),
+      units:
+        normalizeUnits(unitRows).length > 0
+          ? normalizeUnits(unitRows)
+          : normalizeUnits(defaultUnitRows()),
     });
     close();
   };
@@ -243,7 +287,9 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
       setSelectedMuscles(exercises.muscleGroups);
       const fromApi = exercises.units?.filter((u) => u.trim());
       setUnitRows(
-        fromApi?.length ? fromApi.map((u) => newUnitRow(u)) : defaultUnitRows(),
+        fromApi?.length
+          ? fromApi.slice(0, MAX_UNITS).map((u) => newUnitRow(u))
+          : defaultUnitRows(),
       );
     } else {
       setUnitRows(defaultUnitRows());
@@ -352,8 +398,13 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
                       variant="outline"
                       size="sm"
                       className="gap-1.5"
+                      disabled={unitRows.length >= MAX_UNITS}
                       onClick={() =>
-                        setUnitRows((prev) => [...prev, newUnitRow()])
+                        setUnitRows((prev) =>
+                          prev.length >= MAX_UNITS
+                            ? prev
+                            : [...prev, newUnitRow()],
+                        )
                       }
                     >
                       <PlusIcon className="h-4 w-4" />
