@@ -22,6 +22,8 @@ type NextExercisesProps = {
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
   training: ApiSchemas["ActiveTraining"];
+  onSelectExerciseIndex?: (exerciseIndex: number) => void;
+  variant?: "card" | "embedded";
 };
 
 const ItemTypes = {
@@ -37,6 +39,7 @@ interface DraggableExerciseProps {
   canMoveDown: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onSelect?: () => void;
 }
 
 const DraggableExercise: FC<DraggableExerciseProps> = ({
@@ -48,6 +51,7 @@ const DraggableExercise: FC<DraggableExerciseProps> = ({
   canMoveUp,
   onMoveDown,
   onMoveUp,
+  onSelect,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -103,6 +107,13 @@ const DraggableExercise: FC<DraggableExerciseProps> = ({
         isDragging ? "" : "hover:border-primary/40 hover:bg-accent/40",
       )}
       style={{ cursor: "grab" }}
+      onClick={onSelect}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (!onSelect) return;
+        if (e.key === "Enter" || e.key === " ") onSelect();
+      }}
     >
       <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-muted-foreground">
         {currentIndex + index + 2}
@@ -157,6 +168,8 @@ export const NextExercises: FC<NextExercisesProps> = ({
   training,
   setTraining,
   indexCurrentExercise,
+  onSelectExerciseIndex,
+  variant = "card",
 }) => {
   const {
     close: closeExerciseModal,
@@ -221,59 +234,81 @@ export const NextExercises: FC<NextExercisesProps> = ({
 
   const nextExercises = training.exercises.slice(indexCurrentExercise + 1);
 
+  const content = (
+    <CardContent className="space-y-2.5 sm:space-y-3 overflow-hidden">
+      {nextExercises.length === 0 && (
+        <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
+          Пока нет следующих упражнений. Добавьте новое ниже.
+        </div>
+      )}
+      {nextExercises.map((exercise, index) => (
+        <DraggableExercise
+          key={`${exercise.id}-${index}`}
+          index={index}
+          exercise={exercise}
+          moveExercise={moveExercise}
+          currentIndex={indexCurrentExercise}
+          canMoveUp={index > 0}
+          canMoveDown={index < nextExercises.length - 1}
+          onMoveUp={() => moveExercise(index, index - 1)}
+          onMoveDown={() => moveExercise(index, index + 1)}
+          onSelect={
+            onSelectExerciseIndex
+              ? () => onSelectExerciseIndex(indexCurrentExercise + 1 + index)
+              : undefined
+          }
+        />
+      ))}
+
+      <div
+        className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-card p-3 sm:p-4 transition-colors hover:border-primary/60 hover:bg-primary/5"
+        onClick={openExerciseModal}
+      >
+        <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-primary">
+          <PlusIcon className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-primary truncate">
+            Добавить упражнение
+          </div>
+        </div>
+      </div>
+    </CardContent>
+  );
+
   return (
     <DndProvider
       backend={isTouchDevice ? TouchBackend : HTML5Backend}
       options={isTouchDevice ? { enableMouseEvents: true } : undefined}
     >
-      <Card className="w-full overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">
-            Следующие упражнения
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2.5 sm:space-y-3 overflow-hidden">
-          {nextExercises.length === 0 && (
-            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Пока нет следующих упражнений. Добавьте новое ниже.
-            </div>
-          )}
-          {nextExercises.map((exercise, index) => (
-              <DraggableExercise
-                key={`${exercise.id}-${index}`}
-                index={index}
-                exercise={exercise}
-                moveExercise={moveExercise}
-                currentIndex={indexCurrentExercise}
-                canMoveUp={index > 0}
-                canMoveDown={index < nextExercises.length - 1}
-                onMoveUp={() => moveExercise(index, index - 1)}
-                onMoveDown={() => moveExercise(index, index + 1)}
-              />
-            ))}
-
-          <div
-            className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-card p-3 sm:p-4 transition-colors hover:border-primary/60 hover:bg-primary/5"
-            onClick={openExerciseModal}
-          >
-            <div className="flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full flex items-center justify-center text-sm sm:text-base font-medium text-primary">
-              <PlusIcon className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-primary truncate">
-                Добавить упражнение
-              </div>
-            </div>
-          </div>
-        </CardContent>
-        <ExerciseSelectModal
-          exercises={exercises}
-          onSelect={addExercise}
-          isOpen={isExerciseModalOpen}
-          close={closeExerciseModal}
-          isLoading={isExercisesLoading}
-        />
-      </Card>
+      {variant === "embedded" ? (
+        <>
+          {content}
+          <ExerciseSelectModal
+            exercises={exercises}
+            onSelect={addExercise}
+            isOpen={isExerciseModalOpen}
+            close={closeExerciseModal}
+            isLoading={isExercisesLoading}
+          />
+        </>
+      ) : (
+        <Card className="w-full overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl">
+              Следующие упражнения
+            </CardTitle>
+          </CardHeader>
+          {content}
+          <ExerciseSelectModal
+            exercises={exercises}
+            onSelect={addExercise}
+            isOpen={isExerciseModalOpen}
+            close={closeExerciseModal}
+            isLoading={isExercisesLoading}
+          />
+        </Card>
+      )}
     </DndProvider>
   );
 };

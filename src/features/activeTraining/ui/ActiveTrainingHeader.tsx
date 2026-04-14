@@ -1,6 +1,6 @@
 import { FC, useState } from "react";
 
-import { CheckIcon, X } from "lucide-react";
+import { CheckIcon, PencilIcon, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCancelActiveTraining } from "@/entities/training-active/useActiveTrainingCancel";
@@ -10,11 +10,13 @@ import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 
 type ActiveTrainingHeaderProps = {
   name: string;
+  exerciseId?: string;
   finishTraining: () => void;
 };
 
 export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
   name,
+  exerciseId,
   finishTraining,
 }) => {
   const navigate = useNavigate();
@@ -44,32 +46,52 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
     finishTraining();
   };
 
+  const handleEditExercise = () => {
+    if (!exerciseId) return;
+    navigate(`${ROUTES.START.replace(/:id/, exerciseId)}`);
+  };
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-      <div className="w-full flex justify-center items-center">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground ">
-          {name}
-        </h1>
-      </div>
-      <div className="w-full flex justify-center items-center gap-2">
-        <Button
-          onClick={handleCancelClick}
-          size="sm"
-          variant="ghost"
-          className="gap-2 text-sm sm:text-base sm:size-auto"
-        >
-          <X className="h-5 w-5 color-red-500" />
-          <span className="cursor-pointer text-red-500">Отменить</span>
-        </Button>
-        <Button
-          onClick={handleFinishClick}
-          size="sm"
-          variant="ghost"
-          className="gap-2 text-sm sm:text-base sm:size-auto"
-        >
-          <CheckIcon className="h-5 w-5" />
-          <span className="cursor-pointer">Завершить</span>
-        </Button>
+    <div className="mb-4 rounded-2xl p-3 backdrop-blur sm:p-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-lg font-bold text-foreground sm:text-xl md:text-2xl">
+            {name}
+          </h1>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={handleEditExercise}
+            size="sm"
+            variant="secondary"
+            disabled={!exerciseId}
+            className="gap-2"
+          >
+            <PencilIcon className="h-4 w-4" />
+            Изменить упражнение
+          </Button>
+
+          <Button
+            onClick={handleCancelClick}
+            size="sm"
+            variant="outline"
+            className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <X className="h-4 w-4" />
+            Отменить
+          </Button>
+
+          <Button
+            onClick={handleFinishClick}
+            size="sm"
+            variant="default"
+            className="gap-2"
+          >
+            <CheckIcon className="h-4 w-4" />
+            Завершить
+          </Button>
+        </div>
       </div>
       <ModalDelete
         isOpen={isConfirmModalOpen}

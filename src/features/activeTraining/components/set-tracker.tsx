@@ -2,7 +2,6 @@ import { PlusIcon, XIcon } from "lucide-react";
 
 import {
   cloneUnitsTemplate,
-  getWeightLike,
 } from "@/shared/lib/active-training-units";
 import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent } from "@/shared/ui/kit/card";
@@ -100,13 +99,15 @@ export function SetTracker({
               <div className="text-xs sm:text-sm text-muted-foreground mb-1">
                 Подход {index + 1}
               </div>
-              <div className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-                Вес {getWeightLike(set)}
-              </div>
-              <div
-                className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-100" : "text-muted-foreground"}`}
-              >
-                {index < currentActive ? "✓ Выполнен" : ""}
+              <div className="mb-2">
+                <div className="text-xl sm:text-2xl font-bold text-foreground">
+                  {set.units?.[0]?.value ?? 0} {set.units?.[0]?.name ?? ""}
+                </div>
+                {set.units?.[1] && (
+                  <div className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
+                    {set.units[1].value} {set.units[1].name}
+                  </div>
+                )}
               </div>
             </div>
           ))}

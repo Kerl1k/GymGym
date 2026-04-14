@@ -1,14 +1,17 @@
-import { useState, useEffect, FC, useMemo } from "react";
+import { useState, useEffect, FC, useCallback, useRef } from "react";
 
-import { CheckCircle2Icon, PencilIcon } from "lucide-react";
+import { CheckCircle2Icon, PencilIcon, PlusIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
+import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import { Loader } from "@/shared/ui/kit/loader";
 import { Progress } from "@/shared/ui/kit/progress";
 
@@ -18,7 +21,6 @@ import { getIndex } from "../model/utils";
 
 import styles from "./ActiveTrainingContent.module.scss";
 import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
-import { NextExercises } from "./NextExercises/NextExercises";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { RestTimer } from "./RestTimer";
 
@@ -30,6 +32,14 @@ export const ActiveTrainingContent: FC<{
 
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
+  const {
+    close: closeExerciseModal,
+    isOpen: isExerciseModalOpen,
+    open: openExerciseModal,
+  } = useOpen();
+  const { exercises, isPending: isExercisesLoading } = useExercisesFetchList(
+    {},
+  );
 
   const [trainingData, setTrainingData] =
     useState<ApiSchemas["ActiveTraining"]>(data);
@@ -37,24 +47,58 @@ export const ActiveTrainingContent: FC<{
     data.exercises[0]?.sets || [],
   );
   const [isResting, setIsResting] = useState(false);
-  const [selectedCompletedExerciseIndex, setSelectedCompletedExerciseIndex] =
-    useState<number | null>(null);
+  const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<
+    number | null
+  >(null);
+
+  const syncTimeoutRef = useRef<number | null>(null);
+  const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(data);
+  const syncChainRef = useRef<Promise<void>>(Promise.resolve());
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
-  const activeExerciseIndex =
-    selectedCompletedExerciseIndex ?? indexCurrentExercise;
+  const activeExerciseIndex = selectedExerciseIndex ?? indexCurrentExercise;
   const activeExercise = trainingData.exercises[activeExerciseIndex];
 
-  const completedExercises = useMemo(
-    () =>
-      trainingData.exercises
-        .map((exercise, index) => ({ exercise, index }))
-        .filter(
-          ({ exercise }) =>
-            exercise.sets.length > 0 && exercise.sets.every((set) => set.done),
-        ),
-    [trainingData.exercises],
-  );
+  useEffect(() => {
+    latestTrainingRef.current = trainingData;
+  }, [trainingData]);
+
+  const flushTrainingSync = useCallback(async () => {
+    if (syncTimeoutRef.current !== null) {
+      window.clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
+    }
+    const snapshot = latestTrainingRef.current;
+    syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
+    await syncChainRef.current;
+  }, [change]);
+
+  const addExercise = (exerciseId: string) => {
+    const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
+    if (!selectedExercise) return;
+
+    setTrainingWrapper((prev) => {
+      const newExercise = {
+        id: selectedExercise.id,
+        name: selectedExercise.name,
+        description: selectedExercise.description || "",
+        restTime: 90,
+        sets: [
+          {
+            units: unitsFromCatalogStrings(selectedExercise.units),
+            done: false,
+          },
+        ],
+        muscleGroups: selectedExercise.muscleGroups || [],
+        useCustomSets: true,
+      };
+
+      return {
+        ...prev,
+        exercises: [...prev.exercises, newExercise],
+      };
+    });
+  };
 
   const totalSets = trainingData.exercises.reduce(
     (sum, ex) => sum + ex.sets.length,
@@ -76,9 +120,7 @@ export const ActiveTrainingContent: FC<{
         return {
           ...ex,
           sets: ex.sets.map((set, setIndex) =>
-            setIndex === doneSetsCount
-              ? { ...completedSet, done: true }
-              : set,
+            setIndex === doneSetsCount ? { ...completedSet, done: true } : set,
           ),
         };
       }
@@ -100,9 +142,9 @@ export const ActiveTrainingContent: FC<{
   const handleSetCompletion = async () => {
     const currentExercise = trainingData.exercises[activeExerciseIndex];
     const currentSets = currentExercise?.sets.filter((set) => set.done).length;
-    const isSelectedCompletedExercise =
-      selectedCompletedExerciseIndex !== null &&
-      selectedCompletedExerciseIndex !== indexCurrentExercise &&
+    const isSelectedFullyCompletedExercise =
+      selectedExerciseIndex !== null &&
+      selectedExerciseIndex !== indexCurrentExercise &&
       currentExercise?.sets.every((set) => set.done);
 
     setPrevExercise(
@@ -111,7 +153,7 @@ export const ActiveTrainingContent: FC<{
         : [],
     );
 
-    if (!isSelectedCompletedExercise && currentExercise?.restTime !== 0) {
+    if (!isSelectedFullyCompletedExercise && currentExercise?.restTime !== 0) {
       setIsResting(true);
       try {
         if ("serviceWorker" in navigator) {
@@ -145,34 +187,58 @@ export const ActiveTrainingContent: FC<{
   };
 
   const finishTraining = async () => {
+    await flushTrainingSync();
     const historyId = await end();
     navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
   };
 
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
+    options?: { flush?: boolean },
   ) => {
-    const newData = typeof value === "function" ? value(trainingData) : value;
-    setTrainingData(newData);
-    change(newData);
+    setTrainingData((prev) => {
+      const next = typeof value === "function" ? value(prev) : value;
+      latestTrainingRef.current = next;
+
+      if (syncTimeoutRef.current !== null) {
+        window.clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = null;
+      }
+
+      if (options?.flush) {
+        const snapshot = next;
+        syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
+        return next;
+      }
+
+      syncTimeoutRef.current = window.setTimeout(() => {
+        const snapshot = latestTrainingRef.current;
+        syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
+      }, 600);
+
+      return next;
+    });
   };
+
+  useEffect(() => {
+    return () => {
+      if (syncTimeoutRef.current !== null) {
+        window.clearTimeout(syncTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setTrainingData(data);
   }, [data]);
 
   useEffect(() => {
-    if (selectedCompletedExerciseIndex === null) return;
+    if (selectedExerciseIndex === null) return;
+    const selectedExercise = trainingData.exercises[selectedExerciseIndex];
+    if (!selectedExercise) setSelectedExerciseIndex(null);
+  }, [selectedExerciseIndex, trainingData.exercises]);
 
-    const selectedExercise =
-      trainingData.exercises[selectedCompletedExerciseIndex];
-    if (!selectedExercise || !selectedExercise.sets.every((set) => set.done)) {
-      setSelectedCompletedExerciseIndex(null);
-    }
-  }, [selectedCompletedExerciseIndex, trainingData.exercises]);
-
-  if (trainingData === undefined && trainingData["exercises"] === 0)
-    return null;
+  if (!trainingData || trainingData.exercises.length === 0) return null;
 
   if (indexCurrentExercise === -1) {
     return (
@@ -192,6 +258,7 @@ export const ActiveTrainingContent: FC<{
           <div className={styles.headerSection}>
             <ActiveTrainingHeader
               name={trainingData.name}
+              exerciseId={activeExercise?.id}
               finishTraining={finishTraining}
             />
             <div className={styles.progressSection}>
@@ -214,13 +281,12 @@ export const ActiveTrainingContent: FC<{
               {isResting && (
                 <RestTimer
                   restTime={
-                    trainingData.exercises[indexCurrentExercise]?.restTime ?? 0
+                    trainingData.exercises[activeExerciseIndex]?.restTime ?? 0
                   }
                   setIsResting={setIsResting}
                   isResting={isResting}
                 />
               )}
-              <h3 className={styles.sectionTitle}>Трекер подходов</h3>
               <SetTracker
                 exercise={activeExercise}
                 setTraining={setTrainingWrapper}
@@ -228,39 +294,38 @@ export const ActiveTrainingContent: FC<{
               />
             </div>
             <div className={styles.sidebarContent}>
-              <NextExercises
-                setTraining={setTrainingWrapper}
-                indexCurrentExercise={indexCurrentExercise}
-                training={trainingData}
-              />
               <Card className="w-full overflow-hidden">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg sm:text-xl">
-                    Выполненные упражнения
+                    Упражнения
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2.5 sm:space-y-3">
-                  {selectedCompletedExerciseIndex !== null && (
-                    <button
-                      type="button"
-                      onClick={() => setSelectedCompletedExerciseIndex(null)}
-                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/40"
-                    >
-                      Вернуться к текущему упражнению
-                    </button>
-                  )}
-                  {completedExercises.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-                      Выполненных упражнений пока нет.
-                    </div>
-                  )}
-                  {completedExercises.map(({ exercise, index }) => {
+                  {selectedExerciseIndex !== null &&
+                    selectedExerciseIndex !== indexCurrentExercise && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedExerciseIndex(null)}
+                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent/40"
+                      >
+                        Вернуться к текущему упражнению
+                      </button>
+                    )}
+
+                  {trainingData.exercises.map((exercise, index) => {
                     const isSelected = activeExerciseIndex === index;
+                    const isCompleted =
+                      exercise.sets.length > 0 &&
+                      exercise.sets.every((set) => set.done);
+                    const doneCount = exercise.sets.filter(
+                      (s) => s.done,
+                    ).length;
+
                     return (
                       <button
                         key={`${exercise.id}-${index}`}
                         type="button"
-                        onClick={() => setSelectedCompletedExerciseIndex(index)}
+                        onClick={() => setSelectedExerciseIndex(index)}
                         className={`w-full rounded-xl border p-3 text-left transition-all sm:p-4 ${
                           isSelected
                             ? "border-primary/50 bg-primary/10"
@@ -270,24 +335,47 @@ export const ActiveTrainingContent: FC<{
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="truncate font-medium text-foreground">
-                              {exercise.name}
+                              {index + 1}. {exercise.name}
                             </div>
                             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground sm:text-sm">
-                              <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
-                              {exercise.sets.length} / {exercise.sets.length}{" "}
-                              подходов
+                              {isCompleted && (
+                                <CheckCircle2Icon className="h-4 w-4 text-emerald-500" />
+                              )}
+                              {doneCount} / {exercise.sets.length} подходов
                             </div>
                           </div>
                           <span className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs text-muted-foreground">
                             <PencilIcon className="h-3.5 w-3.5" />
-                            Редактировать
                           </span>
                         </div>
                       </button>
                     );
                   })}
+
+                  <button
+                    type="button"
+                    onClick={openExerciseModal}
+                    className="flex w-full items-center gap-3 rounded-xl border border-dashed border-border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-primary/5 sm:p-4"
+                  >
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-primary">
+                      <PlusIcon className="h-5 w-5" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate font-medium text-primary">
+                        Добавить упражнение
+                      </span>
+                    </span>
+                  </button>
                 </CardContent>
               </Card>
+
+              <ExerciseSelectModal
+                exercises={exercises}
+                onSelect={addExercise}
+                isOpen={isExerciseModalOpen}
+                close={closeExerciseModal}
+                isLoading={isExercisesLoading}
+              />
             </div>
           </div>
         </div>

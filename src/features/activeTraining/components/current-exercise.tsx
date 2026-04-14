@@ -1,10 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 
 import { ClockIcon, EditIcon, CheckIcon, XIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 import { setUnitValueAt } from "@/shared/lib/active-training-units";
-import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -28,11 +26,7 @@ export function CurrentExercise({
   setTraining,
   onCompleteSet,
 }: CurrentExerciseProps) {
-  const navigate = useNavigate();
-
-  const [editingUnitIndex, setEditingUnitIndex] = useState<number | null>(
-    null,
-  );
+  const [editingUnitIndex, setEditingUnitIndex] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const currentSets = exercise.sets.filter((set) => set.done).length;
@@ -44,10 +38,6 @@ export function CurrentExercise({
   const activeSet = exercise.sets[activeSetIndex];
 
   const [tempUnits, setTempUnits] = useState<string[]>([]);
-
-  const onChangeExercise = () => {
-    navigate(`${ROUTES.START.replace(/:id/, exercise.id)}`);
-  };
 
   useEffect(() => {
     const set = exercise.sets[activeSetIndex];
@@ -99,14 +89,9 @@ export function CurrentExercise({
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle className="text-xl sm:text-2xl md:text-3xl">
-            {exercise.name}
-          </CardTitle>
-          <Button onClick={onChangeExercise} size="sm" className="sm:size-auto">
-            Изменить
-          </Button>
-        </div>
+        <CardTitle className="text-xl sm:text-2xl md:text-3xl">
+          {exercise.name}
+        </CardTitle>
       </CardHeader>
 
       <CardContent>
@@ -194,13 +179,6 @@ export function CurrentExercise({
               ))}
             </div>
           )}
-
-          {units.length > 0 ? (
-            <p className="text-muted-foreground text-xs sm:text-sm">
-              {exercise.sets.length} подходов
-            </p>
-          ) : null}
-
           <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
             <div className="text-muted-foreground mb-2 flex items-center gap-2">
               <ClockIcon className="h-4 w-4" />
