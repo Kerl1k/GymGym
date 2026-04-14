@@ -1,5 +1,9 @@
 import { PlusIcon, XIcon } from "lucide-react";
 
+import {
+  cloneUnitsTemplate,
+  getWeightLike,
+} from "@/shared/lib/active-training-units";
 import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent } from "@/shared/ui/kit/card";
 
@@ -23,17 +27,20 @@ export function SetTracker({
       const updatedExercises = prev.exercises.map((ex, index) => {
         if (index === indexCurrentExercise) {
           const lastSet = ex.sets[ex.sets.length - 1];
-          const newWeight = lastSet ? lastSet.weight : 0;
-          const newRepeatCount = lastSet ? lastSet.repeatCount : 12;
+          const newUnits = lastSet
+            ? cloneUnitsTemplate(lastSet)
+            : [
+                { name: "Вес", value: 0 },
+                { name: "Повторения", value: 12 },
+              ];
 
           return {
             ...ex,
             sets: [
               ...ex.sets,
               {
-                weight: newWeight,
                 done: false,
-                repeatCount: newRepeatCount,
+                units: newUnits,
               },
             ],
           };
@@ -94,12 +101,12 @@ export function SetTracker({
                 Подход {index + 1}
               </div>
               <div className="text-xl sm:text-2xl font-bold text-foreground mb-2">
-                Вес {set.weight}
+                Вес {getWeightLike(set)}
               </div>
               <div
                 className={`text-xs sm:text-sm font-medium ${index < currentActive ? "text-green-100" : "text-muted-foreground"}`}
               >
-                {index < currentActive ? "✓ Выполнен" : "Ожидает"}
+                {index < currentActive ? "✓ Выполнен" : ""}
               </div>
             </div>
           ))}

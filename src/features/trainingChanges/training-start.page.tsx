@@ -10,6 +10,7 @@ import {
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
+import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
@@ -19,7 +20,6 @@ import { Card, CardContent } from "@/shared/ui/kit/card";
 import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import { Label } from "@/shared/ui/kit/label";
 import { Loader } from "@/shared/ui/kit/loader";
-import { Switch } from "@/shared/ui/kit/switch";
 import { Textarea } from "@/shared/ui/kit/Textarea";
 
 import Approach from "./approach";
@@ -42,40 +42,15 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
 
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
 
-  const toggleCustomSets = (exerciseIndex: number) => {
-    if (!activeTraining) return;
-
+  useEffect(() => {
     setActiveTraining((prev) => {
       if (!prev) return prev;
-
-      const newExercises = [...prev.exercises];
-      const exercise = newExercises[exerciseIndex];
-      const newUseCustomSets = !exercise.useCustomSets;
-
-      if (!newUseCustomSets && exercise.sets.length > 0) {
-        const firstSet = exercise.sets[0];
-        newExercises[exerciseIndex] = {
-          ...exercise,
-          useCustomSets: newUseCustomSets,
-          sets: exercise.sets.map((set) => ({
-            ...set,
-            weight: firstSet.weight,
-            done: false,
-          })),
-        };
-      } else {
-        newExercises[exerciseIndex] = {
-          ...exercise,
-          useCustomSets: newUseCustomSets,
-        };
-      }
-
-      return {
-        ...prev,
-        exercises: newExercises,
-      };
+      const nextExercises = prev.exercises.map((ex) =>
+        ex.useCustomSets ? ex : { ...ex, useCustomSets: true },
+      );
+      return { ...prev, exercises: nextExercises };
     });
-  };
+  }, []);
 
   const removeExercise = (exerciseIndex: number) => {
     if (!activeTraining || activeTraining.exercises.length <= 1) return;
@@ -153,11 +128,10 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
       name: selectedExercise.name,
       muscleGroups: selectedExercise.muscleGroups || [],
       description: selectedExercise.description || "",
-      useCustomSets: false,
+      useCustomSets: true,
       sets: [
         {
-          weight: 0,
-          repeatCount: 10,
+          units: unitsFromCatalogStrings(selectedExercise.units),
           done: false,
         },
       ],
@@ -242,6 +216,19 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
                           {group}
                         </Badge>
                       ))}
+                      {exercise.sets[0]?.units?.map((unit, i) => (
+                        <Badge
+                          key={`unit-${exercise.id}-${i}-${unit.name}`}
+                          variant="outline"
+                          className={cn(
+                            styles.tag,
+                            "border-orange-200/90 bg-orange-50 font-medium text-orange-950",
+                            "dark:border-orange-800/90 dark:bg-orange-950/45 dark:text-orange-100",
+                          )}
+                        >
+                          {unit.name}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -290,25 +277,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
                 </div>
               </div>
 
-              {/* Переключатель разных весов */}
-              <div className={styles.customSetsToggle}>
-                <div className={styles.toggleContainer}>
-                  <Label
-                    htmlFor={`custom-${exerciseIndex}`}
-                    className={styles.toggleLabel}
-                  >
-                    Разные веса/повторения для подходов
-                  </Label>
-                  <Switch
-                    id={`custom-${exerciseIndex}`}
-                    checked={exercise.useCustomSets}
-                    onCheckedChange={() => toggleCustomSets(exerciseIndex)}
-                  />
-                </div>
-                <p className={styles.toggleDescription}>
-                  {"Каждый подход настраивается отдельно"}
-                </p>
-              </div>
               <Approach
                 exercise={exercise}
                 activeTraining={activeTraining}

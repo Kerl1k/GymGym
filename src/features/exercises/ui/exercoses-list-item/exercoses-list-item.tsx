@@ -65,6 +65,24 @@ export function ExercisesListItem({
 
                 <p className="m-2">{exercise.name}</p>
 
+                {exercise.units && exercise.units.length > 0 ? (
+                  <div className={styles.unitsContainer}>
+                    {exercise.units.map((unit, index) => (
+                      <Badge
+                        key={`${exercise.id}-unit-${index}-${unit}`}
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "border-orange-200/90 bg-orange-50 font-medium text-orange-950",
+                          "dark:border-orange-800/90 dark:bg-orange-950/45 dark:text-orange-100",
+                        )}
+                      >
+                        {unit}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+
                 <div className={styles.description}>
                   {exercise.description && (
                     <div title={exercise.description}>

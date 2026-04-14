@@ -1,14 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
-import {
-  WeightIcon,
-  RepeatIcon,
-  ClockIcon,
-  EditIcon,
-  CheckIcon,
-  XIcon,
-} from "lucide-react";
+import { ClockIcon, EditIcon, CheckIcon, XIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
+import { setUnitValueAt } from "@/shared/lib/active-training-units";
+import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -18,56 +14,53 @@ type CurrentExerciseProps = {
   setTraining: React.Dispatch<
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
-  open: () => void;
   onCompleteSet: () => void;
 };
+
+function parseUnitInput(raw: string): number {
+  if (raw === "") return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
 
 export function CurrentExercise({
   exercise,
   setTraining,
-  open,
   onCompleteSet,
 }: CurrentExerciseProps) {
-  const [isEditingWeight, setIsEditingWeight] = useState(false);
-  const [isEditingReps, setIsEditingReps] = useState(false);
-  const weightInputRef = useRef<HTMLInputElement>(null);
-  const repsInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+
+  const [editingUnitIndex, setEditingUnitIndex] = useState<number | null>(
+    null,
+  );
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const currentSets = exercise.sets.filter((set) => set.done).length;
-  const activeSetIndex = Math.min(currentSets, Math.max(exercise.sets.length - 1, 0));
-
-  const [tempWeight, setTempWeight] = useState(
-    exercise.sets[activeSetIndex]?.weight?.toString() ?? "",
-  );
-  const [tempReps, setTempReps] = useState(
-    exercise.sets[activeSetIndex]?.repeatCount?.toString() ?? "",
+  const activeSetIndex = Math.min(
+    currentSets,
+    Math.max(exercise.sets.length - 1, 0),
   );
 
-  const updateWeight = () => {
-    setTraining((prev) => ({
-      ...prev,
-      exercises: prev.exercises.map((ex) => {
-        if (ex.id === exercise.id) {
-          return {
-            ...ex,
-            sets: ex.sets.map((set, index) => {
-              if (index === activeSetIndex) {
-                return {
-                  ...set,
-                  weight: tempWeight === "" ? 0 : Number(tempWeight),
-                };
-              }
-              return set;
-            }),
-          };
-        }
-        return ex;
-      }),
-    }));
-    setIsEditingWeight(false);
+  const activeSet = exercise.sets[activeSetIndex];
+
+  const [tempUnits, setTempUnits] = useState<string[]>([]);
+
+  const onChangeExercise = () => {
+    navigate(`${ROUTES.START.replace(/:id/, exercise.id)}`);
   };
 
-  const updateReps = () => {
+  useEffect(() => {
+    const set = exercise.sets[activeSetIndex];
+    if (!set) {
+      setTempUnits([]);
+      return;
+    }
+    setTempUnits(set.units.map((u) => (u.value === 0 ? "" : String(u.value))));
+    setEditingUnitIndex(null);
+  }, [activeSetIndex, exercise.sets]);
+
+  const updateUnitAt = (unitIndex: number) => {
+    const raw = tempUnits[unitIndex] ?? "";
     setTraining((prev) => ({
       ...prev,
       exercises: prev.exercises.map((ex) => {
@@ -76,10 +69,7 @@ export function CurrentExercise({
             ...ex,
             sets: ex.sets.map((set, index) => {
               if (index === activeSetIndex) {
-                return {
-                  ...set,
-                  repeatCount: tempReps === "" ? 0 : Number(tempReps),
-                };
+                return setUnitValueAt(set, unitIndex, parseUnitInput(raw));
               }
               return set;
             }),
@@ -88,189 +78,142 @@ export function CurrentExercise({
         return ex;
       }),
     }));
-    setIsEditingReps(false);
+    setEditingUnitIndex(null);
+  };
+
+  const cancelEdit = (unitIndex: number) => {
+    const set = exercise.sets[activeSetIndex];
+    const u = set?.units[unitIndex];
+    setTempUnits((prev) => {
+      const next = [...prev];
+      next[unitIndex] = u && u.value !== 0 ? String(u.value) : "";
+      return next;
+    });
+    setEditingUnitIndex(null);
   };
 
   if (!exercise.sets) return null;
 
+  const units = activeSet?.units ?? [];
+
   return (
     <Card className="border-primary/20">
       <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-xl sm:text-2xl md:text-3xl">
             {exercise.name}
           </CardTitle>
-          <Button disabled onClick={open} size="sm" className="sm:size-auto">
+          <Button onClick={onChangeExercise} size="sm" className="sm:size-auto">
             Изменить
           </Button>
         </div>
       </CardHeader>
 
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-6">
-          {/* Вес */}
-          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <WeightIcon className="h-4 w-4" />
-                <span className="font-medium text-sm sm:text-base">Вес</span>
-              </div>
-
-              {isEditingWeight ? (
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={updateWeight}
-                    className="p-1"
-                  >
-                    <CheckIcon className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setIsEditingWeight(false);
-                      setTempWeight(
-                        exercise.sets[activeSetIndex]?.weight?.toString() ?? "",
-                      );
-                    }}
-                    className="p-1"
-                  >
-                    <XIcon className="h-3 w-3" />
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditingWeight(true);
-                    setTimeout(() => weightInputRef.current?.focus(), 0);
-                  }}
-                  className="p-1"
+        <div className="mb-6 space-y-3">
+          {units.length === 0 ? (
+            <p className="text-muted-foreground text-sm">
+              Нет параметров для этого подхода
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
+              {units.map((unit, unitIndex) => (
+                <div
+                  key={`${unit.name}-${unitIndex}`}
+                  className="bg-card rounded-xl border border-border p-3 sm:p-4"
                 >
-                  <EditIcon className="h-3 w-3" />
-                </Button>
-              )}
-            </div>
+                  <div className="mb-2 flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground line-clamp-2 min-w-0 flex-1 text-sm font-medium sm:text-base">
+                      {unit.name}
+                    </span>
 
-            {isEditingWeight ? (
-              <div className="flex items-center gap-2">
-                <input
-                  ref={weightInputRef}
-                  type="number"
-                  value={tempWeight}
-                  onChange={(e) => setTempWeight(e.target.value)}
-                  className="w-16 sm:w-30 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
-                  min="0"
-                  step="0.5"
-                />
-                <span className="text-muted-foreground text-sm sm:text-base">
-                  {" "}
-                  кг
-                </span>
-              </div>
-            ) : (
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                {exercise.sets[activeSetIndex]?.weight ?? 0}
-                <span className="text-muted-foreground text-lg sm:text-xl">
-                  {" "}
-                  кг
-                </span>
-              </div>
-            )}
-          </div>
+                    {editingUnitIndex === unitIndex ? (
+                      <div className="flex shrink-0 items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => updateUnitAt(unitIndex)}
+                          className="p-1"
+                        >
+                          <CheckIcon className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => cancelEdit(unitIndex)}
+                          className="p-1"
+                        >
+                          <XIcon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditingUnitIndex(unitIndex);
+                          setTimeout(
+                            () => inputRefs.current[unitIndex]?.focus(),
+                            0,
+                          );
+                        }}
+                        className="shrink-0 p-1"
+                      >
+                        <EditIcon className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
 
-          {/* Повторения */}
-          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <RepeatIcon className="h-4 w-4" />
-                <span className="font-medium text-sm sm:text-base">
-                  Повторения
-                </span>
-              </div>
-
-              {isEditingReps ? (
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={updateReps}
-                    className="p-1"
-                  >
-                    <CheckIcon className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      setIsEditingReps(false);
-                      setTempReps(
-                        exercise.sets[activeSetIndex]?.repeatCount?.toString() ??
-                          "",
-                      );
-                    }}
-                    className="p-1"
-                  >
-                    <XIcon className="h-3 w-3" />
-                  </Button>
+                  {editingUnitIndex === unitIndex ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        ref={(el) => {
+                          inputRefs.current[unitIndex] = el;
+                        }}
+                        type="number"
+                        value={tempUnits[unitIndex] ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setTempUnits((prev) => {
+                            const next = [...prev];
+                            next[unitIndex] = v;
+                            return next;
+                          });
+                        }}
+                        className="border-input bg-background w-16 min-w-0 rounded border px-2 py-1 text-xl font-bold tabular-nums sm:w-30 sm:px-3 sm:text-2xl"
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+                  ) : (
+                    <div className="text-foreground text-2xl font-bold tabular-nums sm:text-3xl">
+                      {unit.value}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditingReps(true);
-                    setTimeout(() => repsInputRef.current?.focus(), 0);
-                  }}
-                  className="p-1"
-                >
-                  <EditIcon className="h-3 w-3" />
-                </Button>
-              )}
+              ))}
             </div>
+          )}
 
-            {isEditingReps ? (
-              <div className="flex items-center gap-2">
-                <input
-                  ref={repsInputRef}
-                  type="number"
-                  value={tempReps}
-                  onChange={(e) => setTempReps(e.target.value)}
-                  className="w-16 sm:w-20 px-2 sm:px-3 py-1 border rounded text-xl sm:text-2xl font-bold"
-                  min="0"
-                />
-                <span className="text-muted-foreground text-sm sm:text-base">
-                  {" "}
-                  раз
-                </span>
-              </div>
-            ) : (
-              <div className="text-2xl sm:text-3xl font-bold text-foreground">
-                {exercise.sets[activeSetIndex]?.repeatCount ?? 0}
-                <span className="text-muted-foreground text-lg sm:text-xl">
-                  {" "}
-                  раз
-                </span>
-              </div>
-            )}
-            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+          {units.length > 0 ? (
+            <p className="text-muted-foreground text-xs sm:text-sm">
               {exercise.sets.length} подходов
-            </div>
-          </div>
+            </p>
+          ) : null}
 
-          {/* Отдых */}
-          <div className="bg-card p-3 sm:p-4 rounded-xl border border-border">
-            <div className="flex items-center gap-2 text-muted-foreground mb-2">
+          <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
+            <div className="text-muted-foreground mb-2 flex items-center gap-2">
               <ClockIcon className="h-4 w-4" />
-              <span className="font-medium text-sm sm:text-base">Отдых</span>
+              <span className="text-sm font-medium sm:text-base">Отдых</span>
             </div>
-            <div className="text-2xl sm:text-3xl font-bold text-foreground">
+            <div className="text-foreground text-2xl font-bold sm:text-3xl">
               {exercise.restTime}
+              <span className="text-muted-foreground text-lg sm:text-xl">
+                {" "}
+                сек
+              </span>
             </div>
-            <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+            <div className="text-muted-foreground mt-1 text-xs sm:text-sm">
               между подходами
             </div>
           </div>

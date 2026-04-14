@@ -1095,6 +1095,7 @@ export interface components {
             description?: string;
             restTime?: number;
             muscleGroups?: string[];
+            units?: string[];
         };
         /** ExerciseType */
         ExerciseType: {
@@ -1104,6 +1105,7 @@ export interface components {
             description: string;
             restTime: number;
             muscleGroups: string[];
+            units: string[];
         };
         /** ExerciseTypeUpdateBody */
         ExerciseTypeUpdateBody: {
@@ -1113,6 +1115,7 @@ export interface components {
             description?: string;
             restTime?: number;
             muscleGroups?: string[];
+            units?: string[];
         };
         /** TrainingCreateBody */
         TrainingCreateBody: {
@@ -1148,6 +1151,16 @@ export interface components {
                 id: string;
             }[];
         };
+        /** Unit */
+        Unit: {
+            name: string;
+            value: number;
+        };
+        /** Set */
+        Set: {
+            units: components["schemas"]["Unit"][];
+            done: boolean;
+        };
         /** ActiveTraining */
         ActiveTraining: {
             dateStart: string;
@@ -1158,11 +1171,7 @@ export interface components {
                 name: string;
                 description: string;
                 restTime: number;
-                sets: {
-                    weight: number;
-                    repeatCount: number;
-                    done: boolean;
-                }[];
+                sets: components["schemas"]["Set"][];
                 muscleGroups: string[];
                 useCustomSets: boolean;
             }[];
@@ -1181,11 +1190,7 @@ export interface components {
                 name: string;
                 description: string;
                 restTime: number;
-                sets: {
-                    weight: number;
-                    repeatCount: number;
-                    done: boolean;
-                }[];
+                sets: components["schemas"]["Set"][];
                 muscleGroups: string[];
                 useCustomSets: boolean;
             }[];
@@ -1204,11 +1209,7 @@ export interface components {
                 name: string;
                 description: string;
                 restTime: number;
-                sets: {
-                    weight: number;
-                    repeatCount: number;
-                    done: boolean;
-                }[];
+                sets: components["schemas"]["Set"][];
                 muscleGroups: string[];
                 useCustomSets: boolean;
             }[];
@@ -1223,11 +1224,7 @@ export interface components {
                 name: string;
                 description: string;
                 restTime: number;
-                sets: {
-                    weight: number;
-                    repeatCount: number;
-                    done: boolean;
-                }[];
+                sets: components["schemas"]["Set"][];
                 muscleGroups: string[];
                 useCustomSets: boolean;
             }[];

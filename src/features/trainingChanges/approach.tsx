@@ -1,24 +1,25 @@
 import { FC, useState } from "react";
 
-import {
-  PlusIcon,
-  TrashIcon,
-  WeightIcon,
-  RepeatIcon,
-  LayersIcon,
-  ClockIcon,
-  DumbbellIcon,
-} from "lucide-react";
+import { PlusIcon, TrashIcon, ClockIcon, DumbbellIcon } from "lucide-react";
 
+import {
+  cloneUnitsTemplate,
+  setUnitValueAt,
+} from "@/shared/lib/active-training-units";
+import { cn } from "@/shared/lib/css";
 import { ApiSchemas } from "@/shared/schema";
+import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 
 import styles from "./training-start.module.scss";
 
+type ActiveExercise = ApiSchemas["ActiveTraining"]["exercises"][number];
+type TrainingSet = ApiSchemas["Set"];
+
 type Props = {
-  exercise: ApiSchemas["ActiveTraining"]["exercises"][0];
+  exercise: ActiveExercise;
   activeTraining: ApiSchemas["ActiveTraining"] | null;
   setActiveTraining: React.Dispatch<
     React.SetStateAction<ApiSchemas["ActiveTraining"] | null>
@@ -26,20 +27,37 @@ type Props = {
   exerciseIndex: number;
 };
 
+const SETS_PREVIEW = 4;
+
+function parseUnitInput(raw: string): number {
+  if (raw === "") return 0;
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
+/** В инпуте не показываем 0 — удобнее вводить число с пустого поля */
+function zeroAsEmpty(n: number | undefined): string | number {
+  if (n === undefined || n === 0) return "";
+  return n;
+}
+
 const Approach: FC<Props> = ({
   exercise,
   activeTraining,
   setActiveTraining,
   exerciseIndex,
 }) => {
-  const [setsCountInput, setSetsCountInput] = useState<string>("");
-  const handleSetChange = (
-    exerciseIndex: number,
+  const [isSetsExpanded, setIsSetsExpanded] = useState(false);
+
+  const visibleSets: TrainingSet[] =
+    exercise.sets.length > SETS_PREVIEW && !isSetsExpanded
+      ? exercise.sets.slice(0, SETS_PREVIEW)
+      : exercise.sets;
+
+  const updateUnitValue = (
     setIndex: number,
-    field:
-      | keyof ApiSchemas["ActiveTraining"]["exercises"][0]
-      | keyof ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][0],
-    value: number | string,
+    unitIndex: number,
+    raw: string,
   ) => {
     if (!activeTraining) return;
 
@@ -47,16 +65,17 @@ const Approach: FC<Props> = ({
       if (!prev) return prev;
 
       const newExercises = [...prev.exercises];
-      newExercises[exerciseIndex].sets[setIndex] = {
-        ...newExercises[exerciseIndex].sets[setIndex],
-        [field]:
-          value === "" ? (field === "repeatCount" ? 1 : 0) : Number(value),
-      };
+      const ex = newExercises[exerciseIndex];
+      const newSets = [...ex.sets];
+      const set = newSets[setIndex];
+      newSets[setIndex] = setUnitValueAt(
+        set,
+        unitIndex,
+        parseUnitInput(raw),
+      );
+      newExercises[exerciseIndex] = { ...ex, sets: newSets };
 
-      return {
-        ...prev,
-        exercises: newExercises,
-      };
+      return { ...prev, exercises: newExercises };
     });
   };
 
@@ -67,244 +86,104 @@ const Approach: FC<Props> = ({
       if (!prev) return prev;
 
       const newExercises = [...prev.exercises];
-      newExercises[exerciseIndex] = {
-        ...exercise,
-        sets: [
-          ...exercise.sets,
-          {
-            weight: exercise.sets[exercise.sets.length - 1]?.weight || 0,
-            repeatCount:
-              exercise.sets[exercise.sets.length - 1]?.repeatCount || 0,
-            done: false,
-          },
-        ],
+      const ex = newExercises[exerciseIndex];
+      const last = ex.sets[ex.sets.length - 1];
+      const newSet: TrainingSet = {
+        done: false,
+        units: last
+          ? cloneUnitsTemplate(last)
+          : [
+              { name: "Вес", value: 0 },
+              { name: "Повторения", value: 0 },
+            ],
       };
 
-      return {
-        ...prev,
-        exercises: newExercises,
+      newExercises[exerciseIndex] = {
+        ...ex,
+        sets: [...ex.sets, newSet],
       };
+
+      return { ...prev, exercises: newExercises };
     });
   };
 
-  const removeSet = (exerciseIndex: number, setIndex?: number) => {
+  const removeSet = (setIndex: number) => {
     if (!activeTraining) return;
 
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
       const newExercises = [...prev.exercises];
-      const exercise = newExercises[exerciseIndex];
+      const ex = newExercises[exerciseIndex];
 
-      if (exercise.sets.length <= 1) return prev;
+      if (ex.sets.length <= 1) return prev;
 
-      // Remove the specific set or the last set if no index provided
-      const indexToRemove =
-        setIndex !== undefined ? setIndex : exercise.sets.length - 1;
       newExercises[exerciseIndex] = {
-        ...exercise,
-        sets: exercise.sets.filter((_, i) => i !== indexToRemove),
+        ...ex,
+        sets: ex.sets.filter((_, i) => i !== setIndex),
       };
 
-      return {
-        ...prev,
-        exercises: newExercises,
-      };
-    });
-  };
-
-  const updateAllSets = (
-    exerciseIndex: number,
-    field: "weight" | "repeatCount" | "restTime",
-    value: number | string,
-  ) => {
-    if (!activeTraining) return;
-
-    setActiveTraining((prev) => {
-      if (!prev) return prev;
-
-      const newExercises = [...prev.exercises];
-      newExercises[exerciseIndex].sets = newExercises[exerciseIndex].sets.map(
-        (set) => ({
-          ...set,
-          [field]:
-            field === "restTime" && value === ""
-              ? 0
-              : value === ""
-                ? value
-                : Number(value),
-        }),
-      );
-
-      return {
-        ...prev,
-        exercises: newExercises,
-      };
+      return { ...prev, exercises: newExercises };
     });
   };
 
   return (
     <div className={styles.setsSection}>
-      {!exercise.useCustomSets ? (
-        <div className={styles.uniformSets}>
-          <div className={styles.uniformFields}>
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>
-                <WeightIcon className={styles.fieldIcon} />
-                Вес (кг)
-              </Label>
-              <Input
-                type="number"
-                value={
-                  exercise.sets[0]?.weight !== undefined
-                    ? exercise.sets[0]?.weight
-                    : ""
-                }
-                onChange={(e) =>
-                  updateAllSets(exerciseIndex, "weight", e.target.value)
-                }
-                className={styles.fieldInput}
-                min="0"
-                step="0.5"
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>
-                <RepeatIcon className={styles.fieldIcon} />
-                Повторения
-              </Label>
-              <Input
-                type="number"
-                value={
-                  exercise.sets[0]?.repeatCount !== undefined
-                    ? exercise.sets[0]?.repeatCount
-                    : ""
-                }
-                onChange={(e) =>
-                  updateAllSets(exerciseIndex, "repeatCount", e.target.value)
-                }
-                className={styles.fieldInput}
-                min="1"
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>
-                <LayersIcon className={styles.fieldIcon} />
-                Подходы
-              </Label>
-              <Input
-                value={setsCountInput || exercise.sets.length}
-                onChange={(e) => {
-                  setSetsCountInput(e.target.value);
-                }}
-                onBlur={(e) => {
-                  const inputValue = e.target.value;
-                  const currentCount = exercise.sets.length;
-
-                  // Если поле пустое, возвращаем текущее количество
-                  if (inputValue === "") {
-                    setSetsCountInput("");
-                    return;
-                  }
-
-                  const newCount = Number(inputValue);
-
-                  if (newCount > currentCount) {
-                    for (let i = currentCount; i < newCount; i++) {
-                      addSet();
-                    }
-                  } else if (newCount < currentCount) {
-                    for (let i = currentCount - 1; i >= newCount; i--) {
-                      removeSet(exerciseIndex, i);
-                    }
-                  }
-
-                  // Сбрасываем локальное состояние после применения изменений
-                  setSetsCountInput("");
-                }}
-                onFocus={() => {
-                  // При фокусе очищаем поле для ввода нового значения
-                  setSetsCountInput("");
-                }}
-                className={styles.fieldInput}
-              />
-            </div>
-
-            <div className={styles.fieldGroup}>
-              <Label className={styles.fieldLabel}>
-                <ClockIcon className={styles.fieldIcon} />
-                Отдых (сек)
-              </Label>
-              <Input
-                type="number"
-                value={exercise.restTime !== undefined ? exercise.restTime : ""}
-                onChange={(e) => {
-                  if (!activeTraining) return;
-                  setActiveTraining((prev) => {
-                    if (!prev) return prev;
-                    const newExercises = [...prev.exercises];
-                    newExercises[exerciseIndex] = {
-                      ...newExercises[exerciseIndex],
-                      restTime:
-                        e.target.value === "" ? 0 : Number(e.target.value),
-                    };
-                    return {
-                      ...prev,
-                      exercises: newExercises,
-                    };
-                  });
-                }}
-                className={styles.fieldInput}
-                min="0"
-              />
-            </div>
-          </div>
+      <div className={styles.customSets}>
+        <div className={styles.fieldGroup}>
+          <Label className={styles.fieldLabel}>
+            <ClockIcon className={styles.fieldIcon} />
+            Отдых (сек)
+          </Label>
+          <Input
+            type="number"
+            value={zeroAsEmpty(exercise.restTime)}
+            onChange={(e) => {
+              if (!activeTraining) return;
+              setActiveTraining((prev) => {
+                if (!prev) return prev;
+                const newExercises = [...prev.exercises];
+                newExercises[exerciseIndex] = {
+                  ...newExercises[exerciseIndex],
+                  restTime: e.target.value === "" ? 0 : Number(e.target.value),
+                };
+                return {
+                  ...prev,
+                  exercises: newExercises,
+                };
+              });
+            }}
+            className={styles.fieldInput}
+            min="0"
+          />
         </div>
-      ) : (
-        <div className={styles.customSets}>
-          <div className={styles.fieldGroup}>
-            <Label className={styles.fieldLabel}>
-              <ClockIcon className={styles.fieldIcon} />
-              Отдых (сек)
-            </Label>
-            <Input
-              type="number"
-              value={exercise.restTime !== undefined ? exercise.restTime : ""}
-              onChange={(e) => {
-                if (!activeTraining) return;
-                setActiveTraining((prev) => {
-                  if (!prev) return prev;
-                  const newExercises = [...prev.exercises];
-                  newExercises[exerciseIndex] = {
-                    ...newExercises[exerciseIndex],
-                    restTime:
-                      e.target.value === "" ? 0 : Number(e.target.value),
-                  };
-                  return {
-                    ...prev,
-                    exercises: newExercises,
-                  };
-                });
-              }}
-              className={styles.fieldInput}
-              min="0"
-            />
-          </div>
-          <div className={styles.setsList}>
-            {exercise.sets.map((set, setIndex) => (
+
+        <div className={styles.setsList}>
+          {visibleSets.map((set, setIndex) => {
+            return (
               <div key={setIndex} className={styles.setItem}>
                 <div className={styles.setHeader}>
                   <div className={styles.setNumber}>
                     <DumbbellIcon className={styles.setIcon} />
                     <span>Подход {setIndex + 1}</span>
+                    {set.done ? (
+                      <Badge
+                        size="sm"
+                        variant="outline"
+                        className={cn(
+                          "ml-2 border-emerald-200 bg-emerald-50 text-emerald-900",
+                          "dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100",
+                        )}
+                      >
+                        done
+                      </Badge>
+                    ) : null}
                   </div>
                   <div className={styles.setActions}>
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => removeSet(exerciseIndex, setIndex)}
+                      onClick={() => removeSet(setIndex)}
                       disabled={exercise.sets.length <= 1}
                       className={styles.removeButton}
                     >
@@ -314,59 +193,63 @@ const Approach: FC<Props> = ({
                 </div>
 
                 <div className={styles.setFields}>
-                  <div className={styles.setField}>
-                    <Label className={styles.setFieldLabel}>Вес (кг)</Label>
-                    <Input
-                      type="number"
-                      value={set.weight !== undefined ? set.weight : ""}
-                      onChange={(e) =>
-                        handleSetChange(
-                          exerciseIndex,
-                          setIndex,
-                          "weight",
-                          e.target.value,
-                        )
-                      }
-                      className={styles.setInput}
-                      min="0"
-                      step="0.5"
-                    />
-                  </div>
-
-                  <div className={styles.setField}>
-                    <Label className={styles.setFieldLabel}>Повторения</Label>
-                    <Input
-                      type="number"
-                      value={
-                        set.repeatCount !== undefined ? set.repeatCount : ""
-                      }
-                      onChange={(e) =>
-                        handleSetChange(
-                          exerciseIndex,
-                          setIndex,
-                          "repeatCount",
-                          e.target.value,
-                        )
-                      }
-                      className={styles.setInput}
-                      min="1"
-                    />
-                  </div>
+                  {set.units.length === 0 ? (
+                    <p className="text-muted-foreground text-sm">
+                      Нет единиц измерения для этого подхода
+                    </p>
+                  ) : (
+                    set.units.map((unit, unitIndex) => (
+                      <div key={unitIndex} className={styles.setField}>
+                        <Input
+                          type="number"
+                          value={zeroAsEmpty(unit.value)}
+                          onChange={(e) =>
+                            updateUnitValue(
+                              setIndex,
+                              unitIndex,
+                              e.target.value,
+                            )
+                          }
+                          className={cn(
+                            styles.setInput,
+                            "h-8 w-[4.25rem] shrink-0 px-2 text-sm tabular-nums md:text-sm",
+                          )}
+                        />
+                        <Label className={styles.setFieldLabel}>
+                          {unit.name}
+                        </Label>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-
-          <Button
-            onClick={() => addSet()}
-            variant="outline"
-            className={styles.addSetButton}
-          >
-            <PlusIcon className={styles.addIcon} />
-            Добавить подход
-          </Button>
+            );
+          })}
         </div>
-      )}
+
+        {exercise.sets.length > SETS_PREVIEW ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            onClick={() => setIsSetsExpanded((v) => !v)}
+          >
+            {isSetsExpanded
+              ? "Свернуть подходы"
+              : `Показать ещё (${exercise.sets.length - SETS_PREVIEW})`}
+          </Button>
+        ) : null}
+
+        <Button
+          onClick={() => addSet()}
+          variant="outline"
+          className={styles.addSetButton}
+        >
+          <PlusIcon className={styles.addIcon} />
+          Добавить подход
+        </Button>
+      </div>
     </div>
   );
 };

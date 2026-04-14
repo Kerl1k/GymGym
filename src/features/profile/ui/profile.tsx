@@ -17,6 +17,7 @@ import { useStartActiveTraining } from "@/entities/training-active/use-active-tr
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
 import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
+import { getWeightLike } from "@/shared/lib/active-training-units";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./profile.module.scss";
@@ -37,7 +38,8 @@ export const Profile = () => {
       (exercise) => exercise.name === "Жим",
     );
     return benchExercises.flatMap(
-      (exercise) => exercise.sets?.map((set) => set.weight) || [],
+      (exercise) =>
+        exercise.sets?.map((set) => getWeightLike(set)) || [],
     );
   });
 

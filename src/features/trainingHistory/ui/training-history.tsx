@@ -2,6 +2,7 @@ import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import type { ApiSchemas } from "@/shared/schema";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./training-history.module.scss";
@@ -20,9 +21,7 @@ export const TrainingHistory = () => {
     });
   };
 
-  const formatDuration = (
-    sets: { weight: number; repeatCount: number; done: boolean }[],
-  ) => {
+  const formatDuration = (sets: ApiSchemas["Set"][]) => {
     // Calculate total duration based on sets and rest time
     const totalSets = sets.filter((s) => s.done).length;
     return `${totalSets} подходов`;

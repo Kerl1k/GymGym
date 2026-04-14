@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { getWeightLike } from "@/shared/lib/active-training-units";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -108,7 +109,7 @@ export const Statistics = () => {
         if (!exercise?.sets?.length || !Number.isFinite(ts)) return null;
 
         const weights = exercise.sets
-          .map((s) => safeNumber(s.weight))
+          .map((s) => safeNumber(getWeightLike(s)))
           .filter((v): v is number => v !== null);
 
         if (weights.length === 0) return null;

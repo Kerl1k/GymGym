@@ -1097,6 +1097,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": ["name"],
@@ -1126,6 +1132,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "units": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -1134,7 +1146,8 @@
           "favorite",
           "description",
           "restTime",
-          "muscleGroups"
+          "muscleGroups",
+          "units"
         ],
         "title": "ExerciseType"
       },
@@ -1157,6 +1170,12 @@
             "type": "number"
           },
           "muscleGroups": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "units": {
             "type": "array",
             "items": {
               "type": "string"
@@ -1284,6 +1303,37 @@
         "required": ["id", "exerciseTypes"],
         "title": "TrainingUpdateBody"
       },
+      "Unit": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": ["name", "value"],
+        "additionalProperties": false,
+        "title": "Unit"
+      },
+      "Set": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Unit"
+            }
+          },
+          "done": {
+            "type": "boolean"
+          }
+        },
+        "required": ["units", "done"],
+        "additionalProperties": false,
+        "title": "Set"
+      },
       "ActiveTraining": {
         "type": "object",
         "properties": {
@@ -1316,20 +1366,7 @@
                 "sets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "weight": {
-                        "type": "number"
-                      },
-                      "repeatCount": {
-                        "type": "number"
-                      },
-                      "done": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": ["weight", "repeatCount", "done"],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/Set"
                   }
                 },
                 "muscleGroups": {
@@ -1401,20 +1438,7 @@
                 "sets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "weight": {
-                        "type": "number"
-                      },
-                      "repeatCount": {
-                        "type": "number"
-                      },
-                      "done": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": ["weight", "repeatCount", "done"],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/Set"
                   }
                 },
                 "muscleGroups": {
@@ -1484,20 +1508,7 @@
                 "sets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "weight": {
-                        "type": "number"
-                      },
-                      "repeatCount": {
-                        "type": "number"
-                      },
-                      "done": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": ["weight", "repeatCount", "done"],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/Set"
                   }
                 },
                 "muscleGroups": {
@@ -1556,20 +1567,7 @@
                 "sets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "properties": {
-                      "weight": {
-                        "type": "number"
-                      },
-                      "repeatCount": {
-                        "type": "number"
-                      },
-                      "done": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": ["weight", "repeatCount", "done"],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/Set"
                   }
                 },
                 "muscleGroups": {

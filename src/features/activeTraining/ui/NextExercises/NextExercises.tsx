@@ -6,6 +6,10 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import {
+  sumSetsWeightLike,
+  unitsFromCatalogStrings,
+} from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
@@ -109,7 +113,7 @@ const DraggableExercise: FC<DraggableExerciseProps> = ({
         </div>
         <div className="text-sm sm:text-base text-muted-foreground">
           {exercise.sets.length} подходов ×{" "}
-          {exercise.sets.reduce((sum, set) => sum + set.weight, 0)} кг
+          {sumSetsWeightLike(exercise.sets)} кг
         </div>
       </div>
       <div className="hidden sm:flex flex-shrink-0 text-muted-foreground">
@@ -200,13 +204,12 @@ export const NextExercises: FC<NextExercisesProps> = ({
         restTime: 90,
         sets: [
           {
-            weight: 0,
-            repeatCount: 12,
+            units: unitsFromCatalogStrings(selectedExercise.units),
             done: false,
           },
         ],
         muscleGroups: selectedExercise.muscleGroups || [],
-        useCustomSets: false,
+        useCustomSets: true,
       };
 
       return {

@@ -2,6 +2,14 @@ import { FC, useState, useEffect, useRef } from "react";
 
 import { Plus, Minus, Dumbbell, Repeat, Save } from "lucide-react";
 
+import {
+  createEmptySetFromExerciseTemplate,
+  ensureUnitsMinLength,
+  getUnitValue,
+  REPS_UNIT_INDEX,
+  setUnitValueAt,
+  WEIGHT_UNIT_INDEX,
+} from "@/shared/lib/active-training-units";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
@@ -17,17 +25,79 @@ type NotedWeightModalProps = {
   initialData?:
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
-  completeSet: ({
-    weight,
-    repeatCount,
-  }: {
-    weight: number;
-    repeatCount: number;
-  }) => void;
+  completeSet: (set: ApiSchemas["Set"]) => void;
 };
 
 const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
 const repPresets = [5, 8, 10, 12, 15, 20];
+const secPresets = [10, 15, 20, 30, 45, 60, 90, 120, 180];
+const minPresets = [1, 2, 3, 4, 5, 8, 10, 12, 15, 20];
+const distanceMPresets = [10, 20, 50, 100, 200, 500, 1000];
+const distanceCmPresets = [10, 20, 30, 50, 80, 100, 120];
+const rpePresets = [6, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+const percent1rmPresets = [50, 60, 70, 75, 80, 85, 90, 95, 100];
+
+function getPresetsForUnit(unitName: string | undefined, unitIndex: number) {
+  const raw = (unitName ?? "").trim().toLowerCase();
+  // normalize: collapse spaces, remove trailing dots
+  const name = raw.replace(/\s+/g, " ").replace(/\.+$/g, "");
+  const compact = name.replace(/\s/g, "");
+
+  // Backwards compatible defaults for the first two units.
+  if (!name) {
+    if (unitIndex === WEIGHT_UNIT_INDEX) return weightPresets;
+    if (unitIndex === REPS_UNIT_INDEX) return repPresets;
+    return [];
+  }
+
+  if (["кг", "kg", "lb", "lbs"].includes(name)) return weightPresets;
+  if (name.startsWith("кг")) return weightPresets;
+
+  if (
+    ["раз", "повт", "повтор", "повторения", "reps", "rep"].includes(name) ||
+    name.startsWith("повт") ||
+    name.startsWith("повтор")
+  )
+    return repPresets;
+
+  if (["подход", "подходы", "set", "sets"].includes(name) || name.startsWith("подход"))
+    return [1, 2, 3, 4, 5, 6];
+
+  if (
+    ["сек", "s", "sec", "second", "seconds"].includes(name) ||
+    name.startsWith("сек")
+  )
+    return secPresets;
+
+  if (
+    ["мин", "min", "minute", "minutes"].includes(name) ||
+    name.startsWith("мин")
+  )
+    return minPresets;
+
+  // Distance
+  if (name === "м") return distanceMPresets;
+  if (name === "см") return distanceCmPresets;
+
+  // Effort
+  if (name === "rpe") return rpePresets;
+
+  // % 1RM / 1ПМ
+  if (
+    name === "%" ||
+    compact === "%от1пм" ||
+    compact === "%от1rm" ||
+    name.includes("1пм") ||
+    name.includes("1rm") ||
+    name.startsWith("%")
+  )
+    return percent1rmPresets;
+
+  // Fallback: only show presets for legacy positions.
+  if (unitIndex === WEIGHT_UNIT_INDEX) return weightPresets;
+  if (unitIndex === REPS_UNIT_INDEX) return repPresets;
+  return [];
+}
 
 function stripLeadingZerosFromNumericInput(value: string): string {
   if (value === "") return "";
@@ -44,52 +114,41 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 }) => {
   const [sets, setSets] = useState<
     ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
-  >([{ weight: 0, repeatCount: 0, done: false }]);
+  >([createEmptySetFromExerciseTemplate(currentExercise.sets[0])]);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleSetChange = (
-    index: number,
-    field: keyof ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
-    value: string,
-  ) => {
+  const handleSetChange = (index: number, unitIndex: number, value: string) => {
     const newSets = [...sets];
     const normalized = stripLeadingZerosFromNumericInput(value);
-    const numValue = normalized === "" ? null : Number(normalized);
-    newSets[index] = { ...newSets[index], [field]: numValue };
+    const numValue = normalized === "" ? 0 : Number(normalized);
+    newSets[index] = setUnitValueAt(newSets[index], unitIndex, numValue);
     setSets(newSets);
   };
 
-  const handleIncrement = (
-    index: number,
-    field: keyof Pick<
-      ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
-      "repeatCount" | "weight"
-    >,
-  ) => {
+  const handleIncrement = (index: number, unitIndex: number) => {
     const newSets = [...sets];
-    const currentValue = newSets[index][field] || 0;
-    newSets[index] = { ...newSets[index], [field]: currentValue + 1 };
+    const s = ensureUnitsMinLength(newSets[index], unitIndex + 1);
+    const cur = getUnitValue(s, unitIndex);
+    newSets[index] = setUnitValueAt(newSets[index], unitIndex, cur + 1);
     setSets(newSets);
   };
 
-  const handleDecrement = (
-    index: number,
-    field: keyof Pick<
-      ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number],
-      "repeatCount" | "weight"
-    >,
-  ) => {
+  const handleDecrement = (index: number, unitIndex: number) => {
     const newSets = [...sets];
-    const currentValue = newSets[index][field] || 0;
-    if (currentValue > 0) {
-      newSets[index] = { ...newSets[index], [field]: currentValue - 1 };
+    const s = ensureUnitsMinLength(newSets[index], unitIndex + 1);
+    const cur = getUnitValue(s, unitIndex);
+    if (cur > 0) {
+      newSets[index] = setUnitValueAt(newSets[index], unitIndex, cur - 1);
       setSets(newSets);
     }
   };
 
   const handleSave = async () => {
-    completeSet({ weight: sets[0].weight, repeatCount: sets[0].repeatCount });
+    // Keep legacy behavior (weight/reps) but persist ALL unit values.
+    // Ensure we always have at least two units for older templates.
+    const first = ensureUnitsMinLength(sets[0], 2);
+    completeSet({ ...first, done: true });
     close();
   };
 
@@ -97,17 +156,17 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     if (initialData && Array.isArray(initialData)) {
       setSets(
         initialData.length > 0
-          ? initialData
-          : [{ weight: 0, repeatCount: 0, done: false }],
+          ? initialData.map((s) => ensureUnitsMinLength(s, 2))
+          : [createEmptySetFromExerciseTemplate(currentExercise.sets[0])],
       );
     } else {
-      setSets([{ weight: 0, repeatCount: 0, done: false }]);
+      setSets([createEmptySetFromExerciseTemplate(currentExercise.sets[0])]);
     }
 
     if (contentRef.current && isOpen) {
       contentRef.current.scrollTop = 0;
     }
-  }, [initialData, isOpen, currentExercise.restTime]);
+  }, [initialData, isOpen, currentExercise.restTime, currentExercise.sets]);
 
   return (
     <Modal
@@ -153,138 +212,90 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
           {sets.map((set, index) => (
             <Card key={index} className="p-3 sm:p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Вес */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor={`weight-${index}`}
-                    className="flex items-center gap-2 text-sm sm:text-base"
-                  >
-                    <Dumbbell className="w-4 h-4" />
-                    Вес (кг)
-                  </Label>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDecrement(index, "weight")}
-                      className="w-8 sm:w-10 h-8 sm:h-10"
-                    >
-                      <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
-                    </Button>
+                {ensureUnitsMinLength(set, 2).units.map((unit, unitIndex) => {
+                  const labelIcon =
+                    unitIndex === WEIGHT_UNIT_INDEX ? (
+                      <Dumbbell className="w-4 h-4" />
+                    ) : unitIndex === REPS_UNIT_INDEX ? (
+                      <Repeat className="w-4 h-4" />
+                    ) : null;
 
-                    <Input
-                      id={`weight-${index}`}
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      value={set.weight === null ? "" : set.weight}
-                      onChange={(e) =>
-                        handleSetChange(index, "weight", e.target.value)
-                      }
-                      onFocus={(e) => {
-                        if (e.target.value === "0") e.target.select();
-                      }}
-                      placeholder="0"
-                      className="text-center text-sm sm:text-base"
-                    />
+                  const presets = getPresetsForUnit(unit?.name, unitIndex);
+                  const currentValue = getUnitValue(set, unitIndex);
+                  const unitSuffix = unit?.name ? ` ${unit.name}` : "";
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleIncrement(index, "weight")}
-                      className="w-8 sm:w-10 h-8 sm:h-10"
-                    >
-                      <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
-                    </Button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {weightPresets.slice(0, 8).map((weight) => (
-                      <button
-                        key={weight}
-                        type="button"
-                        onClick={() =>
-                          handleSetChange(index, "weight", weight.toString())
-                        }
-                        className={`px-2 py-1 text-xs rounded-md border transition-colors ${
-                          set.weight === weight
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-muted hover:bg-muted/80 border-border"
-                        }`}
+                  return (
+                    <div key={unitIndex} className="space-y-2">
+                      <Label
+                        htmlFor={`unit-${index}-${unitIndex}`}
+                        className="flex items-center gap-2 text-sm sm:text-base"
                       >
-                        {weight}кг
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        {labelIcon}
+                        {unit?.name ?? `Параметр ${unitIndex + 1}`}
+                      </Label>
 
-                {/* Повторения */}
-                <div className="space-y-2">
-                  <Label
-                    htmlFor={`reps-${index}`}
-                    className="flex items-center gap-2 text-sm sm:text-base"
-                  >
-                    <Repeat className="w-4 h-4" />
-                    Повторения
-                  </Label>
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDecrement(index, "repeatCount")}
-                      className="w-8 sm:w-10 h-8 sm:h-10"
-                    >
-                      <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
-                    </Button>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDecrement(index, unitIndex)}
+                          className="w-8 sm:w-10 h-8 sm:h-10"
+                        >
+                          <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
+                        </Button>
 
-                    <Input
-                      id={`reps-${index}`}
-                      type="number"
-                      min="0"
-                      value={set.repeatCount === null ? "" : set.repeatCount}
-                      onChange={(e) =>
-                        handleSetChange(index, "repeatCount", e.target.value)
-                      }
-                      onFocus={(e) => {
-                        if (e.target.value === "0") e.target.select();
-                      }}
-                      placeholder="0"
-                      className="text-center text-sm sm:text-base"
-                    />
+                        <Input
+                          id={`unit-${index}-${unitIndex}`}
+                          type="number"
+                          min="0"
+                          step={unitIndex === WEIGHT_UNIT_INDEX ? "0.5" : "1"}
+                          value={currentValue}
+                          onChange={(e) =>
+                            handleSetChange(index, unitIndex, e.target.value)
+                          }
+                          onFocus={(e) => {
+                            if (e.target.value === "0") e.target.select();
+                          }}
+                          placeholder="0"
+                          className="text-center text-sm sm:text-base"
+                        />
 
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleIncrement(index, "repeatCount")}
-                      className="w-8 sm:w-10 h-8 sm:h-10"
-                    >
-                      <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
-                    </Button>
-                  </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleIncrement(index, unitIndex)}
+                          className="w-8 sm:w-10 h-8 sm:h-10"
+                        >
+                          <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
+                        </Button>
+                      </div>
 
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {repPresets.map((reps) => (
-                      <button
-                        key={reps}
-                        type="button"
-                        onClick={() =>
-                          handleSetChange(index, "repeatCount", reps.toString())
-                        }
-                        className={`px-2 py-1 text-xs rounded-md border transition-colors ${
-                          set.repeatCount === reps
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-muted hover:bg-muted/80 border-border"
-                        }`}
-                      >
-                        {reps} раз
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                      {presets.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {presets.slice(0, 8).map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() =>
+                                handleSetChange(index, unitIndex, p.toString())
+                              }
+                              className={`px-2 py-1 text-xs rounded-md border transition-colors ${
+                                currentValue === p
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "bg-muted hover:bg-muted/80 border-border"
+                              }`}
+                            >
+                              {p}
+                              {unitSuffix}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </Card>
           ))}

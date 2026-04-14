@@ -68,13 +68,7 @@ export const ActiveTrainingContent: FC<{
 
   const progress = totalSets > 0 ? completedSets * 100 : 0;
 
-  const completeSet = async ({
-    weight,
-    repeatCount,
-  }: {
-    weight: number;
-    repeatCount: number;
-  }) => {
+  const completeSet = async (completedSet: ApiSchemas["Set"]) => {
     const updatedExercises = trainingData.exercises.map((ex, index) => {
       if (index === activeExerciseIndex) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
@@ -83,7 +77,7 @@ export const ActiveTrainingContent: FC<{
           ...ex,
           sets: ex.sets.map((set, setIndex) =>
             setIndex === doneSetsCount
-              ? { done: true, repeatCount: repeatCount, weight: weight }
+              ? { ...completedSet, done: true }
               : set,
           ),
         };
@@ -155,11 +149,6 @@ export const ActiveTrainingContent: FC<{
     navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
   };
 
-  const openChange = () => {
-    setPrevExercise(trainingData.exercises[activeExerciseIndex]?.sets || []);
-    open();
-  };
-
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
   ) => {
@@ -219,7 +208,6 @@ export const ActiveTrainingContent: FC<{
                 <CurrentExercise
                   exercise={activeExercise}
                   setTraining={setTrainingWrapper}
-                  open={openChange}
                   onCompleteSet={handleSetCompletion}
                 />
               )}
