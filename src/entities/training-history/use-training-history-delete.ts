@@ -10,7 +10,7 @@ export function useActiveTrainingDelete() {
     {
       onSettled: async () => {
         await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/exercise-type"),
+          rqClient.queryOptions("get", "/api/training-history"),
         );
       },
     },
@@ -21,6 +21,7 @@ export function useActiveTrainingDelete() {
       deleteExercisesMutation.mutate({
         params: { path: { id: exerciseId } },
       }),
+    isPending: deleteExercisesMutation.isPending,
     getIsPending: (exerciseId: string) =>
       deleteExercisesMutation.isPending &&
       deleteExercisesMutation.variables?.params?.path?.id === exerciseId,

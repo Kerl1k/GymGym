@@ -11,7 +11,6 @@ import {
 } from "recharts";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
-import { getWeightLike } from "@/shared/lib/active-training-units";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -73,6 +72,7 @@ function formatDate(ts: number, variant: "short" | "long" = "short") {
 
 export const Statistics = () => {
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
+  const [selectedUnitKey, setSelectedUnitKey] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [range, setRange] = useState<RangeKey>("30d");
 
@@ -97,8 +97,44 @@ export const Statistics = () => {
     });
   }, [filteredHistory, rangeFromTs]);
 
+  type UnitOption = { key: string; unitIndex: number; name?: string };
+
+  const availableUnits = useMemo<UnitOption[]>(() => {
+    if (!selectedExercise) return [];
+
+    const map = new Map<string, UnitOption>();
+
+    for (const training of historyInRange) {
+      const exercise = training.exercises.find((ex) => ex.name === selectedExercise);
+      if (!exercise?.sets?.length) continue;
+
+      for (const set of exercise.sets) {
+        const units = (set as { units?: Array<{ name?: string; value?: unknown }> })
+          .units;
+        if (!units?.length) continue;
+
+        units.forEach((u, unitIndex) => {
+          const name = typeof u?.name === "string" ? u.name : undefined;
+          const key = name ? `name:${name}` : `index:${unitIndex}`;
+          if (!map.has(key)) map.set(key, { key, unitIndex, name });
+        });
+      }
+    }
+
+    return [...map.values()].sort((a, b) => a.unitIndex - b.unitIndex);
+  }, [historyInRange, selectedExercise]);
+
+  const selectedUnit = useMemo(() => {
+    if (!selectedUnitKey) return null;
+    return availableUnits.find((u) => u.key === selectedUnitKey) ?? null;
+  }, [availableUnits, selectedUnitKey]);
+
   const progressPoints = useMemo(() => {
     if (!selectedExercise) return [];
+    if (availableUnits.length === 0) return [];
+
+    const unit =
+      selectedUnit ?? availableUnits[0]!;
 
     return [...historyInRange]
       .map((training) => {
@@ -108,50 +144,60 @@ export const Statistics = () => {
         const ts = new Date(training.dateStart).getTime();
         if (!exercise?.sets?.length || !Number.isFinite(ts)) return null;
 
-        const weights = exercise.sets
-          .map((s) => safeNumber(getWeightLike(s)))
+        const values = exercise.sets
+          .map((s) => {
+            const units = (s as { units?: Array<{ name?: string; value?: unknown }> })
+              .units;
+            const raw = units?.[unit.unitIndex]?.value;
+            return safeNumber(raw);
+          })
           .filter((v): v is number => v !== null);
 
-        if (weights.length === 0) return null;
+        if (values.length === 0) return null;
 
-        const maxWeight = Math.max(...weights);
-        const setsCount = weights.length;
-        const volume = weights.reduce((acc, w) => acc + w, 0);
+        const maxValue = Math.max(...values);
+        const setsCount = values.length;
+        const volume = values.reduce((acc, v) => acc + v, 0);
 
         return {
           dateTs: ts,
-          maxWeight,
+          maxValue,
           setsCount,
           volume,
         };
       })
       .filter((p): p is NonNullable<typeof p> => p !== null)
       .sort((a, b) => a.dateTs - b.dateTs);
-  }, [historyInRange, selectedExercise]);
+  }, [availableUnits, historyInRange, selectedExercise, selectedUnit]);
 
   const summary = useMemo(() => {
     const trainingsCount = progressPoints.length;
     const totalSets = progressPoints.reduce((acc, p) => acc + p.setsCount, 0);
-    const bestWeight =
-      trainingsCount > 0 ? Math.max(...progressPoints.map((p) => p.maxWeight)) : 0;
-    const lastWeight =
-      trainingsCount > 0 ? progressPoints[trainingsCount - 1]!.maxWeight : 0;
-    const firstWeight = trainingsCount > 0 ? progressPoints[0]!.maxWeight : 0;
-    const delta = trainingsCount > 1 ? lastWeight - firstWeight : 0;
+    const bestValue =
+      trainingsCount > 0
+        ? Math.max(...progressPoints.map((p) => p.maxValue))
+        : 0;
+    const lastValue =
+      trainingsCount > 0 ? progressPoints[trainingsCount - 1]!.maxValue : 0;
+    const firstValue = trainingsCount > 0 ? progressPoints[0]!.maxValue : 0;
+    const delta = trainingsCount > 1 ? lastValue - firstValue : 0;
 
     return {
       trainingsCount,
       totalSets,
-      bestWeight,
-      lastWeight,
+      bestValue,
+      lastValue,
       delta,
     };
   }, [progressPoints]);
 
   const handleExerciseSelect = (exerciseName: string) => {
     setSelectedExercise(exerciseName);
+    setSelectedUnitKey(null);
     setIsModalOpen(false);
   };
+
+  const unitSuffix = selectedUnit?.name ? ` ${selectedUnit.name}` : "";
 
   return (
     <div className="w-full h-full p-4 md:p-6">
@@ -203,18 +249,40 @@ export const Statistics = () => {
               </div>
             </DialogContent>
           </Dialog>
+
+          {selectedExercise && availableUnits.length > 0 && (
+            <Select
+              value={selectedUnitKey ?? availableUnits[0]!.key}
+              onValueChange={(v) => setSelectedUnitKey(v)}
+            >
+              <SelectTrigger size="sm" className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Параметр" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableUnits.map((u) => (
+                  <SelectItem key={u.key} value={u.key}>
+                    {u.name ? u.name : `Параметр ${u.unitIndex + 1}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
       {isPending ? (
-        <div className="text-center py-10 text-muted-foreground">Загрузка...</div>
+        <div className="text-center py-10 text-muted-foreground">
+          Загрузка...
+        </div>
       ) : selectedExercise ? (
         <div className="space-y-4 md:space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Тренировки</CardDescription>
-                <CardTitle className="text-2xl">{summary.trainingsCount}</CardTitle>
+                <CardTitle className="text-2xl">
+                  {summary.trainingsCount}
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 В выбранном периоде
@@ -233,9 +301,9 @@ export const Statistics = () => {
 
             <Card>
               <CardHeader className="pb-2">
-                <CardDescription>Лучший вес</CardDescription>
+                <CardDescription>Лучшее значение</CardDescription>
                 <CardTitle className="text-2xl">
-                  {summary.bestWeight ? `${summary.bestWeight} кг` : "—"}
+                  {summary.bestValue ? `${summary.bestValue}${unitSuffix}` : "—"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
@@ -248,7 +316,7 @@ export const Statistics = () => {
                 <CardDescription>Изменение</CardDescription>
                 <CardTitle className="text-2xl">
                   {summary.trainingsCount > 1
-                    ? `${summary.delta > 0 ? "+" : ""}${summary.delta} кг`
+                    ? `${summary.delta > 0 ? "+" : ""}${summary.delta}${unitSuffix}`
                     : "—"}
                 </CardTitle>
               </CardHeader>
@@ -262,7 +330,7 @@ export const Statistics = () => {
             <CardHeader className="gap-1">
               <CardTitle>График прогресса</CardTitle>
               <CardDescription>
-                Точка = максимальный вес на тренировке
+                Точка = максимальное значение за тренировку
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -288,17 +356,17 @@ export const Statistics = () => {
                         tickMargin={10}
                         minTickGap={24}
                       />
-                      <YAxis
-                        tickFormatter={(v: number) => `${v}`}
-                        width={36}
-                      />
+                      <YAxis tickFormatter={(v: number) => `${v}`} width={36} />
                       <Tooltip
                         isAnimationActive={false}
                         cursor={{ stroke: "var(--border)" }}
                         labelFormatter={(label) =>
                           `Дата: ${formatDate(Number(label), "long")}`
                         }
-                        formatter={(value) => [`${value} кг`, "Макс. вес"]}
+                        formatter={(value) => [
+                          `${value}${unitSuffix}`,
+                          "Макс. значение",
+                        ]}
                         wrapperStyle={{ outline: "none" }}
                         contentStyle={{
                           background: "hsl(var(--popover))",
@@ -314,7 +382,7 @@ export const Statistics = () => {
                       />
                       <Line
                         type="monotone"
-                        dataKey="maxWeight"
+                        dataKey="maxValue"
                         stroke="hsl(var(--primary))"
                         dot={{ r: 3 }}
                         activeDot={{ r: 6 }}

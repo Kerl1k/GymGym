@@ -15,6 +15,7 @@ interface ModalProps {
   title?: string;
   description?: string;
   className?: string;
+  disableAutoFocus?: boolean;
 }
 
 export function Modal({
@@ -24,10 +25,14 @@ export function Modal({
   title,
   description,
   className,
+  disableAutoFocus = false,
 }: ModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={close}>
-      <DialogContent className={className}>
+      <DialogContent
+        className={className}
+        onOpenAutoFocus={disableAutoFocus ? (e) => e.preventDefault() : undefined}
+      >
         {title && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>

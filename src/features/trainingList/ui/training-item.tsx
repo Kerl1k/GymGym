@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
+import { useCancelActiveTraining } from "@/entities/training-active/useActiveTrainingCancel";
 import { useOpen } from "@/shared/lib/useOpen";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ROUTES } from "@/shared/model/routes";
@@ -41,6 +42,8 @@ export function TrainingItem({
   const { deleteTraining, getIsPending } = useDeleteTraining();
   const { start, isPending } = useStartActiveTraining();
   const { end: endCurrentTraining } = useEndActiveTraining();
+  const { cancel: cancelCurrentTraining, isPending: isCancelPending } =
+    useCancelActiveTraining();
 
   const { open, close, isOpen } = useOpen();
   const [showAllExercises, setShowAllExercises] = useState(false);
@@ -78,6 +81,17 @@ export function TrainingItem({
       navigator(ROUTES.START);
     } catch (error) {
       console.error("Failed to end current training:", error);
+    }
+  };
+
+  const handleCancelCurrentAndStartNew = async () => {
+    try {
+      await cancelCurrentTraining();
+      await start(training.id);
+      closeAlreadyStarted();
+      navigator(ROUTES.START);
+    } catch (error) {
+      console.error("Failed to cancel current training:", error);
     }
   };
 
@@ -246,7 +260,9 @@ export function TrainingItem({
         isOpen={isAlreadyStartedOpen}
         close={closeAlreadyStarted}
         onEndCurrentAndStartNew={handleEndCurrentAndStartNew}
+        onCancelCurrentAndStartNew={handleCancelCurrentAndStartNew}
         trainingName={training.name}
+        isPending={isPending || isCancelPending}
       />
     </Card>
   );

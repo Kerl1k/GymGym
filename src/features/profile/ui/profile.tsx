@@ -47,7 +47,8 @@ export const Profile = () => {
   const navigator = useNavigate();
 
   const { start } = useStartActiveTraining();
-  const { deleteExercises } = useActiveTrainingDelete();
+  const { deleteExercises, getIsPending: isDeletePendingById } =
+    useActiveTrainingDelete();
 
   const [userData] = useState(profile);
 
@@ -187,9 +188,10 @@ export const Profile = () => {
                     </button>
                     <button
                       className={styles.deleteButton}
+                      disabled={isDeletePendingById(training.id)}
                       onClick={() => deleteExercises(training.id)}
                     >
-                      Удалить
+                      {isDeletePendingById(training.id) ? "Удаление..." : "Удалить"}
                     </button>
                   </div>
                 </div>

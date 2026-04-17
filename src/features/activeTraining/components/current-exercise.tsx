@@ -13,6 +13,7 @@ type CurrentExerciseProps = {
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
   onCompleteSet: () => void;
+  showCompleteButton?: boolean;
 };
 
 function parseUnitInput(raw: string): number {
@@ -25,6 +26,7 @@ export function CurrentExercise({
   exercise,
   setTraining,
   onCompleteSet,
+  showCompleteButton = true,
 }: CurrentExerciseProps) {
   const [editingUnitIndex, setEditingUnitIndex] = useState<number | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -197,17 +199,19 @@ export function CurrentExercise({
           </div>
         </div>
 
-        <Button
-          onClick={onCompleteSet}
-          size="lg"
-          className="w-full gap-2 text-base sm:text-lg"
-        >
-          <CheckIcon className="h-5 w-5" />
-          {exercise.sets.filter((set) => set.done).length >=
-          exercise.sets.length
-            ? "Все подходы выполнены"
-            : `Завершить подход ${exercise.sets.filter((set) => set.done).length + 1}`}
-        </Button>
+        {showCompleteButton && (
+          <Button
+            onClick={onCompleteSet}
+            size="lg"
+            className="w-full gap-2 text-base sm:text-lg"
+          >
+            <CheckIcon className="h-5 w-5" />
+            {exercise.sets.filter((set) => set.done).length >=
+            exercise.sets.length
+              ? "Все подходы выполнены"
+              : `Завершить подход ${exercise.sets.filter((set) => set.done).length + 1}`}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

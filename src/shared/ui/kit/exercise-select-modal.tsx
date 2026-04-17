@@ -81,6 +81,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
       close={close}
       className="max-w-[95vw] w-full sm:max-w-2xl md:max-w-3xl"
       title=" Выбор упражнения"
+      disableAutoFocus
     >
       <div className="p-4 sm:p-6 border-b border-border bg-card">
         <div className="flex flex-col gap-3">

@@ -43,6 +43,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const { change } = useChangeTraining();
 
   const { close: closeModal, isOpen, open } = useOpen();
+  const [exerciseModalIndex, setExerciseModalIndex] = useState<number | null>(
+    null,
+  );
 
   const [form, setForm] = useState<ApiSchemas["TrainingCreateBody"]>({
     name: "",
@@ -83,6 +86,16 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     if (selectedExercise) {
       handleExerciseChange(index, "id", selectedExercise.id);
     }
+  };
+
+  const openExerciseModalForIndex = (index: number) => {
+    setExerciseModalIndex(index);
+    open();
+  };
+
+  const closeExerciseModal = () => {
+    setExerciseModalIndex(null);
+    closeModal();
   };
 
   const addExercise = () => {
@@ -311,7 +324,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             <div className="h-12 bg-gray-100 rounded animate-pulse" />
                           ) : (
                             <Button
-                              onClick={open}
+                              onClick={() => openExerciseModalForIndex(index)}
                               variant="outline"
                               className={styles.input}
                             >
@@ -320,15 +333,6 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                             </Button>
                           )}
                         </div>
-                        <ExerciseSelectModal
-                          exercises={exercisesList}
-                          onSelect={(exerciseId) =>
-                            handleExerciseSelect(index, exerciseId)
-                          }
-                          close={closeModal}
-                          isOpen={isOpen}
-                          isLoading={isLoading}
-                        />
                         {/* Примечания к упражнению */}
                         <div>
                           <Label className="mb-2 block text-sm sm:text-base text-foreground">
@@ -348,6 +352,17 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                   </Card>
                 ))}
               </div>
+
+              <ExerciseSelectModal
+                exercises={exercisesList}
+                onSelect={(exerciseId) => {
+                  if (exerciseModalIndex === null) return;
+                  handleExerciseSelect(exerciseModalIndex, exerciseId);
+                }}
+                close={closeExerciseModal}
+                isOpen={isOpen}
+                isLoading={isLoading}
+              />
               <div className="mt-6">
                 <div
                   className="add-exercise-dashed flex items-center justify-center gap-3 cursor-pointer"

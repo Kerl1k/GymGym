@@ -8,14 +8,18 @@ interface TrainingAlreadyStartedModalProps {
   isOpen: boolean;
   close: () => void;
   onEndCurrentAndStartNew: () => void;
+  onCancelCurrentAndStartNew: () => void;
   trainingName: string;
+  isPending?: boolean;
 }
 
 export function TrainingAlreadyStartedModal({
   isOpen,
   close,
   onEndCurrentAndStartNew,
+  onCancelCurrentAndStartNew,
   trainingName,
+  isPending = false,
 }: TrainingAlreadyStartedModalProps) {
   const navigate = useNavigate();
 
@@ -37,14 +41,25 @@ export function TrainingAlreadyStartedModal({
           variant="outline"
           className="w-full"
           onClick={handleGoToStartedTraining}
+          disabled={isPending}
         >
           Перейти к начатой тренировке
+        </Button>
+        <Button
+          size="lg"
+          variant="secondary"
+          className="w-full"
+          onClick={onCancelCurrentAndStartNew}
+          disabled={isPending}
+        >
+          Отменить текущую и начать новую
         </Button>
         <Button
           size="lg"
           variant="destructive"
           className="w-full"
           onClick={onEndCurrentAndStartNew}
+          disabled={isPending}
         >
           Завершить текущую и начать новую
         </Button>

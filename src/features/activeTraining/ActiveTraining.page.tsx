@@ -62,6 +62,7 @@ const ActiveTraining = () => {
   }
 
   // Loading state with nice loader
+  // IMPORTANT: don't block UI on background refetches (isFetching)
   if (!data || isLoading) {
     return (
       <div className={styles.container}>

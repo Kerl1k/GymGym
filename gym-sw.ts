@@ -2,28 +2,25 @@ declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener("message", (event: ExtendableMessageEvent) => {
   const data = event.data as
-    | { type?: string; title?: string; options?: NotificationOptions }
+    | {
+        type?: string;
+        title?: string;
+        options?: NotificationOptions;
+        delayMs?: number;
+      }
     | undefined;
-  // if (data?.type !== "SHOW_REST_NOTIFICATION") return;
-  // const fallback: NotificationOptions = {
-  //   body: "Можно приступать к следующему подходу.",
-  //   tag: "gym-rest-timer",
-  //   requireInteraction: true,
-  // };
-  // event.waitUntil(
-  //   self.registration.showNotification(
-  //     data.title ?? "Отдых окончен",
-  //     data.options ?? fallback,
-  //   ),
-  // );
   if (data?.type === "SCHEDULE_REST_NOTIFICATION") {
+    const delayMs =
+      typeof data.delayMs === "number" && Number.isFinite(data.delayMs)
+        ? Math.max(0, data.delayMs)
+        : 60 * 1000;
     setTimeout(
       () =>
         self.registration.showNotification(
           data.title ?? "Отдых окончен",
           data.options ?? {},
         ),
-      60 * 1000,
+      delayMs,
     );
   }
 });

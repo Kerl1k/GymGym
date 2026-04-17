@@ -22,6 +22,7 @@ type NotedWeightModalProps = {
   isOpen: boolean;
   currentExercise: ApiSchemas["ActiveTraining"]["exercises"][0];
   close: () => void;
+  onAfterClose?: () => void;
   initialData?:
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
@@ -60,7 +61,10 @@ function getPresetsForUnit(unitName: string | undefined, unitIndex: number) {
   )
     return repPresets;
 
-  if (["подход", "подходы", "set", "sets"].includes(name) || name.startsWith("подход"))
+  if (
+    ["подход", "подходы", "set", "sets"].includes(name) ||
+    name.startsWith("подход")
+  )
     return [1, 2, 3, 4, 5, 6];
 
   if (
@@ -107,6 +111,7 @@ function stripLeadingZerosFromNumericInput(value: string): string {
 
 export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   close,
+  onAfterClose,
   isOpen,
   currentExercise,
   initialData,
@@ -115,15 +120,52 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   const [sets, setSets] = useState<
     ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
   >([createEmptySetFromExerciseTemplate(currentExercise.sets[0])]);
+  const [draftInputs, setDraftInputs] = useState<string[][]>([]);
 
   const contentRef = useRef<HTMLDivElement>(null);
 
-  const handleSetChange = (index: number, unitIndex: number, value: string) => {
-    const newSets = [...sets];
-    const normalized = stripLeadingZerosFromNumericInput(value);
-    const numValue = normalized === "" ? 0 : Number(normalized);
-    newSets[index] = setUnitValueAt(newSets[index], unitIndex, numValue);
-    setSets(newSets);
+  function normalizeDecimalInput(raw: string): string {
+    // Allow empty (to clear), digits, and a single decimal separator (, or .)
+    if (raw === "") return "";
+
+    // Replace commas with dots for consistency, but keep user typing fluid.
+    const replaced = raw.replace(/,/g, ".");
+
+    // Remove invalid characters (everything except digits and dot).
+    const cleaned = replaced.replace(/[^\d.]/g, "");
+
+    // Keep only the first dot.
+    const firstDot = cleaned.indexOf(".");
+    if (firstDot === -1) return stripLeadingZerosFromNumericInput(cleaned);
+
+    const before = cleaned.slice(0, firstDot + 1);
+    const after = cleaned.slice(firstDot + 1).replace(/\./g, "");
+    return stripLeadingZerosFromNumericInput(before + after);
+  }
+
+  function parseDecimalInputToNumber(raw: string): number {
+    if (raw === "") return 0;
+    const normalized = raw.replace(/,/g, ".");
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  const handleSetChange = (index: number, unitIndex: number, raw: string) => {
+    const normalized = normalizeDecimalInput(raw);
+
+    setDraftInputs((prev) => {
+      const next = prev.map((row) => [...row]);
+      next[index] ??= [];
+      next[index][unitIndex] = normalized;
+      return next;
+    });
+
+    setSets((prev) => {
+      const nextSets = [...prev];
+      const numValue = parseDecimalInputToNumber(normalized);
+      nextSets[index] = setUnitValueAt(nextSets[index], unitIndex, numValue);
+      return nextSets;
+    });
   };
 
   const handleIncrement = (index: number, unitIndex: number) => {
@@ -132,6 +174,13 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     const cur = getUnitValue(s, unitIndex);
     newSets[index] = setUnitValueAt(newSets[index], unitIndex, cur + 1);
     setSets(newSets);
+
+    setDraftInputs((prev) => {
+      const next = prev.map((row) => [...row]);
+      next[index] ??= [];
+      next[index][unitIndex] = String(cur + 1);
+      return next;
+    });
   };
 
   const handleDecrement = (index: number, unitIndex: number) => {
@@ -141,15 +190,21 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     if (cur > 0) {
       newSets[index] = setUnitValueAt(newSets[index], unitIndex, cur - 1);
       setSets(newSets);
+
+      setDraftInputs((prev) => {
+        const next = prev.map((row) => [...row]);
+        next[index] ??= [];
+        next[index][unitIndex] = String(cur - 1);
+        return next;
+      });
     }
   };
 
   const handleSave = async () => {
-    // Keep legacy behavior (weight/reps) but persist ALL unit values.
-    // Ensure we always have at least two units for older templates.
     const first = ensureUnitsMinLength(sets[0], 2);
     completeSet({ ...first, done: true });
     close();
+    onAfterClose?.();
   };
 
   useEffect(() => {
@@ -162,6 +217,21 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     } else {
       setSets([createEmptySetFromExerciseTemplate(currentExercise.sets[0])]);
     }
+
+    // Build draft inputs from numeric values, but keep "0" as "0" (user can clear it to empty).
+    const baseSets =
+      initialData && Array.isArray(initialData) && initialData.length > 0
+        ? initialData.map((s) => ensureUnitsMinLength(s, 2))
+        : [createEmptySetFromExerciseTemplate(currentExercise.sets[0])];
+
+    setDraftInputs(
+      baseSets.map((s) => {
+        const ensured = ensureUnitsMinLength(s, 2);
+        return ensured.units.map((_, unitIndex) =>
+          String(getUnitValue(ensured, unitIndex)),
+        );
+      }),
+    );
 
     if (contentRef.current && isOpen) {
       contentRef.current.scrollTop = 0;
@@ -222,6 +292,8 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
                   const presets = getPresetsForUnit(unit?.name, unitIndex);
                   const currentValue = getUnitValue(set, unitIndex);
+                  const draftValue =
+                    draftInputs[index]?.[unitIndex] ?? String(currentValue);
                   const unitSuffix = unit?.name ? ` ${unit.name}` : "";
 
                   return (
@@ -247,10 +319,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
                         <Input
                           id={`unit-${index}-${unitIndex}`}
-                          type="number"
-                          min="0"
-                          step={unitIndex === WEIGHT_UNIT_INDEX ? "0.5" : "1"}
-                          value={currentValue}
+                          type="text"
+                          inputMode="decimal"
+                          value={draftValue}
                           onChange={(e) =>
                             handleSetChange(index, unitIndex, e.target.value)
                           }
