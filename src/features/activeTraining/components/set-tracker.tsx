@@ -100,7 +100,7 @@ export function SetTracker({
                 Подход {index + 1}
               </div>
               <div className="mb-2">
-                <div className="text-xl sm:text-2xl font-bold text-foreground">
+                <div className="min-w-0 whitespace-normal break-words text-xl sm:text-2xl font-bold text-foreground leading-tight">
                   {set.units?.[0]?.value ?? 0} {set.units?.[0]?.name ?? ""}
                 </div>
                 {set.units?.[1] && (

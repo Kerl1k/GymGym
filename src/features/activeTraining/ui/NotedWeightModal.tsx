@@ -208,22 +208,27 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   };
 
   useEffect(() => {
-    if (initialData && Array.isArray(initialData)) {
-      setSets(
-        initialData.length > 0
-          ? initialData.map((s) => ensureUnitsMinLength(s, 2))
-          : [createEmptySetFromExerciseTemplate(currentExercise.sets[0])],
-      );
-    } else {
-      setSets([createEmptySetFromExerciseTemplate(currentExercise.sets[0])]);
-    }
-
-    // Build draft inputs from numeric values, but keep "0" as "0" (user can clear it to empty).
-    const baseSets =
+    const baseSetsRaw =
       initialData && Array.isArray(initialData) && initialData.length > 0
         ? initialData.map((s) => ensureUnitsMinLength(s, 2))
         : [createEmptySetFromExerciseTemplate(currentExercise.sets[0])];
 
+    // Prefill WEIGHT from previous set (for non-first sets).
+    const baseSets = baseSetsRaw.map((s, index, arr) => {
+      const ensured = ensureUnitsMinLength(s, 2);
+      if (index === 0) return ensured;
+
+      const curWeight = getUnitValue(ensured, WEIGHT_UNIT_INDEX);
+      if (curWeight !== 0) return ensured;
+
+      const prevEnsured = ensureUnitsMinLength(arr[index - 1], 2);
+      const prevWeight = getUnitValue(prevEnsured, WEIGHT_UNIT_INDEX);
+      return setUnitValueAt(ensured, WEIGHT_UNIT_INDEX, prevWeight);
+    });
+
+    setSets(baseSets);
+
+    // Build draft inputs from numeric values, but keep "0" as "0" (user can clear it to empty).
     setDraftInputs(
       baseSets.map((s) => {
         const ensured = ensureUnitsMinLength(s, 2);

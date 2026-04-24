@@ -68,7 +68,7 @@ const ExerciseRow: FC<ExerciseRowProps> = ({
         if (e.key === "Enter" || e.key === " ") onSelect();
       }}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex min-w-0 items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="truncate font-medium text-foreground">
             {index + 1}. {exercise.name}
