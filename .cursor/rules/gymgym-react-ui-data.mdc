@@ -1,0 +1,44 @@
+---
+description: React 19, UI-kit, Tailwind, OpenAPI, формы и запросы
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+# React, UI, стили и данные (GymGym)
+
+## Стек UI
+
+- **React 19**, функциональные компоненты; тип пропсов — вынесенный `type XxxProps` или inline для простых случаев; для публичных компонентов часто **`FC<Props>`** (как в модалках).
+- **Tailwind CSS v4** через `@import "tailwindcss"` в `src/app/index.css`; дизайн-токены в `@theme inline` и `:root` / `.dark` (semantic цвета: `primary`, `muted`, `destructive`, `border` и т.д.).
+- Классы: утилита **`cn()`** из `@/shared/lib/css` (`clsx` + `tailwind-merge`); для вариантов кнопок и похожего — **CVA** (`class-variance-authority`) как в `shared/ui/kit/button.tsx`.
+- Примитивы: **Radix UI**; иконки — **lucide-react**.
+
+## Компоненты `shared/ui/kit`
+
+- Импортировать готовые **Button, Input, Card, Dialog, Form, Modal** и др. из `@/shared/ui/kit/...`, не плодить дубли без причины.
+- `data-slot` на интерактивных примитивах — по образцу kit (например кнопка).
+
+## Тексты интерфейса
+
+- Пользовательские строки на **русском** (как в формах, пресетах единиц, сообщениях об ошибках).
+
+## API и типы
+
+- Клиент: **openapi-fetch** + **openapi-react-query**; типизированные пути — **`ApiPaths`**, схемы тел/моделей — **`ApiSchemas`** из `@/shared/schema` (генерация из OpenAPI: скрипт `npm run api` → `generated.ts`).
+- Авторизованные запросы — **`rqClient`** и **`fetchClient`**; публичные (логин и т.п.) — **`publicRqClient`** / **`publicFetchClient`** из `@/entities/instance`.
+
+## Серверное состояние
+
+- **TanStack Query v5** через сгенерированные хуки `*.useQuery` / `*.useMutation` на `rqClient`; провайдер — `@/app/providers` с `queryClient` из `@/entities/query-client`.
+- Хуки сущностей именуются **`use-<домен>-<действие>.ts`** (например `use-training-fetch-id.ts`); возвращаемые поля вроде `data`, `isLoading`/`isPending` — единообразно внутри хука.
+
+## Формы
+
+- **react-hook-form** + **zod** + **`@hookform/resolvers/zod`**; разметка полей через компоненты **`Form`, `FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`** из kit.
+
+## Визуальные паттерны страниц
+
+- Контейнеры страниц: типично **`container mx-auto p-4 sm:p-6`**, анимации вроде **`animate-fade-in`**, интерактив **`hover-lift`** где уже принято в проекте.
+
+## Доменные константы в UI
+
+- Справочники вроде групп мышц, цветов бейджей — **`@/shared/lib/utils`** (`MUSCLE_GROUPS`, `getMuscleGroupColor` и т.д.), не размазывать по компонентам без нужды.

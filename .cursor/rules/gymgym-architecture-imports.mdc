@@ -1,0 +1,39 @@
+---
+description: Слои src/, публичные API фич, импорты и ESLint boundaries
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Архитектура и импорты (GymGym)
+
+## Слои `src/`
+
+- **`app/`** — корень приложения: `main.tsx`, `app.tsx`, `router.tsx`, `providers.tsx`, глобальные стили `index.css`, защищённые маршруты.
+- **`features/<имяФичи>/`** — страницы (`*.page.tsx`), UI фичи (`ui/`), локальные компоненты (`components/`), модель (`model/`). Фича не импортирует `app/`.
+- **`entities/<сущность>/`** — хуки данных и действий с API (`use-*.ts`, `use*.ts`), клиент запросов не дублировать: использовать `rqClient` / `publicRqClient` из `@/entities/instance`. Сущности не импортируют `features/`.
+- **`shared/`** — переиспользуемое: `ui/kit`, `lib`, `model` (конфиг, маршруты, сессия), `schema`. Не импортировать из `app/` и `features/`.
+
+Порядок зависимостей сверху вниз: **app → features → entities → shared**.
+
+## Публичный API фич (ESLint `boundaries/entry-point`)
+
+Импортировать фичу снаружи только через:
+
+- `index.ts` / `index.tsx` в корне фичи (если есть), или
+- файл `*.page.tsx` (ленивые маршруты в `router.tsx`).
+
+Прямые импорты из внутренних файлов фичи (`ui/`, `components/` и т.д.) из других слоёв запрещены правилом линтера.
+
+## Импорты
+
+- Алиас **`@/`** → `src/` (см. `tsconfig`). Предпочитать `@/entities/...`, `@/shared/...` вместо длинных относительных путей к сущностям.
+- Порядок импортов: как в `eslint.config.js` — группы (builtin → external → internal → …), **`react` первым среди external**, затем `@/**` как internal, **пустая строка между группами**, сортировка по алфавиту.
+
+## Маршруты
+
+- Константы путей — объект **`ROUTES`** в `@/shared/model/routes`.
+- В `router.tsx` — `createBrowserRouter`, ленивые страницы через `lazy: () => import("@/features/.../*.page")`.
+
+## Страницы для `lazy`
+
+- Экспорт по соглашению: **`export const Component = ...`** (именно `Component`), чтобы работал ленивый импорт роутера.

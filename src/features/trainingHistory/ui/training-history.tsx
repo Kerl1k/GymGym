@@ -2,8 +2,8 @@ import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
-import type { ApiSchemas } from "@/shared/schema";
 import { ROUTES } from "@/shared/model/routes";
+import type { ApiSchemas } from "@/shared/schema";
 
 import styles from "./training-history.module.scss";
 

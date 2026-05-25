@@ -10,8 +10,17 @@ import { router } from "./router";
 
 function registerGymServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
-  // В dev service worker уже может регистрироваться через vite-плагин,
-  // но повторная регистрация того же скрипта безопасна.
+  // В dev Vite подгружает модули через fetch; SW ломает dynamic import() и HMR.
+  if (import.meta.env.DEV) {
+    window.addEventListener("load", () => {
+      void navigator.serviceWorker.getRegistrations().then((regs) => {
+        for (const r of regs) {
+          if (r.active?.scriptURL?.includes("gym-sw")) void r.unregister();
+        }
+      });
+    });
+    return;
+  }
   window.addEventListener("load", () => {
     void navigator.serviceWorker.register("/gym-sw.js");
   });

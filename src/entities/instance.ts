@@ -1,6 +1,7 @@
 import createFetchClient from "openapi-fetch";
 import createClient from "openapi-react-query";
 
+import { offlineFetchMiddleware } from "@/entities/offline/offlineMiddleware";
 import { CONFIG } from "@/shared/model/config";
 
 import { useSession } from "../shared/model/session";
@@ -27,3 +28,5 @@ fetchClient.use({
     }
   },
 });
+
+fetchClient.use(offlineFetchMiddleware);

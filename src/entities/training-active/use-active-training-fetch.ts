@@ -1,7 +1,10 @@
+import { useIsRestoring } from "@tanstack/react-query";
+
 import { rqClient } from "@/entities/instance";
 
 export function useActiveTrainingFetch() {
-  const { data, isPending, isFetching, error } = rqClient.useQuery(
+  const isRestoring = useIsRestoring();
+  const { data, isPending, isFetching, error, isError, fetchStatus } = rqClient.useQuery(
     "get",
     "/api/active-training",
     {
@@ -9,22 +12,16 @@ export function useActiveTrainingFetch() {
     },
   );
 
-  if (data === undefined) {
-    return {
-      data: null,
-      isLoading: isPending,
-      isFetching,
-      error: error,
-    };
-  }
-
-  if (!data)
-    return { data: null, isLoading: isPending, isFetching, error: error };
+  const hasData = data != null;
 
   return {
-    data: data,
+    data: data ?? null,
+    hasData,
     isLoading: isPending,
     isFetching,
-    error: error,
+    error,
+    isError,
+    fetchStatus,
+    isRestoring,
   };
 }

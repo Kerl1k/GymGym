@@ -1,5 +1,6 @@
 /**
- * Утилиты для управления кэшем Service Worker
+ * Сеть, SW-уведомления и устаревший контракт CACHE_INVALIDATE.
+ * Основной клиентский кэш API — TanStack Query + IndexedDB (см. app/providers).
  */
 import React from "react";
 

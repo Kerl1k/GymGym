@@ -22,7 +22,15 @@ import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
   const queryClient = useQueryClient();
-  const { data, error, isLoading } = useActiveTrainingFetch();
+  const {
+    data,
+    hasData,
+    error,
+    isLoading,
+    isError,
+    fetchStatus,
+    isRestoring,
+  } = useActiveTrainingFetch();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTrainingRepeated = async () => {
@@ -61,24 +69,69 @@ const ActiveTraining = () => {
     );
   }
 
-  // Loading state with nice loader
-  // IMPORTANT: don't block UI on background refetches (isFetching)
-  if (!data || isLoading) {
+  if (isRestoring) {
     return (
       <div className={styles.container}>
         <Card className="p-8">
           <CardContent className={styles.loaderContainer}>
             <Loader size="large" />
             <CardTitle className={styles.loadingTitle}>
-              Идет загрузка тренировки
+              Восстановление локальных данных…
             </CardTitle>
-            <CardDescription className={styles.loadingDescription}>
-              Пожалуйста, подождите...
-            </CardDescription>
           </CardContent>
         </Card>
       </div>
     );
+  }
+
+  if (!hasData) {
+    if (isLoading || fetchStatus === "fetching") {
+      return (
+        <div className={styles.container}>
+          <Card className="p-8">
+            <CardContent className={styles.loaderContainer}>
+              <Loader size="large" />
+              <CardTitle className={styles.loadingTitle}>
+                Идет загрузка тренировки
+              </CardTitle>
+              <CardDescription className={styles.loadingDescription}>
+                Пожалуйста, подождите...
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+
+    if (isError || error) {
+      return (
+        <div className={styles.container}>
+          <Card className={styles.card}>
+            <CardHeader>
+              <CardTitle className={styles.loadingTitle}>
+                Не удалось загрузить активную тренировку
+              </CardTitle>
+            </CardHeader>
+            <CardContent className={styles.cardContent}>
+              <CardDescription className={styles.cardDescription}>
+                Нет сохранённых данных в этом браузере. Подключитесь к сети или
+                откройте эту страницу онлайн хотя бы один раз, чтобы данные
+                сохранились локально.
+              </CardDescription>
+              <div className={styles.buttonContainer}>
+                <Link to={ROUTES.TRAINING} className={styles.button}>
+                  <Button className={styles.button}>К тренировкам</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      );
+    }
+  }
+
+  if (!data) {
+    return null;
   }
 
   return <ActiveTrainingContent data={data} />;
