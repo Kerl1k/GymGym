@@ -36,6 +36,7 @@ import {
 } from "@/shared/ui/kit/select";
 
 type RangeKey = "7d" | "30d" | "90d" | "365d" | "all";
+type MetricKey = "maxValue" | "avgValue" | "volume";
 
 const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; days?: number }> = [
   { key: "7d", label: "7 дней", days: 7 },
@@ -43,6 +44,24 @@ const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; days?: number }> = [
   { key: "90d", label: "90 дней", days: 90 },
   { key: "365d", label: "Год", days: 365 },
   { key: "all", label: "Всё время" },
+];
+
+const METRIC_OPTIONS: Array<{ key: MetricKey; label: string; hint: string }> = [
+  {
+    key: "maxValue",
+    label: "Пик за тренировку",
+    hint: "Максимальное значение параметра",
+  },
+  {
+    key: "avgValue",
+    label: "Среднее за тренировку",
+    hint: "Среднее значение параметра по подходам",
+  },
+  {
+    key: "volume",
+    label: "Сумма за тренировку",
+    hint: "Сумма значений параметра по подходам",
+  },
 ];
 
 function safeNumber(value: unknown): number | null {
@@ -73,6 +92,7 @@ function formatDate(ts: number, variant: "short" | "long" = "short") {
 export const Statistics = () => {
   const [selectedExercise, setSelectedExercise] = useState<string | null>(null);
   const [selectedUnitKey, setSelectedUnitKey] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<MetricKey>("maxValue");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [range, setRange] = useState<RangeKey>("30d");
 
@@ -133,8 +153,7 @@ export const Statistics = () => {
     if (!selectedExercise) return [];
     if (availableUnits.length === 0) return [];
 
-    const unit =
-      selectedUnit ?? availableUnits[0]!;
+    const unit = selectedUnit ?? availableUnits[0]!;
 
     return [...historyInRange]
       .map((training) => {
@@ -148,7 +167,9 @@ export const Statistics = () => {
           .map((s) => {
             const units = (s as { units?: Array<{ name?: string; value?: unknown }> })
               .units;
-            const raw = units?.[unit.unitIndex]?.value;
+            const raw = unit.name
+              ? units?.find((u) => u?.name === unit.name)?.value
+              : units?.[unit.unitIndex]?.value;
             return safeNumber(raw);
           })
           .filter((v): v is number => v !== null);
@@ -156,12 +177,14 @@ export const Statistics = () => {
         if (values.length === 0) return null;
 
         const maxValue = Math.max(...values);
+        const avgValue = values.reduce((acc, v) => acc + v, 0) / values.length;
         const setsCount = values.length;
         const volume = values.reduce((acc, v) => acc + v, 0);
 
         return {
           dateTs: ts,
           maxValue,
+          avgValue,
           setsCount,
           volume,
         };
@@ -173,13 +196,14 @@ export const Statistics = () => {
   const summary = useMemo(() => {
     const trainingsCount = progressPoints.length;
     const totalSets = progressPoints.reduce((acc, p) => acc + p.setsCount, 0);
+    const metricValues = progressPoints.map((p) => p[selectedMetric]);
     const bestValue =
       trainingsCount > 0
-        ? Math.max(...progressPoints.map((p) => p.maxValue))
+        ? Math.max(...metricValues)
         : 0;
     const lastValue =
-      trainingsCount > 0 ? progressPoints[trainingsCount - 1]!.maxValue : 0;
-    const firstValue = trainingsCount > 0 ? progressPoints[0]!.maxValue : 0;
+      trainingsCount > 0 ? metricValues[trainingsCount - 1]! : 0;
+    const firstValue = trainingsCount > 0 ? metricValues[0]! : 0;
     const delta = trainingsCount > 1 ? lastValue - firstValue : 0;
 
     return {
@@ -189,7 +213,16 @@ export const Statistics = () => {
       lastValue,
       delta,
     };
-  }, [progressPoints]);
+  }, [progressPoints, selectedMetric]);
+
+  const chartData = useMemo(
+    () =>
+      progressPoints.map((point) => ({
+        ...point,
+        metricValue: point[selectedMetric],
+      })),
+    [progressPoints, selectedMetric],
+  );
 
   const handleExerciseSelect = (exerciseName: string) => {
     setSelectedExercise(exerciseName);
@@ -198,6 +231,8 @@ export const Statistics = () => {
   };
 
   const unitSuffix = selectedUnit?.name ? ` ${selectedUnit.name}` : "";
+  const selectedMetricMeta =
+    METRIC_OPTIONS.find((m) => m.key === selectedMetric) ?? METRIC_OPTIONS[0]!;
 
   return (
     <div className="w-full h-full p-4 md:p-6">
@@ -267,6 +302,24 @@ export const Statistics = () => {
               </SelectContent>
             </Select>
           )}
+
+          {selectedExercise && availableUnits.length > 0 && (
+            <Select
+              value={selectedMetric}
+              onValueChange={(v) => setSelectedMetric(v as MetricKey)}
+            >
+              <SelectTrigger size="sm" className="w-full sm:w-[240px]">
+                <SelectValue placeholder="Метрика графика" />
+              </SelectTrigger>
+              <SelectContent>
+                {METRIC_OPTIONS.map((option) => (
+                  <SelectItem key={option.key} value={option.key}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
@@ -276,51 +329,51 @@ export const Statistics = () => {
         </div>
       ) : selectedExercise ? (
         <div className="space-y-4 md:space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Тренировки</CardDescription>
-                <CardTitle className="text-2xl">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2 md:gap-3">
+            <Card className="w-full gap-2 py-3">
+              <CardHeader className="px-4 pb-1">
+                <CardDescription className="text-xs">Тренировки</CardDescription>
+                <CardTitle className="text-xl">
                   {summary.trainingsCount}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="px-4 text-xs text-muted-foreground">
                 В выбранном периоде
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Подходы</CardDescription>
-                <CardTitle className="text-2xl">{summary.totalSets}</CardTitle>
+            <Card className="w-full gap-2 py-3">
+              <CardHeader className="px-4 pb-1">
+                <CardDescription className="text-xs">Подходы</CardDescription>
+                <CardTitle className="text-xl">{summary.totalSets}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="px-4 text-xs text-muted-foreground">
                 Сумма по тренировкам
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Лучшее значение</CardDescription>
-                <CardTitle className="text-2xl">
+            <Card className="w-full gap-2 py-3">
+              <CardHeader className="px-4 pb-1">
+                <CardDescription className="text-xs">Лучшее значение</CardDescription>
+                <CardTitle className="text-xl">
                   {summary.bestValue ? `${summary.bestValue}${unitSuffix}` : "—"}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
-                Максимум за тренировку
+              <CardContent className="px-4 text-xs text-muted-foreground">
+                {selectedMetricMeta.label}
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardDescription>Изменение</CardDescription>
-                <CardTitle className="text-2xl">
+            <Card className="w-full gap-2 py-3">
+              <CardHeader className="px-4 pb-1">
+                <CardDescription className="text-xs">Изменение</CardDescription>
+                <CardTitle className="text-xl">
                   {summary.trainingsCount > 1
                     ? `${summary.delta > 0 ? "+" : ""}${summary.delta}${unitSuffix}`
                     : "—"}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">
+              <CardContent className="px-4 text-xs text-muted-foreground">
                 От первой к последней точке
               </CardContent>
             </Card>
@@ -330,16 +383,16 @@ export const Statistics = () => {
             <CardHeader className="gap-1">
               <CardTitle>График прогресса</CardTitle>
               <CardDescription>
-                Точка = максимальное значение за тренировку
+                {selectedMetricMeta.hint}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-64 md:h-80 min-w-0">
-                {progressPoints.length > 0 ? (
+                {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
-                      data={progressPoints}
-                      margin={{ top: 8, right: 12, bottom: 0, left: 0 }}
+                      data={chartData}
+                      margin={{ top: 16, right: 20, bottom: 10, left: 8 }}
                     >
                       <CartesianGrid
                         strokeDasharray="3 3"
@@ -350,13 +403,20 @@ export const Statistics = () => {
                         type="number"
                         domain={["dataMin", "dataMax"]}
                         scale="time"
+                        padding={{ left: 16, right: 16 }}
                         tickFormatter={(value: number) =>
                           formatDate(value, "short")
                         }
                         tickMargin={10}
                         minTickGap={24}
                       />
-                      <YAxis tickFormatter={(v: number) => `${v}`} width={36} />
+                      <YAxis
+                        tickFormatter={(v: number) =>
+                          Number.isInteger(v) ? `${v}` : v.toFixed(1)
+                        }
+                        padding={{ top: 12, bottom: 12 }}
+                        width={42}
+                      />
                       <Tooltip
                         isAnimationActive={false}
                         cursor={{ stroke: "var(--border)" }}
@@ -365,7 +425,7 @@ export const Statistics = () => {
                         }
                         formatter={(value) => [
                           `${value}${unitSuffix}`,
-                          "Макс. значение",
+                          selectedMetricMeta.label,
                         ]}
                         wrapperStyle={{ outline: "none" }}
                         contentStyle={{
@@ -382,10 +442,20 @@ export const Statistics = () => {
                       />
                       <Line
                         type="monotone"
-                        dataKey="maxValue"
-                        stroke="hsl(var(--primary))"
-                        dot={{ r: 3 }}
-                        activeDot={{ r: 6 }}
+                        dataKey="metricValue"
+                        stroke="var(--chart-2)"
+                        dot={{
+                          r: 4.5,
+                          fill: "var(--chart-2)",
+                          stroke: "var(--background)",
+                          strokeWidth: 2,
+                        }}
+                        activeDot={{
+                          r: 7,
+                          fill: "var(--background)",
+                          stroke: "var(--chart-2)",
+                          strokeWidth: 3,
+                        }}
                         strokeWidth={2.5}
                       />
                     </LineChart>

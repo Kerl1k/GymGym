@@ -1,14 +1,87 @@
+import { useEffect, useMemo, useState } from "react";
 import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
+import { useDebounce } from "@/shared/lib/useDebounce";
 import { ROUTES } from "@/shared/model/routes";
 import type { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/kit/dialog";
+import { Input } from "@/shared/ui/kit/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/kit/select";
 
 import styles from "./training-history.module.scss";
 
+type PeriodKey = "all" | "30d" | "90d" | "365d";
+
+const PERIOD_OPTIONS: Array<{ key: PeriodKey; label: string; days?: number }> = [
+  { key: "all", label: "За всё время" },
+  { key: "30d", label: "30 дней", days: 30 },
+  { key: "90d", label: "90 дней", days: 90 },
+  { key: "365d", label: "1 год", days: 365 },
+];
+
 export const TrainingHistory = () => {
-  const { history: trainingHistory, isPending } = useFetchActiveHistrory({});
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState("10");
+  const [exerciseFilter, setExerciseFilter] = useState("");
+  const [exerciseSearch, setExerciseSearch] = useState("");
+  const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [period, setPeriod] = useState<PeriodKey>("all");
+
+  const { exercises, isPending: isExercisesPending } = useExercisesFetchList({
+    limit: 200,
+  });
+  const debouncedExerciseFilter = useDebounce(exerciseFilter, 500);
+  const normalizedExerciseFilter = debouncedExerciseFilter.trim();
+  const normalizedExerciseSearch = exerciseSearch.trim().toLowerCase();
+  const visibleExercises = useMemo(() => {
+    if (!normalizedExerciseSearch) return exercises;
+    return exercises.filter((exercise) =>
+      exercise.name.toLowerCase().includes(normalizedExerciseSearch),
+    );
+  }, [exercises, normalizedExerciseSearch]);
+  const dateFrom = useMemo(() => {
+    const periodOption = PERIOD_OPTIONS.find((option) => option.key === period);
+    if (!periodOption?.days) return undefined;
+    return new Date(
+      Date.now() - periodOption.days * 24 * 60 * 60 * 1000,
+    ).toISOString();
+  }, [period]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [limit, normalizedExerciseFilter, sortDirection, period]);
+
+  const numericLimit = Number(limit);
+  const { history: trainingHistory, meta, isPending } =
+    useFetchTrainingHistoryWithFilters({
+      limit: Number.isFinite(numericLimit) ? numericLimit : 10,
+      page,
+      sort: "dateStart",
+      sortDirection,
+      exerciseName: normalizedExerciseFilter || undefined,
+      dateFrom,
+    });
+
+  const totalPages = meta?.pages ?? 1;
+  const hasPrevPage = page > 1;
+  const hasNextPage = page < totalPages;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -27,10 +100,6 @@ export const TrainingHistory = () => {
     return `${totalSets} подходов`;
   };
 
-  if (isPending) {
-    return <div className={styles.loading}>Загрузка истории тренировок...</div>;
-  }
-
   return (
     <div className={styles.trainingHistoryPage}>
       <div className={styles.header}>
@@ -42,13 +111,124 @@ export const TrainingHistory = () => {
         </Link>
       </div>
 
-      {trainingHistory.length === 0 ? (
+      <div className={styles.filters}>
+        <div className={styles.exerciseFilterControl}>
+          <Dialog
+            open={isExerciseModalOpen}
+            onOpenChange={setIsExerciseModalOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline" className={styles.exerciseFilterButton}>
+                {exerciseFilter || "Выбрать упражнение"}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Выберите упражнение</DialogTitle>
+              </DialogHeader>
+              <Input
+                value={exerciseSearch}
+                onChange={(event) => setExerciseSearch(event.target.value)}
+                placeholder="Поиск упражнения"
+              />
+              <div className={styles.exerciseModalList}>
+                <button
+                  type="button"
+                  className={styles.exerciseModalItem}
+                  onClick={() => {
+                    setExerciseFilter("");
+                    setIsExerciseModalOpen(false);
+                  }}
+                >
+                  Все упражнения
+                </button>
+                {isExercisesPending ? (
+                  <div className={styles.exerciseModalEmpty}>Загрузка...</div>
+                ) : visibleExercises.length === 0 ? (
+                  <div className={styles.exerciseModalEmpty}>
+                    Ничего не найдено
+                  </div>
+                ) : (
+                  visibleExercises.map((exercise) => (
+                    <button
+                      key={exercise.id}
+                      type="button"
+                      className={styles.exerciseModalItem}
+                      onClick={() => {
+                        setExerciseFilter(exercise.name);
+                        setIsExerciseModalOpen(false);
+                      }}
+                    >
+                      {exercise.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+          {exerciseFilter && (
+            <Button
+              variant="ghost"
+              onClick={() => setExerciseFilter("")}
+              className={styles.clearExerciseFilterButton}
+            >
+              Сбросить
+            </Button>
+          )}
+        </div>
+
+        <Select value={sortDirection} onValueChange={(value) => setSortDirection(value as "asc" | "desc")}>
+          <SelectTrigger className={styles.filterSelect}>
+            <SelectValue placeholder="Сортировка" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Сначала новые</SelectItem>
+            <SelectItem value="asc">Сначала старые</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={period} onValueChange={(value) => setPeriod(value as PeriodKey)}>
+          <SelectTrigger className={styles.filterSelect}>
+            <SelectValue placeholder="Период" />
+          </SelectTrigger>
+          <SelectContent>
+            {PERIOD_OPTIONS.map((option) => (
+              <SelectItem key={option.key} value={option.key}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={limit} onValueChange={setLimit}>
+          <SelectTrigger className={styles.filterSelect}>
+            <SelectValue placeholder="На странице" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="10">10 на странице</SelectItem>
+            <SelectItem value="20">20 на странице</SelectItem>
+            <SelectItem value="50">50 на странице</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isPending && (
+        <div className={styles.loading}>Загрузка истории тренировок...</div>
+      )}
+
+      {!isPending && trainingHistory.length === 0 ? (
         <div className={styles.emptyState}>
           <Activity size={48} />
-          <p>У вас пока нет завершённых тренировок</p>
-          <Link to={ROUTES.TRAINING} className={styles.startTrainingButton}>
-            Начать первую тренировку
-          </Link>
+          {normalizedExerciseFilter || period !== "all" ? (
+            <p>По выбранным фильтрам тренировок не найдено</p>
+          ) : (
+            <>
+              <p>У вас пока нет завершённых тренировок</p>
+              <Link to={ROUTES.TRAINING} className={styles.startTrainingButton}>
+                Начать первую тренировку
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <div className={styles.historyList}>
@@ -108,6 +288,26 @@ export const TrainingHistory = () => {
               </div>
             </div>
           ))}
+
+          <div className={styles.pagination}>
+            <Button
+              variant="outline"
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={!hasPrevPage || isPending}
+            >
+              Назад
+            </Button>
+            <span className={styles.pageInfo}>
+              Страница {Math.min(page, totalPages)} из {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={!hasNextPage || isPending}
+            >
+              Вперёд
+            </Button>
+          </div>
         </div>
       )}
     </div>

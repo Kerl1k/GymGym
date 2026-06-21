@@ -1,65 +1,75 @@
-import { useState } from "react";
+import { useMemo } from "react";
 
-import {
-  User,
-  Clock,
-  Star,
-  Calendar,
-  Activity,
-  Award,
-  BarChart3,
-} from "lucide-react";
+import { User, Calendar, BarChart3 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
-import { useTrainingList } from "@/entities/training/use-training-fetch";
-import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
 import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
-import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
-import { getWeightLike } from "@/shared/lib/active-training-units";
 import { ROUTES } from "@/shared/model/routes";
 
 import styles from "./profile.module.scss";
+
+const MONTH_LABELS = [
+  "Янв",
+  "Фев",
+  "Мар",
+  "Апр",
+  "Май",
+  "Июн",
+  "Июл",
+  "Авг",
+  "Сен",
+  "Окт",
+  "Ноя",
+  "Дек",
+];
 
 export const Profile = () => {
   const { profile } = useFetchProfile();
   const { history: trainingHistory } = useFetchActiveHistrory({
     sort: "dateStart",
   });
-
-  const { history: benchPressHistory } = useFetchTrainingHistoryWithFilters({
+  const { history: allTrainingHistory } = useFetchActiveHistrory({
     sort: "dateStart",
-    exerciseName: "Жим",
+    limit: 500,
   });
 
-  const benchPressWeights = benchPressHistory.flatMap((training) => {
-    const benchExercises = training.exercises.filter(
-      (exercise) => exercise.name === "Жим",
-    );
-    return benchExercises.flatMap(
-      (exercise) =>
-        exercise.sets?.map((set) => getWeightLike(set)) || [],
-    );
-  });
-
-  const { trainings } = useTrainingList({ filter: { favorite: true } });
   const navigator = useNavigate();
 
-  const { start } = useStartActiveTraining();
   const { deleteExercises, getIsPending: isDeletePendingById } =
     useActiveTrainingDelete();
 
-  const [userData] = useState(profile);
+  const monthlyWorkouts = useMemo(() => {
+    const year = new Date().getFullYear();
+    const counts = Array.from({ length: 12 }, () => 0);
 
-  const stats = {
-    totalTrainings: benchPressHistory.length,
-    totalDuration: 0,
-    totalCalories: 0,
-    favoriteExerciseCount: 0,
-    streakDays: 7,
-    completedThisWeek: 3,
-  };
+    for (const training of allTrainingHistory) {
+      const date = new Date(training.dateStart);
+      if (Number.isNaN(date.getTime()) || date.getFullYear() !== year) continue;
+      counts[date.getMonth()]! += 1;
+    }
+
+    const maxCount = Math.max(...counts, 1);
+
+    return counts.map((count, index) => ({
+      label: MONTH_LABELS[index]!,
+      count,
+      heightPercent: count > 0 ? (count / maxCount) * 100 : 0,
+    }));
+  }, [allTrainingHistory]);
+
+  const workoutsThisMonth = useMemo(() => {
+    const now = new Date();
+    return allTrainingHistory.filter((training) => {
+      const date = new Date(training.dateStart);
+      return (
+        !Number.isNaN(date.getTime()) &&
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth()
+      );
+    }).length;
+  }, [allTrainingHistory]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -71,11 +81,6 @@ export const Profile = () => {
     });
   };
 
-  const startTraining = (id: string) => {
-    start(id);
-    navigator(ROUTES.START);
-  };
-
   return (
     <div className={styles.profilePage}>
       {/* Шапка профиля */}
@@ -85,50 +90,7 @@ export const Profile = () => {
             <User size={40} />
           </div>
           <div className={styles.userInfo}>
-            <h1 className={styles.userName}>{userData?.email}</h1>
-            <div className={styles.userTags}>
-              <span className={styles.tag}>Участник с когда-то, я хз</span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.profileActions}>
-          <button className={styles.editButton}>Редактировать профиль</button>
-          <button className={styles.settingsButton}>Настройки</button>
-        </div>
-      </div>
-
-      {/* Статистика */}
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Activity size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>{stats.totalTrainings}</div>
-            <div className={styles.statLabel}>Тренировок c жимом</div>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Clock size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>{stats.totalDuration} мин</div>
-            <div className={styles.statLabel}>Общее время</div>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIcon}>
-            <Star size={24} />
-          </div>
-          <div className={styles.statContent}>
-            <div className={styles.statValue}>
-              {stats.favoriteExerciseCount}
-            </div>
-            <div className={styles.statLabel}>Избранных упражнений</div>
+            <h1 className={styles.userName}>{profile?.email ?? "—"}</h1>
           </div>
         </div>
       </div>
@@ -205,73 +167,38 @@ export const Profile = () => {
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>
-                <BarChart3 size={20} /> Прогресс за месяц
+                <BarChart3 size={20} /> Тренировок за месяц
               </h2>
+              <span className={styles.sectionCount}>{workoutsThisMonth}</span>
             </div>
 
             <div className={styles.progressChart}>
               <div className={styles.chartPlaceholder}>
                 <div className={styles.chartBars}>
-                  {benchPressWeights.map((height, index) => (
+                  {monthlyWorkouts.map((month) => (
                     <div
-                      key={index}
-                      className={styles.chartBar}
-                      style={{ height: `${height}%` }}
-                    />
+                      key={month.label}
+                      className={styles.chartBarWrapper}
+                      title={`${month.label}: ${month.count}`}
+                    >
+                      <div
+                        className={styles.chartBar}
+                        style={{
+                          height:
+                            month.count > 0
+                              ? `${Math.max(month.heightPercent, 8)}%`
+                              : "4px",
+                        }}
+                      />
+                    </div>
                   ))}
                 </div>
                 <div className={styles.chartLabels}>
-                  <span>Янв</span>
-                  <span>Фев</span>
-                  <span>Мар</span>
-                  <span>Апр</span>
-                  <span>Май</span>
-                  <span>Июн</span>
-                  <span>Июл</span>
-                  <span>Авг</span>
-                  <span>Сен</span>
-                  <span>Окт</span>
-                  <span>Ноя</span>
-                  <span>Дек</span>
+                  {monthlyWorkouts.map((month) => (
+                    <span key={month.label}>{month.label}</span>
+                  ))}
                 </div>
               </div>
-            </div>
-          </section>
-          {/* Будущие избранные тренировки */}
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <h2 className={styles.sectionTitle}>
-                <Award size={20} /> Избранные тренировки
-              </h2>
-            </div>
-
-            <div className={styles.workoutsList}>
-              {trainings.map((training) => (
-                <div key={training.id} className={styles.workoutCard}>
-                  <div className={styles.workoutHeader}>
-                    <h3 className={styles.workoutName}>{training.name}</h3>
-                    <button className={styles.workoutFavorite}>
-                      <Star size={16} fill="currentColor" />
-                    </button>
-                  </div>
-                  <div className={styles.workoutExercises}>
-                    {training.exerciseTypes.map((exercise) => (
-                      <span
-                        key={exercise.id}
-                        className={styles.workoutExercise}
-                      >
-                        {exercise.name}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => startTraining(training.id)}
-                    className={styles.startWorkoutButton}
-                  >
-                    Начать тренировку
-                  </button>
-                </div>
-              ))}
             </div>
           </section>
         </div>

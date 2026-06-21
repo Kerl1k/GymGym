@@ -1,6 +1,6 @@
 import { FC, useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { ChevronDownIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import { createPortal } from "react-dom";
 
 import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
@@ -35,7 +35,6 @@ const GYM_UNIT_PRESETS = [
   "сек.",
   "мин.",
   "повт",
-  "повторения",
   "kg",
   "reps",
   "sets",
@@ -68,17 +67,17 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(() => {
-    if (typeof document === "undefined") return null;
-    return document.body;
-  });
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [menuBox, setMenuBox] = useState<{
     top: number;
     left: number;
     width: number;
   } | null>(null);
 
-  const filtered = [...GYM_UNIT_PRESETS];
+  const normalizedValue = value.trim().toLowerCase();
+  const filtered = GYM_UNIT_PRESETS.filter((unit) =>
+    unit.toLowerCase().includes(normalizedValue),
+  );
 
   const syncMenuPosition = () => {
     const el = anchorRef.current;
@@ -121,16 +120,6 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
 
   useEffect(() => {
     if (!open) return;
-    const anchor = anchorRef.current;
-    if (!anchor) return;
-    const dialogContent = anchor.closest('[data-slot="dialog-content"]') as
-      | HTMLElement
-      | null;
-    setPortalTarget(dialogContent ?? document.body);
-  }, [open]);
-
-  useEffect(() => {
-    if (!open) return;
 
     const onPointerDown = (e: PointerEvent) => {
       const t = e.target as Node | null;
@@ -162,7 +151,7 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
           top: menuBox.top,
           left: menuBox.left,
           width: menuBox.width,
-          zIndex: 10000,
+          zIndex: 200000,
           pointerEvents: "auto",
         }}
         className="max-h-48 overflow-auto rounded-md border border-input bg-popover text-popover-foreground shadow-md"
@@ -190,6 +179,7 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
   return (
     <div ref={anchorRef} className="relative w-full min-w-0">
       <Input
+        ref={inputRef}
         value={value}
         placeholder={placeholder}
         autoComplete="off"
@@ -198,9 +188,21 @@ function GymUnitCombo({ value, onChange, placeholder }: GymUnitComboProps) {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        className="h-11 w-full min-w-0"
+        className="h-11 w-full min-w-0 pr-10"
       />
-      {list ? createPortal(list, portalTarget ?? document.body) : null}
+      <button
+        type="button"
+        aria-label="Открыть список единиц"
+        className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-10 items-center justify-center"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setOpen((prev) => !prev);
+          inputRef.current?.focus();
+        }}
+      >
+        <ChevronDownIcon className="h-4 w-4" />
+      </button>
+      {list ? createPortal(list, document.body) : null}
     </div>
   );
 }

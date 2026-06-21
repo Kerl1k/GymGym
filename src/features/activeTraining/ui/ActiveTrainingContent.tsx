@@ -13,7 +13,6 @@ import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import { Loader } from "@/shared/ui/kit/loader";
-import { Progress } from "@/shared/ui/kit/progress";
 
 import { CurrentExercise } from "../components/current-exercise";
 import { SetTracker } from "../components/set-tracker";
@@ -24,6 +23,20 @@ import { ActiveTrainingHeader } from "./ActiveTrainingHeader";
 import { ExercisesSidebar } from "./ExercisesSidebar";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { RestTimer } from "./RestTimer";
+
+function hasSetsStructureChanged(
+  prev: ApiSchemas["ActiveTraining"],
+  next: ApiSchemas["ActiveTraining"],
+) {
+  if (prev.exercises.length !== next.exercises.length) return true;
+
+  return prev.exercises.some((prevExercise, index) => {
+    const nextExercise = next.exercises[index];
+    if (!nextExercise) return true;
+    if (prevExercise.id !== nextExercise.id) return true;
+    return prevExercise.sets.length !== nextExercise.sets.length;
+  });
+}
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
@@ -52,10 +65,11 @@ export const ActiveTrainingContent: FC<{
     number | null
   >(null);
 
-  const syncTimeoutRef = useRef<number | null>(null);
   const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(data);
   const syncChainRef = useRef<Promise<void>>(Promise.resolve());
   const pendingRestMsRef = useRef<number>(0);
+  const setsSyncTimeoutRef = useRef<number | null>(null);
+  const hasPendingSetsSyncRef = useRef(false);
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
   const activeExerciseIndex = selectedExerciseIndex ?? indexCurrentExercise;
@@ -68,10 +82,33 @@ export const ActiveTrainingContent: FC<{
     latestTrainingRef.current = trainingData;
   }, [trainingData]);
 
+  const scheduleSetsSync = useCallback(
+    (snapshot: ApiSchemas["ActiveTraining"]) => {
+      latestTrainingRef.current = snapshot;
+      hasPendingSetsSyncRef.current = true;
+
+      if (setsSyncTimeoutRef.current !== null) {
+        window.clearTimeout(setsSyncTimeoutRef.current);
+      }
+
+      setsSyncTimeoutRef.current = window.setTimeout(() => {
+        hasPendingSetsSyncRef.current = false;
+        setsSyncTimeoutRef.current = null;
+        const latestSnapshot = latestTrainingRef.current;
+        syncChainRef.current = syncChainRef.current.then(() =>
+          change(latestSnapshot),
+        );
+      }, 2000);
+    },
+    [change],
+  );
+
   const flushTrainingSync = useCallback(async () => {
-    if (syncTimeoutRef.current !== null) {
-      window.clearTimeout(syncTimeoutRef.current);
-      syncTimeoutRef.current = null;
+    if (!hasPendingSetsSyncRef.current) return;
+    hasPendingSetsSyncRef.current = false;
+    if (setsSyncTimeoutRef.current !== null) {
+      window.clearTimeout(setsSyncTimeoutRef.current);
+      setsSyncTimeoutRef.current = null;
     }
     const snapshot = latestTrainingRef.current;
     syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
@@ -104,18 +141,6 @@ export const ActiveTrainingContent: FC<{
       };
     });
   };
-
-  const totalSets = trainingData.exercises.reduce(
-    (sum, ex) => sum + ex.sets.length,
-    0,
-  );
-  const completedSets =
-    trainingData.exercises.reduce(
-      (sum, ex) => sum + ex.sets.filter((set) => set.done).length,
-      0,
-    ) / totalSets;
-
-  const progress = totalSets > 0 ? completedSets * 100 : 0;
 
   const completeSet = async (completedSet: ApiSchemas["Set"]) => {
     const updatedExercises = trainingData.exercises.map((ex, index) => {
@@ -214,43 +239,33 @@ export const ActiveTrainingContent: FC<{
 
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
-    options?: { flush?: boolean },
   ) => {
     setTrainingData((prev) => {
       const next = typeof value === "function" ? value(prev) : value;
       latestTrainingRef.current = next;
-
-      if (syncTimeoutRef.current !== null) {
-        window.clearTimeout(syncTimeoutRef.current);
-        syncTimeoutRef.current = null;
+      if (hasSetsStructureChanged(prev, next)) {
+        scheduleSetsSync(next);
       }
-
-      if (options?.flush) {
-        const snapshot = next;
-        syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
-        return next;
-      }
-
-      syncTimeoutRef.current = window.setTimeout(() => {
-        const snapshot = latestTrainingRef.current;
-        syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
-      }, 600);
-
       return next;
     });
   };
 
   useEffect(() => {
+    hasPendingSetsSyncRef.current = false;
+    if (setsSyncTimeoutRef.current !== null) {
+      window.clearTimeout(setsSyncTimeoutRef.current);
+      setsSyncTimeoutRef.current = null;
+    }
+    setTrainingData(data);
+  }, [data]);
+
+  useEffect(() => {
     return () => {
-      if (syncTimeoutRef.current !== null) {
-        window.clearTimeout(syncTimeoutRef.current);
+      if (setsSyncTimeoutRef.current !== null) {
+        window.clearTimeout(setsSyncTimeoutRef.current);
       }
     };
   }, []);
-
-  useEffect(() => {
-    setTrainingData(data);
-  }, [data]);
 
   useEffect(() => {
     if (selectedExerciseIndex === null) return;
@@ -281,13 +296,13 @@ export const ActiveTrainingContent: FC<{
               exerciseId={activeExercise?.id}
               finishTraining={finishTraining}
             />
-            <div className={styles.progressSection}>
+            {/* <div className={styles.progressSection}>
               <div className={styles.progressText}>
                 <span>Прогресс тренировки</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <Progress value={progress} className="h-3" />
-            </div>
+            </div> */}
           </div>
           <div className={styles.gridLayout}>
             <div className={styles.mainContent}>

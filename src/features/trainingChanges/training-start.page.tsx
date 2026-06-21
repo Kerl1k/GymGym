@@ -45,9 +45,11 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
   useEffect(() => {
     setActiveTraining((prev) => {
       if (!prev) return prev;
-      const nextExercises = prev.exercises.map((ex) =>
-        ex.useCustomSets ? ex : { ...ex, useCustomSets: true },
-      );
+      const nextExercises = prev.exercises.map((ex) => ({
+        ...ex,
+        useCustomSets: true,
+        restTime: 0,
+      }));
       return { ...prev, exercises: nextExercises };
     });
   }, []);
@@ -158,7 +160,14 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
 
   useEffect(() => {
     if (data && !activeTraining) {
-      setActiveTraining(data);
+      setActiveTraining({
+        ...data,
+        exercises: data.exercises.map((ex) => ({
+          ...ex,
+          useCustomSets: true,
+          restTime: 0,
+        })),
+      });
     }
   }, [data, activeTraining]);
 

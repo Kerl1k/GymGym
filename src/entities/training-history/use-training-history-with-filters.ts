@@ -4,16 +4,44 @@ type FetchTrainingHistoryWithFiltersProps = {
   limit?: number;
   page?: number;
   sort?: string;
+  sortDirection?: "asc" | "desc";
   exerciseName?: string;
+  dateFrom?: string;
 };
 
 export function useFetchTrainingHistoryWithFilters({
   limit = 50,
   page,
   sort,
+  sortDirection = "desc",
   exerciseName,
+  dateFrom,
 }: FetchTrainingHistoryWithFiltersProps) {
-  const orderBy = sort ? { [sort]: "desc" } : undefined;
+  const orderBy = sort ? { [sort]: sortDirection } : undefined;
+  const where =
+    exerciseName || dateFrom
+      ? JSON.stringify({
+          ...(exerciseName
+            ? {
+                exercises: {
+                  some: {
+                    name: {
+                      contains: exerciseName,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+              }
+            : {}),
+          ...(dateFrom
+            ? {
+                dateStart: {
+                  gte: dateFrom,
+                },
+              }
+            : {}),
+        })
+      : undefined;
 
   const { data, isPending } = rqClient.useQuery(
     "get",
@@ -24,27 +52,18 @@ export function useFetchTrainingHistoryWithFilters({
           limit: limit,
           page: page,
           orderBy: JSON.stringify(orderBy),
-          where: exerciseName
-            ? JSON.stringify({
-                exercises: {
-                  some: {
-                    name: {
-                      contains: exerciseName,
-                      mode: "insensitive",
-                    },
-                  },
-                },
-              })
-            : undefined,
+          where,
         },
       },
     },
   );
 
   const history = data?.content ?? [];
+  const meta = data?.meta;
 
   return {
     history,
+    meta,
     isPending,
   };
 }

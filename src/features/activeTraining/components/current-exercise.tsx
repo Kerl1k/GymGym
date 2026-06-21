@@ -181,22 +181,24 @@ export function CurrentExercise({
               ))}
             </div>
           )}
-          <div className="bg-card rounded-xl border border-border p-3 sm:p-4">
-            <div className="text-muted-foreground mb-2 flex items-center gap-2">
-              <ClockIcon className="h-4 w-4" />
-              <span className="text-sm font-medium sm:text-base">Отдых</span>
+          {exercise.restTime > 0 && (
+            <div className="bg-card w-full rounded-xl border border-border p-3 sm:w-[calc((100%-1rem)/2)] sm:p-4 md:w-[calc((100%-2rem)/3)] lg:w-[calc((100%-3rem)/4)]">
+              <div className="text-muted-foreground mb-2 flex items-center gap-2">
+                <ClockIcon className="h-4 w-4" />
+                <span className="text-sm font-medium sm:text-base">Отдых</span>
+              </div>
+              <div className="text-foreground text-2xl font-bold tabular-nums sm:text-3xl">
+                {exercise.restTime}
+                <span className="text-muted-foreground text-lg sm:text-xl">
+                  {" "}
+                  сек
+                </span>
+              </div>
+              <div className="text-muted-foreground mt-1 text-xs sm:text-sm">
+                между подходами
+              </div>
             </div>
-            <div className="text-foreground text-2xl font-bold sm:text-3xl">
-              {exercise.restTime}
-              <span className="text-muted-foreground text-lg sm:text-xl">
-                {" "}
-                сек
-              </span>
-            </div>
-            <div className="text-muted-foreground mt-1 text-xs sm:text-sm">
-              между подходами
-            </div>
-          </div>
+          )}
         </div>
 
         {showCompleteButton && (
