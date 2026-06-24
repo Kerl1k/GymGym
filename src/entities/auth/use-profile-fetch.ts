@@ -1,9 +1,18 @@
-import { rqClient } from "@/entities/instance";
+import { useEffect } from "react";
+
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { authStore } from "./auth.store";
 
 export function useFetchProfile() {
-  const { data, isPending } = rqClient.useQuery("get", "/api/auth/profile");
+  useEffect(() => {
+    void authStore.fetchProfile();
+  }, []);
 
-  const profile = data;
+  const { profile, isPending } = useMobxSelector(() => ({
+    profile: authStore.profile,
+    isPending: authStore.isProfileFetching && authStore.profile === undefined,
+  }));
 
   return {
     profile,

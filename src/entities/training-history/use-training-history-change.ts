@@ -1,21 +1,21 @@
-import { rqClient } from "@/entities/instance";
+import { useCallback } from "react";
+
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ApiSchemas } from "@/shared/schema";
 
-export function useChangeTrainingHistory() {
-  const changeTrainingMutation = rqClient.useMutation(
-    "patch",
-    "/api/training-history",
-    {},
-  );
+import { trainingHistoryStore } from "./training-history.store";
 
-  const change = (data: ApiSchemas["TrainingHistoryUpdate"]) => {
-    changeTrainingMutation.mutate({
-      body: data,
-    });
-  };
+export function useChangeTrainingHistory() {
+  const change = useCallback(async (data: ApiSchemas["TrainingHistoryUpdate"]) => {
+    await trainingHistoryStore.change(data);
+  }, []);
+
+  const { isPending } = useMobxSelector(() => ({
+    isPending: trainingHistoryStore.changePending,
+  }));
 
   return {
-    isPending: changeTrainingMutation.isPending,
+    isPending,
     change,
   };
 }

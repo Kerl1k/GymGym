@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Outlet, redirect, Navigate } from "react-router-dom";
 
 import { prefetchProtectedAppData } from "@/entities/prefetch/prefetchProtectedAppData";
@@ -10,7 +9,6 @@ import { enableMocking } from "@/shared/schema";
 
 export function ProtectedRoute() {
   const { session } = useSession();
-  const queryClient = useQueryClient();
   const didPrefetch = useRef(false);
 
   useEffect(() => {
@@ -20,8 +18,8 @@ export function ProtectedRoute() {
     }
     if (didPrefetch.current) return;
     didPrefetch.current = true;
-    void prefetchProtectedAppData(queryClient);
-  }, [session, queryClient]);
+    void prefetchProtectedAppData();
+  }, [session]);
 
   if (!session) {
     return <Navigate to={ROUTES.LOGIN} />;
@@ -30,6 +28,7 @@ export function ProtectedRoute() {
   return <Outlet />;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export async function protectedLoader() {
   await enableMocking();
 

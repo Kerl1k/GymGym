@@ -1,32 +1,21 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ApiSchemas } from "@/shared/schema";
 
+import { trainingStore } from "./training.store";
 
 export function useChangeTraining() {
-  const queryClient = useQueryClient();
+  const change = useCallback(async (data: ApiSchemas["TrainingUpdateBody"]) => {
+    await trainingStore.change(data);
+  }, []);
 
-  const changeTrainingMutation = rqClient.useMutation(
-    "patch",
-    "/api/training",
-    {
-      onSettled: async () => {
-        await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/training"),
-        );
-      },
-    },
-  );
-
-  const change = (data: ApiSchemas["TrainingUpdateBody"]) => {
-    changeTrainingMutation.mutate({
-      body: data,
-    });
-  };
+  const { isPending } = useMobxSelector(() => ({
+    isPending: trainingStore.changePending,
+  }));
 
   return {
-    isPending: changeTrainingMutation.isPending,
+    isPending,
     change,
   };
 }

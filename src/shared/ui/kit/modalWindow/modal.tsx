@@ -36,9 +36,9 @@ export function Modal({
         {title && (
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            {description && (
-              <DialogDescription>{description}</DialogDescription>
-            )}
+            <DialogDescription className={description ? undefined : "sr-only"}>
+              {description ?? "Содержимое этого диалогового окна"}
+            </DialogDescription>
           </DialogHeader>
         )}
         {children}

@@ -23,12 +23,12 @@ alwaysApply: false
 
 ## API и типы
 
-- Клиент: **openapi-fetch** + **openapi-react-query**; типизированные пути — **`ApiPaths`**, схемы тел/моделей — **`ApiSchemas`** из `@/shared/schema` (генерация из OpenAPI: скрипт `npm run api` → `generated.ts`).
-- Авторизованные запросы — **`rqClient`** и **`fetchClient`**; публичные (логин и т.п.) — **`publicRqClient`** / **`publicFetchClient`** из `@/entities/instance`.
+- Клиент: **openapi-fetch**; типизированные пути — **`ApiPaths`**, схемы тел/моделей — **`ApiSchemas`** из `@/shared/schema` (генерация из OpenAPI: скрипт `npm run api` -> `generated.ts`).
+- Авторизованные запросы — **`fetchClient`**; публичные (логин и т.п.) — **`publicFetchClient`** из `@/entities/instance`.
 
 ## Серверное состояние
 
-- **TanStack Query v5** через сгенерированные хуки `*.useQuery` / `*.useMutation` на `rqClient`; провайдер — `@/app/providers` с `queryClient` из `@/entities/query-client`.
+- Серверное состояние хранится в локальном **MobX query client** (`@/entities/query-client`) и используется через хуки сущностей.
 - Хуки сущностей именуются **`use-<домен>-<действие>.ts`** (например `use-training-fetch-id.ts`); возвращаемые поля вроде `data`, `isLoading`/`isPending` — единообразно внутри хука.
 
 ## Формы

@@ -1,9 +1,8 @@
-import { useState } from "react";
-
-import { createGStore } from "create-gstore";
 import { jwtDecode } from "jwt-decode";
+import { makeAutoObservable, runInAction } from "mobx";
 
 import { publicFetchClient } from "../../entities/instance";
+import { useMobxSelector } from "../lib/useMobxSelector";
 
 type Session = {
   userId: string;
@@ -15,49 +14,52 @@ type Session = {
 const TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
-let refreshTokenPromise: Promise<string | null> | null = null;
+class SessionStore {
+  accessToken: string | null = localStorage.getItem(TOKEN_KEY);
+  private refreshTokenPromise: Promise<string | null> | null = null;
 
-export const useSession = createGStore(() => {
-  const [accessToken, setToken] = useState(() =>
-    localStorage.getItem(TOKEN_KEY),
-  );
+  constructor() {
+    makeAutoObservable(this, {}, { autoBind: true });
+  }
 
-  const login = (accessToken: string, refreshToken?: string) => {
+  get session(): Session | null {
+    return this.accessToken ? jwtDecode<Session>(this.accessToken) : null;
+  }
+
+  login(accessToken: string, refreshToken?: string) {
     localStorage.setItem(TOKEN_KEY, accessToken);
     if (refreshToken) {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }
-    setToken(accessToken);
-  };
+    this.accessToken = accessToken;
+  }
 
-  const logout = () => {
+  logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
-    setToken(null);
-  };
+    this.accessToken = null;
+  }
 
-  const getRefreshToken = () => {
+  getRefreshToken() {
     return localStorage.getItem(REFRESH_TOKEN_KEY);
-  };
+  }
 
-  const session = accessToken ? jwtDecode<Session>(accessToken) : null;
-
-  const refreshToken = async () => {
-    if (!accessToken) {
+  async refreshToken(): Promise<string | null> {
+    if (!this.accessToken) {
       return null;
     }
 
-    const session = jwtDecode<Session>(accessToken);
+    const session = jwtDecode<Session>(this.accessToken);
 
     if (session.exp < Date.now() / 1000) {
-      if (!refreshTokenPromise) {
+      if (!this.refreshTokenPromise) {
         const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
         if (!storedRefreshToken) {
-          logout();
+          this.logout();
           return null;
         }
 
-        refreshTokenPromise = publicFetchClient
+        this.refreshTokenPromise = publicFetchClient
           .POST("/api/auth/refresh", {
             body: {
               refreshToken: storedRefreshToken,
@@ -65,19 +67,21 @@ export const useSession = createGStore(() => {
           })
           .then((r) => {
             if (r.data?.accessToken && r.data?.refreshToken) {
-              login(r.data.accessToken, r.data.refreshToken);
+              this.login(r.data.accessToken, r.data.refreshToken);
               return r.data.accessToken;
             } else {
-              logout();
+              this.logout();
               return null;
             }
           })
           .finally(() => {
-            refreshTokenPromise = null;
+            runInAction(() => {
+              this.refreshTokenPromise = null;
+            });
           });
       }
 
-      const newToken = await refreshTokenPromise;
+      const newToken = await this.refreshTokenPromise;
 
       if (newToken) {
         return newToken;
@@ -86,8 +90,44 @@ export const useSession = createGStore(() => {
       }
     }
 
-    return accessToken;
-  };
+    return this.accessToken;
+  }
+}
 
-  return { refreshToken, login, logout, session, getRefreshToken };
-});
+const sessionStore = new SessionStore();
+
+type SessionSnapshot = {
+  refreshToken: () => Promise<string | null>;
+  login: (accessToken: string, refreshToken?: string) => void;
+  logout: () => void;
+  session: Session | null;
+  getRefreshToken: () => string | null;
+};
+
+function getSessionSnapshot(): SessionSnapshot {
+  return {
+    refreshToken: sessionStore.refreshToken,
+    login: sessionStore.login,
+    logout: sessionStore.logout,
+    session: sessionStore.session,
+    getRefreshToken: sessionStore.getRefreshToken,
+  };
+}
+
+type UseSessionHook = (() => SessionSnapshot) & {
+  getState: () => SessionSnapshot;
+};
+
+export const useSession: UseSessionHook = Object.assign(
+  () =>
+    useMobxSelector(() => ({
+      refreshToken: sessionStore.refreshToken,
+      login: sessionStore.login,
+      logout: sessionStore.logout,
+      session: sessionStore.session,
+      getRefreshToken: sessionStore.getRefreshToken,
+    })),
+  {
+    getState: getSessionSnapshot,
+  },
+);

@@ -3,11 +3,9 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 
 import { AppHeader } from "@/features/header";
-import { Loader } from "@/shared/ui/kit/loader";
 
 export function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check for saved theme preference or system preference
@@ -20,13 +18,6 @@ export function App() {
       setDarkMode(true);
       document.documentElement.classList.add("dark");
     }
-
-    // Simulate initial loading (in real app, this would be based on actual loading state)
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -45,12 +36,6 @@ export function App() {
       <main className="flex-1 bg-background text-foreground">
         <Outlet />
       </main>
-
-      {isLoading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <Loader size="large" />
-        </div>
-      )}
     </div>
   );
 }

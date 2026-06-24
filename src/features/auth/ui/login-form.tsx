@@ -27,9 +27,15 @@ const loginSchema = z.object({
     .min(6, "Пароль должен быть не менее 6 символов"),
 });
 
+type LoginFormValues = z.infer<typeof loginSchema>;
+
 export function LoginForm() {
-  const form = useForm({
+  const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const { errorMessage, isPending, login } = useLogin();

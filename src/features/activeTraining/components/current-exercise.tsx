@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 type CurrentExerciseProps = {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][number];
+  previousSets?: ApiSchemas["Set"][];
   setTraining: React.Dispatch<
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
@@ -24,6 +25,7 @@ function parseUnitInput(raw: string): number {
 
 export function CurrentExercise({
   exercise,
+  previousSets = [],
   setTraining,
   onCompleteSet,
   showCompleteButton = true,
@@ -38,6 +40,10 @@ export function CurrentExercise({
   );
 
   const activeSet = exercise.sets[activeSetIndex];
+  const previousSet =
+    previousSets.length > 0
+      ? previousSets[Math.min(activeSetIndex, previousSets.length - 1)]
+      : undefined;
 
   const [tempUnits, setTempUnits] = useState<string[]>([]);
 
@@ -175,6 +181,12 @@ export function CurrentExercise({
                   ) : (
                     <div className="text-foreground text-2xl font-bold tabular-nums sm:text-3xl">
                       {unit.value}
+                    </div>
+                  )}
+                  {previousSet?.units?.[unitIndex] && (
+                    <div className="text-muted-foreground mt-1 text-xs">
+                      Прошлая: {previousSet.units[unitIndex].value}{" "}
+                      {previousSet.units[unitIndex].name || unit.name}
                     </div>
                   )}
                 </div>

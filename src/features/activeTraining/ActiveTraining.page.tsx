@@ -1,9 +1,8 @@
 import { useState } from "react";
 
-import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 
-import { rqClient } from "@/entities/instance";
+import { activeTrainingStore } from "@/entities/training-active/active-training.store";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
 import { ROUTES } from "@/shared/model/routes";
 import { Button } from "@/shared/ui/kit/button";
@@ -21,7 +20,6 @@ import { TrainingHistoryList } from "./components/TrainingHistoryList";
 import { ActiveTrainingContent } from "./ui/ActiveTrainingContent";
 
 const ActiveTraining = () => {
-  const queryClient = useQueryClient();
   const {
     data,
     hasData,
@@ -29,15 +27,12 @@ const ActiveTraining = () => {
     isLoading,
     isError,
     fetchStatus,
-    isRestoring,
   } = useActiveTrainingFetch();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleTrainingRepeated = async () => {
     setRefreshKey((prev) => prev + 1);
-    await queryClient.invalidateQueries(
-      rqClient.queryOptions("get", "/api/active-training"),
-    );
+    await activeTrainingStore.fetch(true);
   };
 
   if (error === "NotFound") {
@@ -63,21 +58,6 @@ const ActiveTraining = () => {
               key={refreshKey}
               onTrainingRepeated={handleTrainingRepeated}
             />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (isRestoring) {
-    return (
-      <div className={styles.container}>
-        <Card className="p-8">
-          <CardContent className={styles.loaderContainer}>
-            <Loader size="large" />
-            <CardTitle className={styles.loadingTitle}>
-              Восстановление локальных данных…
-            </CardTitle>
           </CardContent>
         </Card>
       </div>
@@ -114,9 +94,8 @@ const ActiveTraining = () => {
             </CardHeader>
             <CardContent className={styles.cardContent}>
               <CardDescription className={styles.cardDescription}>
-                Нет сохранённых данных в этом браузере. Подключитесь к сети или
-                откройте эту страницу онлайн хотя бы один раз, чтобы данные
-                сохранились локально.
+                Не удалось получить данные тренировки. Проверьте соединение и
+                попробуйте снова.
               </CardDescription>
               <div className={styles.buttonContainer}>
                 <Link to={ROUTES.TRAINING} className={styles.button}>
@@ -131,7 +110,21 @@ const ActiveTraining = () => {
   }
 
   if (!data) {
-    return null;
+    return (
+      <div className={styles.container}>
+        <Card className="p-8">
+          <CardContent className={styles.loaderContainer}>
+            <Loader size="large" />
+            <CardTitle className={styles.loadingTitle}>
+              Обновляем активную тренировку
+            </CardTitle>
+            <CardDescription className={styles.loadingDescription}>
+              Пожалуйста, подождите...
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return <ActiveTrainingContent data={data} />;

@@ -18,6 +18,11 @@ import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
+import {
+  getPresetsForUnit,
+  getPreviousSetByIndexWithFallback,
+} from "./NotedWeightModal.utils";
+
 type NotedWeightModalProps = {
   isOpen: boolean;
   currentExercise: ApiSchemas["ActiveTraining"]["exercises"][0];
@@ -26,82 +31,9 @@ type NotedWeightModalProps = {
   initialData?:
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
+  previousSets?: ApiSchemas["Set"][];
   completeSet: (set: ApiSchemas["Set"]) => void;
 };
-
-const weightPresets = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100];
-const repPresets = [5, 8, 10, 12, 15, 20];
-const secPresets = [10, 15, 20, 30, 45, 60, 90, 120, 180];
-const minPresets = [1, 2, 3, 4, 5, 8, 10, 12, 15, 20];
-const distanceMPresets = [10, 20, 50, 100, 200, 500, 1000];
-const distanceCmPresets = [10, 20, 30, 50, 80, 100, 120];
-const rpePresets = [6, 7, 7.5, 8, 8.5, 9, 9.5, 10];
-const percent1rmPresets = [50, 60, 70, 75, 80, 85, 90, 95, 100];
-
-function getPresetsForUnit(unitName: string | undefined, unitIndex: number) {
-  const raw = (unitName ?? "").trim().toLowerCase();
-  // normalize: collapse spaces, remove trailing dots
-  const name = raw.replace(/\s+/g, " ").replace(/\.+$/g, "");
-  const compact = name.replace(/\s/g, "");
-
-  // Backwards compatible defaults for the first two units.
-  if (!name) {
-    if (unitIndex === WEIGHT_UNIT_INDEX) return weightPresets;
-    if (unitIndex === REPS_UNIT_INDEX) return repPresets;
-    return [];
-  }
-
-  if (["кг", "kg", "lb", "lbs"].includes(name)) return weightPresets;
-  if (name.startsWith("кг")) return weightPresets;
-
-  if (
-    ["раз", "повт", "повтор", "повторения", "reps", "rep"].includes(name) ||
-    name.startsWith("повт") ||
-    name.startsWith("повтор")
-  )
-    return repPresets;
-
-  if (
-    ["подход", "подходы", "set", "sets"].includes(name) ||
-    name.startsWith("подход")
-  )
-    return [1, 2, 3, 4, 5, 6];
-
-  if (
-    ["сек", "s", "sec", "second", "seconds"].includes(name) ||
-    name.startsWith("сек")
-  )
-    return secPresets;
-
-  if (
-    ["мин", "min", "minute", "minutes"].includes(name) ||
-    name.startsWith("мин")
-  )
-    return minPresets;
-
-  // Distance
-  if (name === "м") return distanceMPresets;
-  if (name === "см") return distanceCmPresets;
-
-  // Effort
-  if (name === "rpe") return rpePresets;
-
-  // % 1RM / 1ПМ
-  if (
-    name === "%" ||
-    compact === "%от1пм" ||
-    compact === "%от1rm" ||
-    name.includes("1пм") ||
-    name.includes("1rm") ||
-    name.startsWith("%")
-  )
-    return percent1rmPresets;
-
-  // Fallback: only show presets for legacy positions.
-  if (unitIndex === WEIGHT_UNIT_INDEX) return weightPresets;
-  if (unitIndex === REPS_UNIT_INDEX) return repPresets;
-  return [];
-}
 
 function stripLeadingZerosFromNumericInput(value: string): string {
   if (value === "") return "";
@@ -115,6 +47,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
   isOpen,
   currentExercise,
   initialData,
+  previousSets = [],
   completeSet,
 }) => {
   const [sets, setSets] = useState<
@@ -288,6 +221,11 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
             <Card key={index} className="p-3 sm:p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {ensureUnitsMinLength(set, 2).units.map((unit, unitIndex) => {
+                  const previousSet = getPreviousSetByIndexWithFallback(
+                    previousSets,
+                    index,
+                  );
+                  const previousUnit = previousSet?.units?.[unitIndex];
                   const labelIcon =
                     unitIndex === WEIGHT_UNIT_INDEX ? (
                       <Dumbbell className="w-4 h-4" />
@@ -368,6 +306,12 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                             </button>
                           ))}
                         </div>
+                      )}
+                      {previousUnit && (
+                        <p className="text-muted-foreground text-xs">
+                          Прошлая: {previousUnit.value}{" "}
+                          {previousUnit.name || unit?.name}
+                        </p>
                       )}
                     </div>
                   );

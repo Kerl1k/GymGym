@@ -3,8 +3,6 @@ import { useState, useEffect } from "react";
 import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { useOutboxPendingCount } from "@/entities/offline/useOutboxPendingCount";
-import { useNetworkStatus } from "@/shared/lib/cacheUtils";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
 import { Button } from "@/shared/ui/kit/button";
@@ -17,8 +15,6 @@ type AppHeaderProps = {
 export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   const { session, logout } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const isOnline = useNetworkStatus();
-  const outboxPending = useOutboxPendingCount();
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -59,18 +55,6 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border/20 shadow-sm py-4 px-4 sm:px-6 mb-6 sticky top-0 z-50">
-      {(!isOnline || outboxPending > 0) && (
-        <div className="max-w-7xl mx-auto mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-950 dark:text-amber-100">
-          {!isOnline && (
-            <span className="mr-3">Нет подключения к сети. Данные берутся из локального кэша.</span>
-          )}
-          {outboxPending > 0 && (
-            <span>
-              Несинхронизированных операций: {outboxPending}. Отправка при появлении сети.
-            </span>
-          )}
-        </div>
-      )}
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
         <Link to={ROUTES.HOME}>
           <div className="text-2xl font-bold text-gradient animate-fade-in">

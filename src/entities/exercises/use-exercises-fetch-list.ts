@@ -1,31 +1,25 @@
-import { keepPreviousData } from "@tanstack/query-core";
+import { useEffect } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { exercisesStore } from "./exercises.store";
 
 type UseExercisesListParams = {
   limit?: number;
 };
 
 export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
-  const { data, isPending } = rqClient.useQuery(
-    "get",
-    "/api/exercise-type",
-    {
-      params: {
-        query: {
-          page: 1,
-          limit,
-        },
-      },
-    },
-    {
-      initialPageParam: 1,
-      pageParamName: "page",
-      placeholderData: keepPreviousData,
-    },
-  );
+  useEffect(() => {
+    void exercisesStore.fetchList(limit);
+  }, [limit]);
 
-  const exercises = data?.content ?? [];
+  const { exercises, isPending } = useMobxSelector(() => {
+    const data = exercisesStore.getList(limit);
+    return {
+      exercises: data?.content ?? [],
+      isPending: exercisesStore.isListLoading(limit),
+    };
+  });
 
   return {
     exercises,

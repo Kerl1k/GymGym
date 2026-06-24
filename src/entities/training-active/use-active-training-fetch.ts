@@ -1,27 +1,32 @@
-import { useIsRestoring } from "@tanstack/react-query";
+import { useEffect } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { activeTrainingStore } from "./active-training.store";
 
 export function useActiveTrainingFetch() {
-  const isRestoring = useIsRestoring();
-  const { data, isPending, isFetching, error, isError, fetchStatus } = rqClient.useQuery(
-    "get",
-    "/api/active-training",
-    {
-      params: {},
-    },
-  );
+  useEffect(() => {
+    void activeTrainingStore.fetch();
+  }, []);
+
+  const { data, isLoading, isFetching, error } = useMobxSelector(() => ({
+    data: activeTrainingStore.data,
+    isLoading: activeTrainingStore.isLoading,
+    isFetching: activeTrainingStore.isFetching,
+    error: activeTrainingStore.error,
+  }));
 
   const hasData = data != null;
+  const isError = Boolean(error);
+  const fetchStatus = activeTrainingStore.fetchStatus;
 
   return {
     data: data ?? null,
     hasData,
-    isLoading: isPending,
+    isLoading,
     isFetching,
     error,
     isError,
     fetchStatus,
-    isRestoring,
   };
 }

@@ -1,6 +1,8 @@
-import { rqClient } from "@/entities/instance";
-
-import type { QueryClient } from "@tanstack/react-query";
+import { authStore } from "@/entities/auth/auth.store";
+import { exercisesStore } from "@/entities/exercises/exercises.store";
+import { trainingStore } from "@/entities/training/training.store";
+import { activeTrainingStore } from "@/entities/training-active/active-training.store";
+import { trainingHistoryStore } from "@/entities/training-history/training-history.store";
 
 
 /** Как в `useTrainingList` без аргументов */
@@ -36,30 +38,15 @@ function trainingHistoryDefaultInit() {
   };
 }
 
-/**
- * Минимальный прогрев кэша после входа: несколько параллельных GET без дублей и без N+1 по id.
- */
-export async function prefetchProtectedAppData(queryClient: QueryClient): Promise<void> {
+export async function prefetchProtectedAppData(): Promise<void> {
+  const trainingQuery = trainingListDefaultInit().params.query;
+  const historyQuery = trainingHistoryDefaultInit().params.query;
+
   await Promise.allSettled([
-    queryClient.prefetchQuery(rqClient.queryOptions("get", "/api/auth/profile")),
-    queryClient.prefetchQuery(
-      rqClient.queryOptions("get", "/api/active-training", { params: {} }),
-    ),
-    queryClient.prefetchQuery(
-      rqClient.queryOptions("get", "/api/training", trainingListDefaultInit()),
-    ),
-    queryClient.prefetchQuery(
-      rqClient.queryOptions("get", "/api/exercise-type", {
-        params: {
-          query: {
-            page: 1,
-            limit: 20,
-          },
-        },
-      }),
-    ),
-    queryClient.prefetchQuery(
-      rqClient.queryOptions("get", "/api/training-history", trainingHistoryDefaultInit()),
-    ),
+    authStore.fetchProfile(),
+    activeTrainingStore.fetch(),
+    trainingStore.fetchList(trainingQuery),
+    exercisesStore.fetchList(20),
+    trainingHistoryStore.fetchList(historyQuery),
   ]);
 }

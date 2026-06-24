@@ -1,6 +1,8 @@
-import { keepPreviousData } from "@tanstack/query-core";
+import { useEffect, useMemo } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingStore } from "./training.store";
 
 type UseTrainingListParams = {
   limit?: number;
@@ -15,31 +17,35 @@ export function useTrainingList({
   sort,
   search,
 }: UseTrainingListParams) {
-  const orderBy = sort ? { [sort]: "asc" } : undefined;
-
-  const filterBy = search ? { ...filter, name: { contains: search } } : filter;
-
-  const { data, isPending } = rqClient.useQuery(
-    "get",
-    "/api/training",
-    {
-      params: {
-        query: {
-          page: 1,
-          limit,
-          filter: JSON.stringify(filterBy),
-          orderBy: JSON.stringify(orderBy),
-        },
-      },
-    },
-    {
-      initialPageParam: 1,
-      pageParamName: "page",
-      placeholderData: keepPreviousData,
-    },
+  const orderBySerialized = useMemo(
+    () => JSON.stringify(sort ? { [sort]: "asc" } : undefined),
+    [sort],
+  );
+  const filterSerialized = useMemo(
+    () => JSON.stringify(search ? { ...filter, name: { contains: search } } : filter),
+    [filter, search],
+  );
+  const query = useMemo(
+    () => ({
+      page: 1,
+      limit,
+      filter: filterSerialized,
+      orderBy: orderBySerialized,
+    }),
+    [filterSerialized, limit, orderBySerialized],
   );
 
-  const trainings = data?.content ?? [];
+  useEffect(() => {
+    void trainingStore.fetchList(query);
+  }, [query]);
+
+  const { trainings, isPending } = useMobxSelector(() => {
+    const data = trainingStore.getList(query);
+    return {
+      trainings: data?.content ?? [],
+      isPending: trainingStore.isListLoading(query),
+    };
+  });
 
   return {
     trainings,

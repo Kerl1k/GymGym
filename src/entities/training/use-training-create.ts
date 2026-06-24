@@ -1,26 +1,21 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ApiSchemas } from "@/shared/schema";
 
+import { trainingStore } from "./training.store";
 
 export function useCreateTraining() {
-  const queryClient = useQueryClient();
+  const create = useCallback(async (data: ApiSchemas["TrainingCreateBody"]) => {
+    await trainingStore.create(data);
+  }, []);
 
-  const createTrainingMutation = rqClient.useMutation("post", "/api/training", {
-    onSettled: async () => {
-      await queryClient.invalidateQueries(
-        rqClient.queryOptions("get", "/api/training"),
-      );
-    },
-  });
-
-  const create = (data: ApiSchemas["TrainingCreateBody"]) => {
-    createTrainingMutation.mutate({ body: data });
-  };
+  const { isPending } = useMobxSelector(() => ({
+    isPending: trainingStore.createPending,
+  }));
 
   return {
-    isPending: createTrainingMutation.isPending,
+    isPending,
     create,
   };
 }

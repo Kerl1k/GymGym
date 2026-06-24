@@ -23,6 +23,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -269,6 +270,9 @@ export const Statistics = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Выберите упражнение</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Выберите упражнение для отображения статистики прогресса
+                </DialogDescription>
               </DialogHeader>
               <div className="max-h-72 overflow-y-auto border border-border rounded-md">
                 {exercises.map((exercise) => (

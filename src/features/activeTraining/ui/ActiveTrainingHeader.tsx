@@ -1,10 +1,18 @@
 import { FC, useState } from "react";
 
-import { CheckIcon, PencilIcon, X } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  CheckIcon,
+  PencilIcon,
+  RefreshCwIcon,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCancelActiveTraining } from "@/entities/training-active/useActiveTrainingCancel";
 import { ROUTES } from "@/shared/model/routes";
+import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 
@@ -12,12 +20,18 @@ type ActiveTrainingHeaderProps = {
   name: string;
   exerciseId?: string;
   finishTraining: () => void;
+  syncStatus: "synced" | "syncing" | "error";
+  onRetrySync: () => void;
+  isRetryingSync: boolean;
 };
 
 export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
   name,
   exerciseId,
   finishTraining,
+  syncStatus,
+  onRetrySync,
+  isRetryingSync,
 }) => {
   const navigate = useNavigate();
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
@@ -58,6 +72,26 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
           <h1 className="truncate text-lg font-bold text-foreground sm:text-xl md:text-2xl">
             {name}
           </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {syncStatus === "synced" && (
+              <Badge variant="success" className="gap-1">
+                <CheckCircle2Icon className="h-3 w-3" />
+                Синхронизировано
+              </Badge>
+            )}
+            {syncStatus === "syncing" && (
+              <Badge variant="info" className="gap-1">
+                <RefreshCwIcon className="h-3 w-3 animate-spin" />
+                Сохранение в фоне
+              </Badge>
+            )}
+            {syncStatus === "error" && (
+              <Badge variant="warning" className="gap-1">
+                <AlertTriangleIcon className="h-3 w-3" />
+                Не сохранено на сервере
+              </Badge>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -91,6 +125,20 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
             <CheckIcon className="h-4 w-4" />
             Завершить
           </Button>
+          {syncStatus === "error" && (
+            <Button
+              onClick={onRetrySync}
+              size="sm"
+              variant="secondary"
+              className="gap-2"
+              disabled={isRetryingSync}
+            >
+              <RefreshCwIcon
+                className={`h-4 w-4 ${isRetryingSync ? "animate-spin" : ""}`}
+              />
+              Повторить отправку
+            </Button>
+          )}
         </div>
       </div>
       <ModalDelete

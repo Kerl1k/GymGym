@@ -1,29 +1,21 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingHistoryStore } from "./training-history.store";
 
 export function useActiveTrainingDelete() {
-  const queryClient = useQueryClient();
-  const deleteExercisesMutation = rqClient.useMutation(
-    "delete",
-    "/api/training-history/{id}",
-    {
-      onSettled: async () => {
-        await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/training-history"),
-        );
-      },
-    },
-  );
+  const deleteExercises = useCallback(async (exerciseId: string) => {
+    await trainingHistoryStore.remove(exerciseId);
+  }, []);
+
+  const { deletingId } = useMobxSelector(() => ({
+    deletingId: trainingHistoryStore.deletingId,
+  }));
 
   return {
-    deleteExercises: (exerciseId: string) =>
-      deleteExercisesMutation.mutate({
-        params: { path: { id: exerciseId } },
-      }),
-    isPending: deleteExercisesMutation.isPending,
-    getIsPending: (exerciseId: string) =>
-      deleteExercisesMutation.isPending &&
-      deleteExercisesMutation.variables?.params?.path?.id === exerciseId,
+    deleteExercises,
+    isPending: deletingId !== null,
+    getIsPending: (exerciseId: string) => deletingId === exerciseId,
   };
 }

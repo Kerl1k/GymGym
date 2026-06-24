@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Calendar, Clock, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -11,6 +12,7 @@ import { Button } from "@/shared/ui/kit/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -125,6 +127,9 @@ export const TrainingHistory = () => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Выберите упражнение</DialogTitle>
+                <DialogDescription className="sr-only">
+                  Выберите упражнение для фильтрации истории тренировок
+                </DialogDescription>
               </DialogHeader>
               <Input
                 value={exerciseSearch}

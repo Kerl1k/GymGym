@@ -29,26 +29,6 @@ export async function showRestTimerDoneNotification(): Promise<void> {
   };
 
   try {
-    if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      const readyReg = reg ?? (await navigator.serviceWorker.ready);
-
-      if (readyReg.active) {
-        readyReg.active.postMessage({
-          type: "SHOW_REST_NOTIFICATION",
-          title,
-          options,
-        });
-        return;
-      }
-      await readyReg.showNotification(title, options);
-      return;
-    }
-  } catch {
-    /* fallback */
-  }
-
-  try {
     new Notification(title, options);
   } catch {
     /* ignore */

@@ -1,27 +1,20 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { activeTrainingStore } from "./active-training.store";
 
 export function useCancelActiveTraining() {
-  const queryClient = useQueryClient();
-  const cancelActiveTraining = rqClient.useMutation(
-    "post",
-    "/api/active-training/cancel",
-    {
-      onSettled: async () => {
-        await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/active-training"),
-        );
-      },
-    },
-  );
+  const cancel = useCallback(async () => {
+    await activeTrainingStore.cancel();
+  }, []);
 
-  const cancel = async () => {
-    await cancelActiveTraining.mutateAsync({});
-  };
+  const { isPending } = useMobxSelector(() => ({
+    isPending: activeTrainingStore.isCancelling,
+  }));
 
   return {
     cancel,
-    isPending: cancelActiveTraining.isPending,
+    isPending,
   };
 }

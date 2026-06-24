@@ -1,28 +1,20 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingStore } from "./training.store";
 
 export function useDeleteTraining() {
-  const queryClient = useQueryClient();
-  const deleteTrainingMutation = rqClient.useMutation(
-    "delete",
-    "/api/training/{id}",
-    {
-      onSettled: async () => {
-        await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/training"),
-        );
-      },
-    },
-  );
+  const deleteTraining = useCallback(async (trainingId: string) => {
+    await trainingStore.remove(trainingId);
+  }, []);
+
+  const { deletingId } = useMobxSelector(() => ({
+    deletingId: trainingStore.deletingId,
+  }));
 
   return {
-    deleteTraining: (trainingId: string) =>
-      deleteTrainingMutation.mutate({
-        params: { path: { id: trainingId } },
-      }),
-    getIsPending: (trainingId: string) =>
-      deleteTrainingMutation.isPending &&
-      deleteTrainingMutation.variables?.params?.path?.id === trainingId,
+    deleteTraining,
+    getIsPending: (trainingId: string) => deletingId === trainingId,
   };
 }

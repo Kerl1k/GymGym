@@ -1,12 +1,19 @@
-import { useState, useEffect, FC, useCallback, useRef } from "react";
+import { useState, useEffect, FC, useCallback, useRef, useMemo } from "react";
 
 
 import { useNavigate } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import {
+  clearActiveTrainingDraft,
+  readActiveTrainingDraft,
+  writeActiveTrainingDraft,
+} from "@/entities/training-active/active-training-cache";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
+import { useLatestTrainingHistoryByName } from "@/entities/training-history/use-latest-training-history-by-name";
 import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
+import { showRestTimerDoneNotification } from "@/shared/lib/restTimerNotification";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
@@ -24,25 +31,15 @@ import { ExercisesSidebar } from "./ExercisesSidebar";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { RestTimer } from "./RestTimer";
 
-function hasSetsStructureChanged(
-  prev: ApiSchemas["ActiveTraining"],
-  next: ApiSchemas["ActiveTraining"],
-) {
-  if (prev.exercises.length !== next.exercises.length) return true;
-
-  return prev.exercises.some((prevExercise, index) => {
-    const nextExercise = next.exercises[index];
-    if (!nextExercise) return true;
-    if (prevExercise.id !== nextExercise.id) return true;
-    return prevExercise.sets.length !== nextExercise.sets.length;
-  });
-}
+type TrainingSyncStatus = "synced" | "syncing" | "error";
+const SYNC_DEBOUNCE_MS = 1200;
+const AUTO_RETRY_MS = 15000;
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
 }> = ({ data }) => {
   const { end } = useEndActiveTraining();
-  const { change, isPending } = useUpdateActiveTraining();
+  const { change } = useUpdateActiveTraining();
 
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
@@ -55,21 +52,35 @@ export const ActiveTrainingContent: FC<{
     {},
   );
 
+  const cachedDraft = readActiveTrainingDraft();
+  const initialData =
+    cachedDraft && cachedDraft.data.dateStart === data.dateStart
+      ? cachedDraft.data
+      : data;
+
   const [trainingData, setTrainingData] =
-    useState<ApiSchemas["ActiveTraining"]>(data);
+    useState<ApiSchemas["ActiveTraining"]>(initialData);
   const [prevExercise, setPrevExercise] = useState(
-    data.exercises[0]?.sets || [],
+    initialData.exercises[0]?.sets || [],
   );
   const [isResting, setIsResting] = useState(false);
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<
     number | null
   >(null);
+  const [syncStatus, setSyncStatus] = useState<TrainingSyncStatus>(() =>
+    cachedDraft && !cachedDraft.isSynced ? "error" : "synced",
+  );
+  const [isRetryingSync, setIsRetryingSync] = useState(false);
+  const { latestHistory } = useLatestTrainingHistoryByName({
+    trainingName: trainingData.name,
+  });
 
-  const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(data);
+  const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(initialData);
   const syncChainRef = useRef<Promise<void>>(Promise.resolve());
   const pendingRestMsRef = useRef<number>(0);
-  const setsSyncTimeoutRef = useRef<number | null>(null);
-  const hasPendingSetsSyncRef = useRef(false);
+  const syncTimeoutRef = useRef<number | null>(null);
+  const hasPendingSyncRef = useRef(false);
+  const hasHydratedCacheRef = useRef(false);
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
   const activeExerciseIndex = selectedExerciseIndex ?? indexCurrentExercise;
@@ -77,43 +88,78 @@ export const ActiveTrainingContent: FC<{
   const isViewingPastExercise =
     selectedExerciseIndex !== null &&
     selectedExerciseIndex !== indexCurrentExercise;
+  const previousSetsByExerciseName = useMemo(() => {
+    const grouped = new Map<string, ApiSchemas["Set"][]>();
+    if (!latestHistory?.exercises) return grouped;
+
+    latestHistory.exercises.forEach((exercise) => {
+      grouped.set(exercise.name, exercise.sets ?? []);
+    });
+
+    return grouped;
+  }, [latestHistory]);
+  const previousSetsForActiveExercise = activeExercise
+    ? previousSetsByExerciseName.get(activeExercise.name) ?? []
+    : [];
 
   useEffect(() => {
     latestTrainingRef.current = trainingData;
   }, [trainingData]);
 
-  const scheduleSetsSync = useCallback(
-    (snapshot: ApiSchemas["ActiveTraining"]) => {
-      latestTrainingRef.current = snapshot;
-      hasPendingSetsSyncRef.current = true;
-
-      if (setsSyncTimeoutRef.current !== null) {
-        window.clearTimeout(setsSyncTimeoutRef.current);
-      }
-
-      setsSyncTimeoutRef.current = window.setTimeout(() => {
-        hasPendingSetsSyncRef.current = false;
-        setsSyncTimeoutRef.current = null;
-        const latestSnapshot = latestTrainingRef.current;
-        syncChainRef.current = syncChainRef.current.then(() =>
-          change(latestSnapshot),
-        );
-      }, 2000);
-    },
-    [change],
-  );
-
   const flushTrainingSync = useCallback(async () => {
-    if (!hasPendingSetsSyncRef.current) return;
-    hasPendingSetsSyncRef.current = false;
-    if (setsSyncTimeoutRef.current !== null) {
-      window.clearTimeout(setsSyncTimeoutRef.current);
-      setsSyncTimeoutRef.current = null;
+    if (!hasPendingSyncRef.current) return;
+
+    hasPendingSyncRef.current = false;
+    if (syncTimeoutRef.current !== null) {
+      window.clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
     }
+
     const snapshot = latestTrainingRef.current;
-    syncChainRef.current = syncChainRef.current.then(() => change(snapshot));
+    setSyncStatus("syncing");
+
+    syncChainRef.current = syncChainRef.current.then(async () => {
+      try {
+        await change(snapshot);
+
+        if (latestTrainingRef.current === snapshot && !hasPendingSyncRef.current) {
+          setSyncStatus("synced");
+          writeActiveTrainingDraft(snapshot, true);
+          clearActiveTrainingDraft();
+        }
+      } catch {
+        hasPendingSyncRef.current = true;
+        setSyncStatus("error");
+        writeActiveTrainingDraft(snapshot, false);
+      }
+    });
+
     await syncChainRef.current;
   }, [change]);
+
+  const scheduleTrainingSync = useCallback(
+    (snapshot: ApiSchemas["ActiveTraining"], immediate = false) => {
+      latestTrainingRef.current = snapshot;
+      hasPendingSyncRef.current = true;
+      setSyncStatus("syncing");
+      writeActiveTrainingDraft(snapshot, false);
+
+      if (syncTimeoutRef.current !== null) {
+        window.clearTimeout(syncTimeoutRef.current);
+      }
+
+      if (immediate) {
+        void flushTrainingSync();
+        return;
+      }
+
+      syncTimeoutRef.current = window.setTimeout(() => {
+        syncTimeoutRef.current = null;
+        void flushTrainingSync();
+      }, SYNC_DEBOUNCE_MS);
+    },
+    [flushTrainingSync],
+  );
 
   const addExercise = (exerciseId: string) => {
     const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
@@ -194,31 +240,9 @@ export const ActiveTrainingContent: FC<{
   const scheduleRestNotification = useCallback(async (delayMs: number) => {
     if (delayMs <= 0) return;
 
-    try {
-      if (!("serviceWorker" in navigator)) return;
-      const reg = await navigator.serviceWorker.getRegistration();
-      const readyReg = reg ?? (await navigator.serviceWorker.ready);
-
-      const NOTIFICATION_TAG = "gym-rest-timer";
-      const title = "Отдых окончен";
-      const body = "Можно приступать к следующему подходу.";
-      const options: NotificationOptions = {
-        body,
-        tag: NOTIFICATION_TAG,
-        requireInteraction: true,
-      };
-
-      if (readyReg.active) {
-        readyReg.active.postMessage({
-          type: "SCHEDULE_REST_NOTIFICATION",
-          title,
-          options,
-          delayMs,
-        });
-      }
-    } catch {
-      /* fallback */
-    }
+    window.setTimeout(() => {
+      void showRestTimerDoneNotification();
+    }, delayMs);
   }, []);
 
   const handleAfterNotedWeightClose = useCallback(() => {
@@ -234,6 +258,7 @@ export const ActiveTrainingContent: FC<{
   const finishTraining = async () => {
     await flushTrainingSync();
     const historyId = await end();
+    clearActiveTrainingDraft();
     navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
   };
 
@@ -242,30 +267,67 @@ export const ActiveTrainingContent: FC<{
   ) => {
     setTrainingData((prev) => {
       const next = typeof value === "function" ? value(prev) : value;
-      latestTrainingRef.current = next;
-      if (hasSetsStructureChanged(prev, next)) {
-        scheduleSetsSync(next);
-      }
+      scheduleTrainingSync(next);
       return next;
     });
   };
 
   useEffect(() => {
-    hasPendingSetsSyncRef.current = false;
-    if (setsSyncTimeoutRef.current !== null) {
-      window.clearTimeout(setsSyncTimeoutRef.current);
-      setsSyncTimeoutRef.current = null;
+    if (hasHydratedCacheRef.current) {
+      if (data.dateStart === latestTrainingRef.current.dateStart) return;
+      hasPendingSyncRef.current = false;
+      setSyncStatus("synced");
+      clearActiveTrainingDraft();
+      setTrainingData(data);
+      latestTrainingRef.current = data;
+      return;
     }
+
+    hasHydratedCacheRef.current = true;
+    const draft = readActiveTrainingDraft();
+    if (draft && draft.data.dateStart === data.dateStart) {
+      setTrainingData(draft.data);
+      latestTrainingRef.current = draft.data;
+      if (!draft.isSynced) {
+        hasPendingSyncRef.current = true;
+        setSyncStatus("error");
+        void flushTrainingSync();
+      } else {
+        setSyncStatus("synced");
+      }
+      return;
+    }
+
     setTrainingData(data);
-  }, [data]);
+    latestTrainingRef.current = data;
+  }, [data, flushTrainingSync]);
 
   useEffect(() => {
     return () => {
-      if (setsSyncTimeoutRef.current !== null) {
-        window.clearTimeout(setsSyncTimeoutRef.current);
+      if (syncTimeoutRef.current !== null) {
+        window.clearTimeout(syncTimeoutRef.current);
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (syncStatus !== "error") return;
+
+    const timer = window.setInterval(() => {
+      void flushTrainingSync();
+    }, AUTO_RETRY_MS);
+
+    return () => window.clearInterval(timer);
+  }, [flushTrainingSync, syncStatus]);
+
+  const handleRetrySync = useCallback(async () => {
+    setIsRetryingSync(true);
+    try {
+      await flushTrainingSync();
+    } finally {
+      setIsRetryingSync(false);
+    }
+  }, [flushTrainingSync]);
 
   useEffect(() => {
     if (selectedExerciseIndex === null) return;
@@ -279,9 +341,7 @@ export const ActiveTrainingContent: FC<{
     return (
       <div className="flex items-center justify-center h-full">
         <Loader size="large" />
-        <span className="ml-4">
-          {isPending ? "Сохранение изменений" : "Идет завершение тренировки"}
-        </span>
+        <span className="ml-4">Идет завершение тренировки</span>
       </div>
     );
   }
@@ -295,6 +355,9 @@ export const ActiveTrainingContent: FC<{
               name={trainingData.name}
               exerciseId={activeExercise?.id}
               finishTraining={finishTraining}
+              syncStatus={syncStatus}
+              onRetrySync={handleRetrySync}
+              isRetryingSync={isRetryingSync}
             />
             {/* <div className={styles.progressSection}>
               <div className={styles.progressText}>
@@ -312,6 +375,7 @@ export const ActiveTrainingContent: FC<{
                   setTraining={setTrainingWrapper}
                   onCompleteSet={handleSetCompletion}
                   showCompleteButton={!isViewingPastExercise}
+                  previousSets={previousSetsForActiveExercise}
                 />
               )}
               {isResting && (
@@ -364,6 +428,7 @@ export const ActiveTrainingContent: FC<{
           onAfterClose={handleAfterNotedWeightClose}
           currentExercise={activeExercise}
           initialData={prevExercise}
+          previousSets={previousSetsForActiveExercise}
           isOpen={isOpen}
           completeSet={completeSet}
         />

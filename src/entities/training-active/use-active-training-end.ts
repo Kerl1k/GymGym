@@ -1,31 +1,20 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 
-import { rqClient } from "@/entities/instance";
-import { ApiSchemas } from "@/shared/schema";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { activeTrainingStore } from "./active-training.store";
 
 export function useEndActiveTraining() {
-  const queryClient = useQueryClient();
-  const endActiveTraining = rqClient.useMutation(
-    "post",
-    "/api/active-training/end",
-    {
-      onSettled: async () => {
-        await queryClient.invalidateQueries(
-          rqClient.queryOptions("get", "/api/active-training"),
-        );
-      },
-    },
-  );
+  const end = useCallback(async (): Promise<string> => {
+    return activeTrainingStore.end();
+  }, []);
 
-  const end = async (): Promise<string> => {
-    const result = await endActiveTraining.mutateAsync({});
-
-    const trainingHistory = result as ApiSchemas["TrainingHistory"];
-    return trainingHistory.id;
-  };
+  const { isPending } = useMobxSelector(() => ({
+    isPending: activeTrainingStore.isEnding,
+  }));
 
   return {
     end,
-    isPending: endActiveTraining.isPending,
+    isPending,
   };
 }

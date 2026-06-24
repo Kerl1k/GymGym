@@ -1,28 +1,25 @@
-import { rqClient } from "@/entities/instance";
+import { useCallback } from "react";
+
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingHistoryStore } from "./training-history.store";
 
 export function useTrainingHistoryRepeat() {
-  const { mutate, isPending } = rqClient.useMutation(
-    "post",
-    "/api/active-training/repeat",
-  );
-
-  const repeatTraining = async (
+  const repeatTraining = useCallback(async (
     trainingHistoryId: string,
     dateStart: string,
   ) => {
     try {
-      const response = await mutate({
-        body: {
-          trainingHistoryId,
-          dateStart,
-        },
-      });
-      return response;
+      await trainingHistoryStore.repeatTraining(trainingHistoryId, dateStart);
     } catch (error) {
       console.error("Failed to repeat training:", error);
       throw error;
     }
-  };
+  }, []);
+
+  const { isPending } = useMobxSelector(() => ({
+    isPending: trainingHistoryStore.repeatPending,
+  }));
 
   return {
     repeatTraining,

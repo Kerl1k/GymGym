@@ -1,13 +1,18 @@
-import { rqClient } from "@/entities/instance";
+import { useEffect } from "react";
+
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingStore } from "./training.store";
 
 export function useTrainingFetchId(trainingId: string) {
-  const { data, isPending } = rqClient.useQuery("get", "/api/training/{id}", {
-    params: {
-      path: {
-        id: trainingId,
-      },
-    },
-  });
+  useEffect(() => {
+    void trainingStore.fetchById(trainingId);
+  }, [trainingId]);
+
+  const { data, isPending } = useMobxSelector(() => ({
+    data: trainingStore.getById(trainingId),
+    isPending: trainingStore.isByIdLoading(trainingId),
+  }));
 
   if (data === undefined) {
     return {

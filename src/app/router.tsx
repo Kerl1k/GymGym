@@ -8,6 +8,7 @@ import { Providers } from "./providers";
 
 export const router = createBrowserRouter([
   {
+    hydrateFallbackElement: <></>,
     element: (
       <Providers>
         <App />

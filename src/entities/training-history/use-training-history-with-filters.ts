@@ -1,4 +1,8 @@
-import { rqClient } from "@/entities/instance";
+import { useEffect, useMemo } from "react";
+
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
+
+import { trainingHistoryStore } from "./training-history.store";
 
 type FetchTrainingHistoryWithFiltersProps = {
   limit?: number;
@@ -17,7 +21,10 @@ export function useFetchTrainingHistoryWithFilters({
   exerciseName,
   dateFrom,
 }: FetchTrainingHistoryWithFiltersProps) {
-  const orderBy = sort ? { [sort]: sortDirection } : undefined;
+  const orderBySerialized = useMemo(
+    () => JSON.stringify(sort ? { [sort]: sortDirection } : undefined),
+    [sort, sortDirection],
+  );
   const where =
     exerciseName || dateFrom
       ? JSON.stringify({
@@ -43,23 +50,28 @@ export function useFetchTrainingHistoryWithFilters({
         })
       : undefined;
 
-  const { data, isPending } = rqClient.useQuery(
-    "get",
-    "/api/training-history",
-    {
-      params: {
-        query: {
-          limit: limit,
-          page: page,
-          orderBy: JSON.stringify(orderBy),
-          where,
-        },
-      },
-    },
+  const query = useMemo(
+    () => ({
+      limit: limit,
+      page: page,
+      orderBy: orderBySerialized,
+      where,
+    }),
+    [limit, page, orderBySerialized, where],
   );
 
-  const history = data?.content ?? [];
-  const meta = data?.meta;
+  useEffect(() => {
+    void trainingHistoryStore.fetchList(query);
+  }, [query]);
+
+  const { history, meta, isPending } = useMobxSelector(() => {
+    const data = trainingHistoryStore.getList(query);
+    return {
+      history: data?.content ?? [],
+      meta: data?.meta,
+      isPending: trainingHistoryStore.isListLoading(query),
+    };
+  });
 
   return {
     history,

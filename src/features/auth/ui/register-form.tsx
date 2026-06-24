@@ -27,9 +27,15 @@ const registerSchema = z.object({
     .min(6, "Пароль должен быть не менее 6 символов"),
 });
 
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
 export function RegisterForm() {
-  const form = useForm({
+  const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
   const { errorMessage, isPending, register } = useRegister();
