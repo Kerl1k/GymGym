@@ -9,15 +9,7 @@ import { useDebounce } from "@/shared/lib/useDebounce";
 import { ROUTES } from "@/shared/model/routes";
 import type { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/kit/dialog";
-import { Input } from "@/shared/ui/kit/input";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import {
   Select,
   SelectContent,
@@ -41,7 +33,6 @@ export const TrainingHistory = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState("10");
   const [exerciseFilter, setExerciseFilter] = useState("");
-  const [exerciseSearch, setExerciseSearch] = useState("");
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [period, setPeriod] = useState<PeriodKey>("all");
@@ -51,13 +42,6 @@ export const TrainingHistory = () => {
   });
   const debouncedExerciseFilter = useDebounce(exerciseFilter, 500);
   const normalizedExerciseFilter = debouncedExerciseFilter.trim();
-  const normalizedExerciseSearch = exerciseSearch.trim().toLowerCase();
-  const visibleExercises = useMemo(() => {
-    if (!normalizedExerciseSearch) return exercises;
-    return exercises.filter((exercise) =>
-      exercise.name.toLowerCase().includes(normalizedExerciseSearch),
-    );
-  }, [exercises, normalizedExerciseSearch]);
   const dateFrom = useMemo(() => {
     const periodOption = PERIOD_OPTIONS.find((option) => option.key === period);
     if (!periodOption?.days) return undefined;
@@ -102,6 +86,12 @@ export const TrainingHistory = () => {
     return `${totalSets} подходов`;
   };
 
+  const handleExerciseSelect = (exerciseId: string) => {
+    const selected = exercises.find((exercise) => exercise.id === exerciseId);
+    if (!selected) return;
+    setExerciseFilter(selected.name);
+  };
+
   return (
     <div className={styles.trainingHistoryPage}>
       <div className={styles.header}>
@@ -115,62 +105,24 @@ export const TrainingHistory = () => {
 
       <div className={styles.filters}>
         <div className={styles.exerciseFilterControl}>
-          <Dialog
-            open={isExerciseModalOpen}
-            onOpenChange={setIsExerciseModalOpen}
+          <Button
+            variant="outline"
+            className={styles.exerciseFilterButton}
+            onClick={() => setIsExerciseModalOpen(true)}
           >
-            <DialogTrigger asChild>
-              <Button variant="outline" className={styles.exerciseFilterButton}>
-                {exerciseFilter || "Выбрать упражнение"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Выберите упражнение</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Выберите упражнение для фильтрации истории тренировок
-                </DialogDescription>
-              </DialogHeader>
-              <Input
-                value={exerciseSearch}
-                onChange={(event) => setExerciseSearch(event.target.value)}
-                placeholder="Поиск упражнения"
-              />
-              <div className={styles.exerciseModalList}>
-                <button
-                  type="button"
-                  className={styles.exerciseModalItem}
-                  onClick={() => {
-                    setExerciseFilter("");
-                    setIsExerciseModalOpen(false);
-                  }}
-                >
-                  Все упражнения
-                </button>
-                {isExercisesPending ? (
-                  <div className={styles.exerciseModalEmpty}>Загрузка...</div>
-                ) : visibleExercises.length === 0 ? (
-                  <div className={styles.exerciseModalEmpty}>
-                    Ничего не найдено
-                  </div>
-                ) : (
-                  visibleExercises.map((exercise) => (
-                    <button
-                      key={exercise.id}
-                      type="button"
-                      className={styles.exerciseModalItem}
-                      onClick={() => {
-                        setExerciseFilter(exercise.name);
-                        setIsExerciseModalOpen(false);
-                      }}
-                    >
-                      {exercise.name}
-                    </button>
-                  ))
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+            {exerciseFilter || "Выбрать упражнение"}
+          </Button>
+
+          <ExerciseSelectModal
+            exercises={exercises}
+            onSelect={handleExerciseSelect}
+            isOpen={isExerciseModalOpen}
+            close={() => setIsExerciseModalOpen(false)}
+            isLoading={isExercisesPending}
+            searchPlaceholder="Поиск упражнения"
+            includeAllOption
+            onSelectAll={() => setExerciseFilter("")}
+          />
           {exerciseFilter && (
             <Button
               variant="ghost"

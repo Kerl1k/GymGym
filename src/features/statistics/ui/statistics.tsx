@@ -20,14 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/kit/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/kit/dialog";
+import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import {
   Select,
   SelectContent,
@@ -97,7 +90,9 @@ export const Statistics = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [range, setRange] = useState<RangeKey>("30d");
 
-  const { exercises } = useExercisesFetchList({});
+  const { exercises, isPending: isExercisesPending } = useExercisesFetchList(
+    {},
+  );
   const { history: filteredHistory, isPending } =
     useFetchTrainingHistoryWithFilters({
       sort: "dateStart",
@@ -126,12 +121,15 @@ export const Statistics = () => {
     const map = new Map<string, UnitOption>();
 
     for (const training of historyInRange) {
-      const exercise = training.exercises.find((ex) => ex.name === selectedExercise);
+      const exercise = training.exercises.find(
+        (ex) => ex.name === selectedExercise,
+      );
       if (!exercise?.sets?.length) continue;
 
       for (const set of exercise.sets) {
-        const units = (set as { units?: Array<{ name?: string; value?: unknown }> })
-          .units;
+        const units = (
+          set as { units?: Array<{ name?: string; value?: unknown }> }
+        ).units;
         if (!units?.length) continue;
 
         units.forEach((u, unitIndex) => {
@@ -166,8 +164,9 @@ export const Statistics = () => {
 
         const values = exercise.sets
           .map((s) => {
-            const units = (s as { units?: Array<{ name?: string; value?: unknown }> })
-              .units;
+            const units = (
+              s as { units?: Array<{ name?: string; value?: unknown }> }
+            ).units;
             const raw = unit.name
               ? units?.find((u) => u?.name === unit.name)?.value
               : units?.[unit.unitIndex]?.value;
@@ -198,10 +197,7 @@ export const Statistics = () => {
     const trainingsCount = progressPoints.length;
     const totalSets = progressPoints.reduce((acc, p) => acc + p.setsCount, 0);
     const metricValues = progressPoints.map((p) => p[selectedMetric]);
-    const bestValue =
-      trainingsCount > 0
-        ? Math.max(...metricValues)
-        : 0;
+    const bestValue = trainingsCount > 0 ? Math.max(...metricValues) : 0;
     const lastValue =
       trainingsCount > 0 ? metricValues[trainingsCount - 1]! : 0;
     const firstValue = trainingsCount > 0 ? metricValues[0]! : 0;
@@ -225,8 +221,10 @@ export const Statistics = () => {
     [progressPoints, selectedMetric],
   );
 
-  const handleExerciseSelect = (exerciseName: string) => {
-    setSelectedExercise(exerciseName);
+  const handleExerciseSelect = (exerciseId: string) => {
+    const selected = exercises.find((exercise) => exercise.id === exerciseId);
+    if (!selected) return;
+    setSelectedExercise(selected.name);
     setSelectedUnitKey(null);
     setIsModalOpen(false);
   };
@@ -261,33 +259,23 @@ export const Statistics = () => {
             </SelectContent>
           </Select>
 
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="w-full sm:w-auto">
-                {selectedExercise ? selectedExercise : "Выбрать упражнение"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Выберите упражнение</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Выберите упражнение для отображения статистики прогресса
-                </DialogDescription>
-              </DialogHeader>
-              <div className="max-h-72 overflow-y-auto border border-border rounded-md">
-                {exercises.map((exercise) => (
-                  <button
-                    key={exercise.id}
-                    type="button"
-                    className="w-full text-left p-2 hover:bg-accent rounded-md cursor-pointer transition-colors"
-                    onClick={() => handleExerciseSelect(exercise.name)}
-                  >
-                    {exercise.name}
-                  </button>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => setIsModalOpen(true)}
+          >
+            {selectedExercise ? selectedExercise : "Выбрать упражнение"}
+          </Button>
+
+          <ExerciseSelectModal
+            exercises={exercises}
+            onSelect={handleExerciseSelect}
+            isOpen={isModalOpen}
+            close={() => setIsModalOpen(false)}
+            isLoading={isExercisesPending}
+            searchPlaceholder="Поиск упражнения"
+          />
 
           {selectedExercise && availableUnits.length > 0 && (
             <Select
@@ -336,7 +324,9 @@ export const Statistics = () => {
           <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-2 md:gap-3">
             <Card className="w-full gap-2 py-3">
               <CardHeader className="px-4 pb-1">
-                <CardDescription className="text-xs">Тренировки</CardDescription>
+                <CardDescription className="text-xs">
+                  Тренировки
+                </CardDescription>
                 <CardTitle className="text-xl">
                   {summary.trainingsCount}
                 </CardTitle>
@@ -358,9 +348,13 @@ export const Statistics = () => {
 
             <Card className="w-full gap-2 py-3">
               <CardHeader className="px-4 pb-1">
-                <CardDescription className="text-xs">Лучшее значение</CardDescription>
+                <CardDescription className="text-xs">
+                  Лучшее значение
+                </CardDescription>
                 <CardTitle className="text-xl">
-                  {summary.bestValue ? `${summary.bestValue}${unitSuffix}` : "—"}
+                  {summary.bestValue
+                    ? `${summary.bestValue}${unitSuffix}`
+                    : "—"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-4 text-xs text-muted-foreground">
@@ -386,9 +380,7 @@ export const Statistics = () => {
           <Card>
             <CardHeader className="gap-1">
               <CardTitle>График прогресса</CardTitle>
-              <CardDescription>
-                {selectedMetricMeta.hint}
-              </CardDescription>
+              <CardDescription>{selectedMetricMeta.hint}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-64 md:h-80 min-w-0">

@@ -1,10 +1,11 @@
-import { FC, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 
 import {
   SearchIcon,
   FilterIcon,
   ArrowUpDownIcon,
   DumbbellIcon,
+  ChevronRightIcon,
 } from "lucide-react";
 
 import { MUSCLE_GROUPS, getMuscleGroupColor } from "@/shared/lib/utils";
@@ -28,6 +29,10 @@ type ExerciseSelectModalProps = {
   isLoading?: boolean;
   close: () => void;
   isOpen: boolean;
+  searchPlaceholder?: string;
+  includeAllOption?: boolean;
+  allOptionLabel?: string;
+  onSelectAll?: () => void;
 };
 
 export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
@@ -36,35 +41,57 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
   isOpen,
   close,
   isLoading = false,
+  searchPlaceholder = "Найти упражнение...",
+  includeAllOption = false,
+  allOptionLabel = "Все упражнения",
+  onSelectAll,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<"all" | string>("all");
-  const sortBy = "name";
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
-  const filteredExercises = exercises
-    .filter((exercise) => {
-      if (selectedType === "all") return true;
-      return exercise.muscleGroups?.some((group) =>
-        group.toLowerCase().includes(selectedType.toLowerCase()),
-      );
-    })
-    .sort((a, b) => {
-      if (sortBy === "name") {
-        return sortDirection === "asc"
-          ? a.name.localeCompare(b.name)
-          : b.name.localeCompare(a.name);
-      } else {
-        const aType = a.muscleGroups?.[0] || "other";
-        const bType = b.muscleGroups?.[0] || "other";
-        return sortDirection === "asc"
-          ? aType.localeCompare(bType)
-          : bType.localeCompare(aType);
-      }
-    });
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery("");
+      setSelectedType("all");
+    }
+  }, [isOpen]);
+
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+  const filteredExercises = useMemo(
+    () =>
+      exercises
+        .filter((exercise) => {
+          if (
+            normalizedSearch &&
+            !exercise.name.toLowerCase().includes(normalizedSearch)
+          ) {
+            return false;
+          }
+
+          if (selectedType === "all") return true;
+          return exercise.muscleGroups?.some((group) =>
+            group.toLowerCase().includes(selectedType.toLowerCase()),
+          );
+        })
+        .sort((a, b) =>
+          sortDirection === "asc"
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name),
+        ),
+    [exercises, normalizedSearch, selectedType, sortDirection],
+  );
 
   const handleSelect = (exerciseId: string) => {
     onSelect(exerciseId);
     close();
+  };
+
+  const handleSelectAll = () => {
+    if (onSelectAll) {
+      onSelectAll();
+      close();
+    }
   };
 
   const toggleSortDirection = () => {
@@ -79,21 +106,22 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
     <Modal
       isOpen={isOpen}
       close={close}
-      className="max-w-[95vw] w-full sm:max-w-2xl md:max-w-3xl"
-      title=" Выбор упражнения"
+      className="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-0 gap-0 sm:max-w-2xl md:max-w-3xl"
       disableAutoFocus
     >
-      <div className="p-4 sm:p-6 border-b border-border bg-card">
-        <div className="flex flex-col gap-3">
+      <div className="border-b border-border bg-card px-6 py-6 sm:px-8 sm:py-7">
+        <div className="flex flex-col gap-4">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Найти упражнение..."
-              className="pl-10 pr-4 py-2 h-10 text-sm sm:text-base"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder={searchPlaceholder}
+              className="pl-9 pr-3 py-1.5 h-8 text-sm"
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap gap-2.5 items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-9 px-3 py-2 text-sm">
@@ -123,7 +151,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
               className="h-9 px-3 py-2 text-sm"
             >
               <ArrowUpDownIcon className="h-3.5 w-3.5 mr-2" />
-              {sortBy === "name" ? "По названию" : "По типу"}
+              По названию
               {sortDirection === "asc" ? " ↑" : " ↓"}
             </Button>
 
@@ -140,9 +168,9 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden bg-card">
+      <div className="min-h-0 flex-1 overflow-hidden bg-card">
         {isLoading ? (
-          <div className="space-y-3 p-4 h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="space-y-3 px-5 pb-5 pt-5 sm:px-7 sm:pb-7">
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -157,14 +185,28 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
             ))}
           </div>
         ) : (
-          <ScrollArea className="h-[calc(100vh-350px)] w-full p-2 sm:p-3">
-            <div className="space-y-2">
+          <ScrollArea className="h-[min(60vh,32rem)] w-full px-3 pb-3 sm:px-4 sm:pb-4">
+            <div className="space-y-2.5">
+              {includeAllOption && onSelectAll && (
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="w-full p-4 bg-muted/50 hover:bg-muted/80 transition-colors duration-200 rounded-lg border border-border flex items-center gap-3"
+                >
+                  <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center">
+                    <DumbbellIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm sm:text-base font-medium text-foreground">
+                    {allOptionLabel}
+                  </span>
+                </button>
+              )}
               {filteredExercises.length > 0 ? (
                 filteredExercises.map((exercise) => (
                   <button
                     key={exercise.id}
                     onClick={() => handleSelect(exercise.id)}
-                    className="w-full p-3 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg border border-border flex items-start gap-3 group"
+                    className="w-full p-4 bg-muted/50 hover:bg-muted transition-colors duration-200 rounded-lg border border-border flex items-start gap-3 group"
                   >
                     <div className="flex-shrink-0 w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center">
                       <DumbbellIcon className="h-5 w-5 text-primary" />
@@ -206,7 +248,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
                     </div>
 
                     <div className="flex-shrink-0 ml-1 text-muted-foreground group-hover:text-primary">
-                      <ArrowUpDownIcon className="h-4 w-4" />
+                      <ChevronRightIcon className="h-4 w-4" />
                     </div>
                   </button>
                 ))

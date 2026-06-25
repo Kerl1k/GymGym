@@ -145,19 +145,39 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       initialData && Array.isArray(initialData) && initialData.length > 0
         ? initialData.map((s) => ensureUnitsMinLength(s, 2))
         : [createEmptySetFromExerciseTemplate(currentExercise.sets[0])];
+    const doneSetsCount = currentExercise.sets.filter((set) => set.done).length;
+    const previousSetForFirst =
+      doneSetsCount > 0 ? currentExercise.sets[doneSetsCount - 1] : undefined;
 
-    // Prefill WEIGHT from previous set (for non-first sets).
-    const baseSets = baseSetsRaw.map((s, index, arr) => {
+    // Prefill zero values from previous set in current modal data.
+    const baseSets = baseSetsRaw.reduce<
+      ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
+    >((acc, s, index) => {
       const ensured = ensureUnitsMinLength(s, 2);
-      if (index === 0) return ensured;
+      const previousSource = index > 0 ? acc[index - 1] : previousSetForFirst;
 
-      const curWeight = getUnitValue(ensured, WEIGHT_UNIT_INDEX);
-      if (curWeight !== 0) return ensured;
+      if (!previousSource) {
+        acc.push(ensured);
+        return acc;
+      }
 
-      const prevEnsured = ensureUnitsMinLength(arr[index - 1], 2);
-      const prevWeight = getUnitValue(prevEnsured, WEIGHT_UNIT_INDEX);
-      return setUnitValueAt(ensured, WEIGHT_UNIT_INDEX, prevWeight);
-    });
+      const prevEnsured = ensureUnitsMinLength(previousSource, 2);
+      const unitCount = Math.max(ensured.units.length, prevEnsured.units.length, 2);
+
+      let nextSet = ensureUnitsMinLength(ensured, unitCount);
+      const prevSet = ensureUnitsMinLength(prevEnsured, unitCount);
+
+      for (let unitIndex = 0; unitIndex < unitCount; unitIndex += 1) {
+        const currentValue = getUnitValue(nextSet, unitIndex);
+        if (currentValue !== 0) continue;
+
+        const previousValue = getUnitValue(prevSet, unitIndex);
+        nextSet = setUnitValueAt(nextSet, unitIndex, previousValue);
+      }
+
+      acc.push(nextSet);
+      return acc;
+    }, []);
 
     setSets(baseSets);
 
