@@ -57,8 +57,25 @@ class ExercisesStore {
     try {
       const result = await fetchClient.POST("/api/exercise-type", { body: data });
       if (result.error) throw result.error;
+      const createdExercise = result.data;
       runInAction(() => {
-        this.listByLimit.clear();
+        if (!createdExercise) {
+          return;
+        }
+
+        this.listByLimit.forEach((list, limit) => {
+          if (!list) return;
+
+          const previousContent = list.content ?? [];
+          const contentWithoutCreated = previousContent.filter(
+            (exercise) => exercise.id !== createdExercise.id,
+          );
+
+          this.listByLimit.set(limit, {
+            ...list,
+            content: [createdExercise, ...contentWithoutCreated].slice(0, limit),
+          });
+        });
       });
     } finally {
       runInAction(() => {

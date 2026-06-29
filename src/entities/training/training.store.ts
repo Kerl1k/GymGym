@@ -12,6 +12,16 @@ type TrainingListQuery = {
 
 type TrainingListResponse = { content?: ApiSchemas["Training"][] };
 
+function parseSerializedObject<T extends object>(serialized?: string): T | undefined {
+  if (!serialized) return undefined;
+  try {
+    const parsed = JSON.parse(serialized) as T;
+    return typeof parsed === "object" && parsed !== null ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 class TrainingStore {
   private lists = observable.map<string, TrainingListResponse | undefined>(undefined, {
     deep: false,
@@ -31,6 +41,51 @@ class TrainingStore {
 
   private listKey(query: TrainingListQuery): string {
     return JSON.stringify(query);
+  }
+
+  private matchesListFilter(training: ApiSchemas["Training"], query: TrainingListQuery) {
+    const parsedFilter = parseSerializedObject<{
+      favorite?: boolean;
+      name?: { contains?: string };
+    }>(query.filter);
+
+    if (parsedFilter?.favorite === true && !training.favorite) {
+      return false;
+    }
+
+    const containsName = parsedFilter?.name?.contains?.trim();
+    if (containsName) {
+      return training.name.toLowerCase().includes(containsName.toLowerCase());
+    }
+
+    return true;
+  }
+
+  private sortByOrder(
+    trainings: ApiSchemas["Training"][],
+    query: TrainingListQuery,
+  ): ApiSchemas["Training"][] {
+    const orderBy = parseSerializedObject<Record<string, "asc" | "desc">>(query.orderBy);
+    if (!orderBy) return trainings;
+
+    const [field, direction] =
+      Object.entries(orderBy)[0] ?? (["", "asc"] as [string, "asc" | "desc"]);
+    const directionMultiplier = direction === "desc" ? -1 : 1;
+    const sorted = [...trainings];
+
+    if (field === "name") {
+      sorted.sort((a, b) => a.name.localeCompare(b.name) * directionMultiplier);
+      return sorted;
+    }
+
+    if (field === "favorite") {
+      sorted.sort(
+        (a, b) => (Number(a.favorite) - Number(b.favorite)) * directionMultiplier,
+      );
+      return sorted;
+    }
+
+    return trainings;
   }
 
   getList(query: TrainingListQuery): TrainingListResponse | undefined {
@@ -103,9 +158,33 @@ class TrainingStore {
     try {
       const result = await fetchClient.POST("/api/training", { body: data });
       if (result.error) throw result.error;
+      const createdTraining = result.data;
 
       runInAction(() => {
-        this.lists.clear();
+        if (!createdTraining) {
+          return;
+        }
+
+        this.lists.forEach((list, key) => {
+          if (!list) return;
+
+          const query = parseSerializedObject<TrainingListQuery>(key);
+          if (!query || !this.matchesListFilter(createdTraining, query)) {
+            return;
+          }
+
+          const previousContent = list.content ?? [];
+          const contentWithoutCreated = previousContent.filter(
+            (training) => training.id !== createdTraining.id,
+          );
+          const merged = [createdTraining, ...contentWithoutCreated];
+          const sorted = this.sortByOrder(merged, query);
+
+          this.lists.set(key, {
+            ...list,
+            content: sorted.slice(0, query.limit),
+          });
+        });
       });
     } finally {
       runInAction(() => {
