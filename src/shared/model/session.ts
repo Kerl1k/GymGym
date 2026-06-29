@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import { publicFetchClient } from "../../entities/instance";
+import { setSentryUser } from "../lib/sentry";
 import { useMobxSelector } from "../lib/useMobxSelector";
 
 type Session = {
@@ -32,12 +33,21 @@ class SessionStore {
       localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
     }
     this.accessToken = accessToken;
+
+    const currentSession = this.session;
+    if (currentSession) {
+      setSentryUser({
+        id: currentSession.userId,
+        email: currentSession.email,
+      });
+    }
   }
 
   logout() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     this.accessToken = null;
+    setSentryUser(null);
   }
 
   getRefreshToken() {

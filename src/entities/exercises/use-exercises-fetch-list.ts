@@ -9,17 +9,20 @@ type UseExercisesListParams = {
 };
 
 export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
-  useEffect(() => {
-    void exercisesStore.fetchList(limit);
-  }, [limit]);
-
-  const { exercises, isPending } = useMobxSelector(() => {
+  const { exercises, isPending, hasData } = useMobxSelector(() => {
     const data = exercisesStore.getList(limit);
     return {
       exercises: data?.content ?? [],
       isPending: exercisesStore.isListLoading(limit),
+      hasData: data !== undefined,
     };
   });
+
+  useEffect(() => {
+    if (!hasData) {
+      void exercisesStore.fetchList(limit);
+    }
+  }, [hasData, limit]);
 
   return {
     exercises,

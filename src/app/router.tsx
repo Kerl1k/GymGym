@@ -5,10 +5,12 @@ import { ROUTES } from "../shared/model/routes";
 import { App } from "./app";
 import { protectedLoader, ProtectedRoute } from "./protected-route";
 import { Providers } from "./providers";
+import { RouteErrorBoundary } from "./route-error-boundary";
 
 export const router = createBrowserRouter([
   {
     hydrateFallbackElement: <></>,
+    errorElement: <RouteErrorBoundary />,
     element: (
       <Providers>
         <App />

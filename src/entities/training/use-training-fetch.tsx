@@ -35,17 +35,20 @@ export function useTrainingList({
     [filterSerialized, limit, orderBySerialized],
   );
 
-  useEffect(() => {
-    void trainingStore.fetchList(query);
-  }, [query]);
-
-  const { trainings, isPending } = useMobxSelector(() => {
+  const { trainings, isPending, hasData } = useMobxSelector(() => {
     const data = trainingStore.getList(query);
     return {
       trainings: data?.content ?? [],
       isPending: trainingStore.isListLoading(query),
+      hasData: data !== undefined,
     };
   });
+
+  useEffect(() => {
+    if (!hasData) {
+      void trainingStore.fetchList(query);
+    }
+  }, [hasData, query]);
 
   return {
     trainings,
