@@ -22,8 +22,8 @@ const TrainingStartPage = () => {
 
   const navigate = useNavigate();
 
-  const onSave = (data: ApiSchemas["ActiveTraining"]) => {
-    change(data);
+  const onSave = async (data: ApiSchemas["ActiveTraining"]) => {
+    await change(data);
 
     navigate(ROUTES.ACTIVE_TRAINING);
   };
