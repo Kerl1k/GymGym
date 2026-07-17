@@ -8,7 +8,7 @@ import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { ExercisesCreate } from "./exercisesCreate";
-import { ExercisesListItem } from "./exercoses-list-item/exercoses-list-item";
+import { ExercisesListItem } from "./exercises-list-item/exercises-list-item";
 
 
 

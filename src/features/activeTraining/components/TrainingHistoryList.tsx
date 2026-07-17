@@ -1,4 +1,4 @@
-import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import { useFetchActiveHistory } from "@/entities/training-history/use-active-training-history-fetch";
 import { useTrainingHistoryRepeat } from "@/entities/training-history/use-training-history-repeat";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
@@ -12,7 +12,7 @@ interface TrainingHistoryListProps {
 export const TrainingHistoryList = ({
   onTrainingRepeated,
 }: TrainingHistoryListProps) => {
-  const { history, isPending: isHistoryLoading } = useFetchActiveHistrory({
+  const { history, isPending: isHistoryLoading } = useFetchActiveHistory({
     limit: 3,
     sort: "dateStart",
   });

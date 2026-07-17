@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/shared/ui/kit/dropdown-menu";
 
-import styles from "./exercoses-list-item.module.scss";
+import styles from "./exercises-list-item.module.scss";
 
 interface ExercisesListItemProps {
   exercise: ApiSchemas["ExerciseType"];

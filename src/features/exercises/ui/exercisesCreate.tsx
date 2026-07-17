@@ -11,7 +11,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
-import { TogleAddFavorite } from "@/shared/ui/kit/togleAddFavorite";
+import { ToggleAddFavorite } from "@/shared/ui/kit/toggleAddFavorite";
 
 type ExercisesCreateProps = {
   close: () => void;
@@ -417,10 +417,10 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
               </div>
             </div>
 
-            <TogleAddFavorite
+            <ToggleAddFavorite
               favorite={form.favorite || false}
               handleChange={() => handleChange("favorite", !form.favorite)}
-              discription="Добавляет упражнение в избранное"
+              description="Добавляет упражнение в избранное"
             />
           </div>
         </CardContent>

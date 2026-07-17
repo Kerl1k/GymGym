@@ -4,17 +4,17 @@ import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { trainingHistoryStore } from "./training-history.store";
 
-type FetchActiveHistroryProps = {
+type FetchActiveHistoryProps = {
   limit?: number;
   page?: number;
   sort?: string;
 };
 
-export function useFetchActiveHistrory({
+export function useFetchActiveHistory({
   limit = 10,
   page,
   sort,
-}: FetchActiveHistroryProps) {
+}: FetchActiveHistoryProps) {
   const orderBySerialized = useMemo(
     () => JSON.stringify(sort ? { [sort]: "desc" } : undefined),
     [sort],

@@ -4,7 +4,7 @@ import { User, Calendar, BarChart3 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useFetchProfile } from "@/entities/auth/use-profile-fetch";
-import { useFetchActiveHistrory } from "@/entities/training-history/use-active-training-history-fetch";
+import { useFetchActiveHistory } from "@/entities/training-history/use-active-training-history-fetch";
 import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
 import { ROUTES } from "@/shared/model/routes";
 
@@ -27,10 +27,10 @@ const MONTH_LABELS = [
 
 export const Profile = () => {
   const { profile } = useFetchProfile();
-  const { history: trainingHistory } = useFetchActiveHistrory({
+  const { history: trainingHistory } = useFetchActiveHistory({
     sort: "dateStart",
   });
-  const { history: allTrainingHistory } = useFetchActiveHistrory({
+  const { history: allTrainingHistory } = useFetchActiveHistory({
     sort: "dateStart",
     limit: 500,
   });

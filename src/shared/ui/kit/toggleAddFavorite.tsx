@@ -3,16 +3,16 @@ import { FC } from "react";
 import { Label } from "./label";
 import { Switch } from "./switch";
 
-type TogleAddFavoriteProps = {
+type ToggleAddFavoriteProps = {
   favorite: boolean;
   handleChange: (name: string, value: boolean) => void;
-  discription?: string;
+  description?: string;
 };
 
-export const TogleAddFavorite: FC<TogleAddFavoriteProps> = ({
+export const ToggleAddFavorite: FC<ToggleAddFavoriteProps> = ({
   favorite,
   handleChange,
-  discription,
+  description,
 }) => {
   return (
     <div className="space-y-4 border-t pt-4">
@@ -21,8 +21,8 @@ export const TogleAddFavorite: FC<TogleAddFavoriteProps> = ({
           <Label htmlFor="favorite" className="text-base font-medium">
             Добавить в избранное
           </Label>
-          {discription && (
-            <p className="text-sm text-gray-500">{discription}</p>
+          {description && (
+            <p className="text-sm text-gray-500">{description}</p>
           )}
         </div>
         <Switch

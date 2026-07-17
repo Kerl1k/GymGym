@@ -21,7 +21,7 @@ function trainingListDefaultInit() {
   };
 }
 
-/** Как в `useFetchActiveHistrory({})` */
+/** Как в `useFetchActiveHistory({})` */
 function trainingHistoryDefaultInit() {
   const limit = 10;
   const page = undefined;

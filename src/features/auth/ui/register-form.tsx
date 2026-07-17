@@ -17,9 +17,11 @@ import { PasswordToggle } from "@/shared/ui/kit/password-toggle";
 import { useRegister } from "../../../entities/auth/use-register";
 
 const registerSchema = z.object({
-  email: z.string({
-    required_error: "Логин обязателен",
-  }),
+  email: z
+    .string({
+      required_error: "Логин обязателен",
+    })
+    .email("Некорректный email"),
   password: z
     .string({
       required_error: "Пароль обязателен",

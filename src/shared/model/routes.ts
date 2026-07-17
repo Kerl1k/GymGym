@@ -8,11 +8,6 @@ export const ROUTES = {
   ACTIVE_TRAINING: "/active",
   START: "/start",
   END: "/end/:id",
-
-  profile: "/profile",
-  WORKOUT: "/workout",
-  ACTIVE_WORKOUT: "/workout/active",
-  CREATE_WORKOUT: "/workout/create",
   PROFILE: "/profile",
   TRAINING_HISTORY: "/training-history",
   STATISTICS: "/statistics",
