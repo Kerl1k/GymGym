@@ -5,7 +5,6 @@ import { Outlet, redirect, Navigate } from "react-router-dom";
 import { prefetchProtectedAppData } from "@/entities/prefetch/prefetchProtectedAppData";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
-import { enableMocking } from "@/shared/schema";
 
 export function ProtectedRoute() {
   const { session } = useSession();
@@ -30,8 +29,6 @@ export function ProtectedRoute() {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function protectedLoader() {
-  await enableMocking();
-
   const accessToken = await useSession.getState().refreshToken();
 
   if (!accessToken) {
