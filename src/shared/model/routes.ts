@@ -11,4 +11,6 @@ export const ROUTES = {
   PROFILE: "/profile",
   TRAINING_HISTORY: "/training-history",
   STATISTICS: "/statistics",
+  USERS: "/users",
+  USER: "/users/:id",
 } as const;

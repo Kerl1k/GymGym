@@ -116,6 +116,15 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
               Тренировки
             </Link>
           </Button>
+          <Button
+            variant="ghost"
+            className="justify-start text-sm sm:text-base hover-lift"
+            asChild
+          >
+            <Link to={ROUTES.USERS} onClick={() => setIsMenuOpen(false)}>
+              Пользователи
+            </Link>
+          </Button>
 
           <div className="sm:hidden w-full pt-3 mt-3 border-t border-border/20 flex items-center justify-between gap-3">
             <Button
