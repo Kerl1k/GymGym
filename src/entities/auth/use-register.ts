@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -12,9 +12,15 @@ import { authStore } from "./auth.store";
 export function useRegister() {
   const navigate = useNavigate();
   const session = useSession();
+  const [offlineError, setOfflineError] = useState<string | undefined>();
 
   const register = useCallback(
     async (data: ApiSchemas["AuthRegisterBody"]) => {
+      setOfflineError(undefined);
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setOfflineError("Для регистрации нужен интернет");
+        return;
+      }
       const result = await authStore.register(data);
       if (result?.accessToken) {
         session.login(result.accessToken, result.refreshToken);
@@ -29,11 +35,13 @@ export function useRegister() {
     isPending: authStore.registerPending,
   }));
 
-  const errorMessage = errorCode
-    ? errorCode === "AlreadyExists"
-      ? "Пользователь уже существует"
-      : "Не удалось зарегистрироваться"
-    : undefined;
+  const errorMessage =
+    offlineError ??
+    (errorCode
+      ? errorCode === "AlreadyExists"
+        ? "Пользователь уже существует"
+        : "Не удалось зарегистрироваться"
+      : undefined);
 
   return {
     register,

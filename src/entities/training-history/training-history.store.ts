@@ -62,6 +62,13 @@ class TrainingHistoryStore {
       runInAction(() => {
         this.lists.set(key, result.data ?? { content: [], meta: undefined });
       });
+    } catch {
+      // Offline / flaky network: keep previous cache, don't reject for void callers
+      if (this.lists.get(key) === undefined) {
+        runInAction(() => {
+          this.lists.set(key, { content: [], meta: undefined });
+        });
+      }
     } finally {
       runInAction(() => {
         this.listLoading.set(key, false);

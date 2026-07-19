@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 
-import { MoonIcon, SunIcon, MenuIcon, XIcon } from "lucide-react";
+import { MoonIcon, SunIcon, MenuIcon, XIcon, CloudOffIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { connectivityStore, syncEngine } from "@/entities/offline";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ROUTES } from "@/shared/model/routes";
 import { useSession } from "@/shared/model/session";
+import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 
 type AppHeaderProps = {
@@ -15,6 +18,14 @@ type AppHeaderProps = {
 export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   const { session, logout } = useSession();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const syncBadge = useMobxSelector(() => {
+    if (!connectivityStore.isOnline) return "offline" as const;
+    if (syncEngine.status === "syncing" || syncEngine.pendingCount > 0) {
+      return "syncing" as const;
+    }
+    if (syncEngine.status === "error") return "error" as const;
+    return null;
+  });
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -56,11 +67,35 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border/20 shadow-sm py-4 px-4 sm:px-6 mb-6 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-        <Link to={ROUTES.HOME}>
-          <div className="text-2xl font-bold text-gradient animate-fade-in">
-            ❀ Gym Note ❀
-          </div>
-        </Link>
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <Link to={ROUTES.HOME}>
+            <div className="text-2xl font-bold text-gradient animate-fade-in">
+              ❀ Gym Note ❀
+            </div>
+          </Link>
+          {syncBadge === "offline" && (
+            <Badge variant="warning" className="gap-1 shrink-0">
+              <CloudOffIcon className="h-3 w-3" />
+              Оффлайн
+            </Badge>
+          )}
+          {syncBadge === "syncing" && (
+            <Badge variant="info" className="gap-1 shrink-0">
+              <RefreshCwIcon className="h-3 w-3 animate-spin" />
+              Синхронизация
+            </Badge>
+          )}
+          {syncBadge === "error" && (
+            <Badge
+              variant="warning"
+              className="gap-1 cursor-pointer shrink-0"
+              onClick={() => void syncEngine.flush()}
+            >
+              <RefreshCwIcon className="h-3 w-3" />
+              Ошибка синхронизации
+            </Badge>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"

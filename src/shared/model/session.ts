@@ -2,6 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import { makeAutoObservable, runInAction } from "mobx";
 
 import { publicFetchClient } from "../../entities/instance";
+import { clearOfflineData } from "../../entities/offline/clear";
 import { setSentryUser } from "../lib/sentry";
 import { useMobxSelector } from "../lib/useMobxSelector";
 
@@ -48,6 +49,7 @@ class SessionStore {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     this.accessToken = null;
     setSentryUser(null);
+    void clearOfflineData();
   }
 
   getRefreshToken() {
@@ -62,6 +64,15 @@ class SessionStore {
     const session = jwtDecode<Session>(this.accessToken);
 
     if (session.exp < Date.now() / 1000) {
+      const isOffline =
+        typeof navigator !== "undefined" && navigator.onLine === false;
+
+      // Offline: keep expired access token so local-first UI can work.
+      // Refresh will run on reconnect before sync flush.
+      if (isOffline) {
+        return this.accessToken;
+      }
+
       if (!this.refreshTokenPromise) {
         const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
         if (!storedRefreshToken) {
@@ -102,6 +113,10 @@ class SessionStore {
 
     return this.accessToken;
   }
+
+  hasStoredSession(): boolean {
+    return Boolean(this.accessToken || localStorage.getItem(REFRESH_TOKEN_KEY));
+  }
 }
 
 const sessionStore = new SessionStore();
@@ -112,6 +127,7 @@ type SessionSnapshot = {
   logout: () => void;
   session: Session | null;
   getRefreshToken: () => string | null;
+  hasStoredSession: () => boolean;
 };
 
 function getSessionSnapshot(): SessionSnapshot {
@@ -121,6 +137,7 @@ function getSessionSnapshot(): SessionSnapshot {
     logout: sessionStore.logout,
     session: sessionStore.session,
     getRefreshToken: sessionStore.getRefreshToken,
+    hasStoredSession: sessionStore.hasStoredSession,
   };
 }
 
@@ -136,6 +153,7 @@ export const useSession: UseSessionHook = Object.assign(
       logout: sessionStore.logout,
       session: sessionStore.session,
       getRefreshToken: sessionStore.getRefreshToken,
+      hasStoredSession: sessionStore.hasStoredSession,
     })),
   {
     getState: getSessionSnapshot,

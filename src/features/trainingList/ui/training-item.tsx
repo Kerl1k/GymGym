@@ -9,6 +9,7 @@ import {
 import { PenIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import { toApiErrorCode } from "@/entities/api/request";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useStartActiveTraining } from "@/entities/training-active/use-active-training-start";
 import { useCancelActiveTraining } from "@/entities/training-active/useActiveTrainingCancel";
@@ -65,7 +66,7 @@ export function TrainingItem({
       await start(id);
       navigator(ROUTES.START);
     } catch (error) {
-      if (error === "AlreadyExists") {
+      if (toApiErrorCode(error) === "AlreadyExists") {
         openAlreadyStarted();
       } else {
         throw error;
@@ -75,11 +76,23 @@ export function TrainingItem({
 
   const handleEndCurrentAndStartNew = async () => {
     try {
+      console.log(
+        "[active-training/end] UI:handleEndCurrentAndStartNew start",
+        { nextTrainingId: training.id },
+      );
       await endCurrentTraining();
+      console.log(
+        "[active-training/end] UI:handleEndCurrentAndStartNew end ok, starting",
+        { nextTrainingId: training.id },
+      );
       await start(training.id);
       closeAlreadyStarted();
       navigator(ROUTES.START);
     } catch (error) {
+      console.log(
+        "[active-training/end] UI:handleEndCurrentAndStartNew failed",
+        error,
+      );
       console.error("Failed to end current training:", error);
     }
   };

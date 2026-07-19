@@ -1,19 +1,18 @@
 import { useState, useEffect, FC, useCallback, useRef, useMemo } from "react";
 
-
 import { useNavigate } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { connectivityStore, requestFlush, syncEngine } from "@/entities/offline";
 import {
-  clearActiveTrainingDraft,
-  readActiveTrainingDraft,
-  writeActiveTrainingDraft,
-} from "@/entities/training-active/active-training-cache";
+  isLocalHistoryId,
+} from "@/entities/training-active/active-training.store";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useLatestTrainingHistoryByName } from "@/entities/training-history/use-latest-training-history-by-name";
 import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
 import { showRestTimerDoneNotification } from "@/shared/lib/restTimerNotification";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
@@ -31,9 +30,8 @@ import { ExercisesSidebar } from "./ExercisesSidebar";
 import { NotedWeightModal } from "./NotedWeightModal";
 import { RestTimer } from "./RestTimer";
 
-type TrainingSyncStatus = "synced" | "syncing" | "error";
+type TrainingSyncStatus = "synced" | "syncing" | "error" | "offline";
 const SYNC_DEBOUNCE_MS = 1200;
-const AUTO_RETRY_MS = 15000;
 
 export const ActiveTrainingContent: FC<{
   data: ApiSchemas["ActiveTraining"];
@@ -52,35 +50,35 @@ export const ActiveTrainingContent: FC<{
     {},
   );
 
-  const cachedDraft = readActiveTrainingDraft();
-  const initialData =
-    cachedDraft && cachedDraft.data.dateStart === data.dateStart
-      ? cachedDraft.data
-      : data;
+  const engineStatus = useMobxSelector(() => {
+    if (!connectivityStore.isOnline) return "offline" as const;
+    if (syncEngine.status === "syncing") return "syncing" as const;
+    if (syncEngine.status === "error" || syncEngine.pendingCount > 0) {
+      return syncEngine.status === "error" ? ("error" as const) : ("syncing" as const);
+    }
+    return "synced" as const;
+  });
 
   const [trainingData, setTrainingData] =
-    useState<ApiSchemas["ActiveTraining"]>(initialData);
+    useState<ApiSchemas["ActiveTraining"]>(data);
   const [prevExercise, setPrevExercise] = useState(
-    initialData.exercises[0]?.sets || [],
+    data.exercises[0]?.sets || [],
   );
   const [isResting, setIsResting] = useState(false);
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState<
     number | null
   >(null);
-  const [syncStatus, setSyncStatus] = useState<TrainingSyncStatus>(() =>
-    cachedDraft && !cachedDraft.isSynced ? "error" : "synced",
-  );
   const [isRetryingSync, setIsRetryingSync] = useState(false);
   const { latestHistory } = useLatestTrainingHistoryByName({
     trainingName: trainingData.name,
   });
 
-  const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(initialData);
-  const syncChainRef = useRef<Promise<void>>(Promise.resolve());
+  const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(data);
   const pendingRestMsRef = useRef<number>(0);
   const syncTimeoutRef = useRef<number | null>(null);
-  const hasPendingSyncRef = useRef(false);
-  const hasHydratedCacheRef = useRef(false);
+  const hasHydratedRef = useRef(false);
+
+  const syncStatus: TrainingSyncStatus = engineStatus;
 
   const indexCurrentExercise = getIndex(trainingData.exercises);
   const activeExerciseIndex = selectedExerciseIndex ?? indexCurrentExercise;
@@ -107,42 +105,18 @@ export const ActiveTrainingContent: FC<{
   }, [trainingData]);
 
   const flushTrainingSync = useCallback(async () => {
-    if (!hasPendingSyncRef.current) return;
-
-    hasPendingSyncRef.current = false;
     if (syncTimeoutRef.current !== null) {
       window.clearTimeout(syncTimeoutRef.current);
       syncTimeoutRef.current = null;
     }
 
     const snapshot = latestTrainingRef.current;
-    setSyncStatus("syncing");
-
-    syncChainRef.current = syncChainRef.current.then(async () => {
-      try {
-        await change(snapshot);
-
-        if (latestTrainingRef.current === snapshot && !hasPendingSyncRef.current) {
-          setSyncStatus("synced");
-          writeActiveTrainingDraft(snapshot, true);
-          clearActiveTrainingDraft();
-        }
-      } catch {
-        hasPendingSyncRef.current = true;
-        setSyncStatus("error");
-        writeActiveTrainingDraft(snapshot, false);
-      }
-    });
-
-    await syncChainRef.current;
+    await change(snapshot);
   }, [change]);
 
   const scheduleTrainingSync = useCallback(
     (snapshot: ApiSchemas["ActiveTraining"], immediate = false) => {
       latestTrainingRef.current = snapshot;
-      hasPendingSyncRef.current = true;
-      setSyncStatus("syncing");
-      writeActiveTrainingDraft(snapshot, false);
 
       if (syncTimeoutRef.current !== null) {
         window.clearTimeout(syncTimeoutRef.current);
@@ -256,10 +230,36 @@ export const ActiveTrainingContent: FC<{
   }, [scheduleRestNotification]);
 
   const finishTraining = async () => {
-    await flushTrainingSync();
-    const historyId = await end();
-    clearActiveTrainingDraft();
-    navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
+    // Cancel pending debounced update — end() sends finalData itself.
+    console.log("[active-training/end] UI:finishTraining start", {
+      trainingName: latestTrainingRef.current?.name,
+      exercisesCount: latestTrainingRef.current?.exercises?.length,
+      dateStart: latestTrainingRef.current?.dateStart,
+      syncStatus,
+      isOnline: connectivityStore.isOnline,
+    });
+    if (syncTimeoutRef.current !== null) {
+      window.clearTimeout(syncTimeoutRef.current);
+      syncTimeoutRef.current = null;
+      console.log(
+        "[active-training/end] UI:finishTraining cancelled pending sync timeout",
+      );
+    }
+    try {
+      const historyId = await end(latestTrainingRef.current);
+      console.log("[active-training/end] UI:finishTraining success", {
+        historyId,
+        isLocal: isLocalHistoryId(historyId),
+      });
+      if (isLocalHistoryId(historyId)) {
+        navigate(ROUTES.TRAINING);
+        return;
+      }
+      navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
+    } catch (error) {
+      console.log("[active-training/end] UI:finishTraining failed", error);
+      throw error;
+    }
   };
 
   const setTrainingWrapper = (
@@ -273,34 +273,17 @@ export const ActiveTrainingContent: FC<{
   };
 
   useEffect(() => {
-    if (hasHydratedCacheRef.current) {
+    if (hasHydratedRef.current) {
       if (data.dateStart === latestTrainingRef.current.dateStart) return;
-      hasPendingSyncRef.current = false;
-      setSyncStatus("synced");
-      clearActiveTrainingDraft();
       setTrainingData(data);
       latestTrainingRef.current = data;
       return;
     }
 
-    hasHydratedCacheRef.current = true;
-    const draft = readActiveTrainingDraft();
-    if (draft && draft.data.dateStart === data.dateStart) {
-      setTrainingData(draft.data);
-      latestTrainingRef.current = draft.data;
-      if (!draft.isSynced) {
-        hasPendingSyncRef.current = true;
-        setSyncStatus("error");
-        void flushTrainingSync();
-      } else {
-        setSyncStatus("synced");
-      }
-      return;
-    }
-
+    hasHydratedRef.current = true;
     setTrainingData(data);
     latestTrainingRef.current = data;
-  }, [data, flushTrainingSync]);
+  }, [data]);
 
   useEffect(() => {
     return () => {
@@ -310,20 +293,12 @@ export const ActiveTrainingContent: FC<{
     };
   }, []);
 
-  useEffect(() => {
-    if (syncStatus !== "error") return;
-
-    const timer = window.setInterval(() => {
-      void flushTrainingSync();
-    }, AUTO_RETRY_MS);
-
-    return () => window.clearInterval(timer);
-  }, [flushTrainingSync, syncStatus]);
-
   const handleRetrySync = useCallback(async () => {
     setIsRetryingSync(true);
     try {
       await flushTrainingSync();
+      requestFlush();
+      await syncEngine.flush();
     } finally {
       setIsRetryingSync(false);
     }
@@ -359,13 +334,6 @@ export const ActiveTrainingContent: FC<{
               onRetrySync={handleRetrySync}
               isRetryingSync={isRetryingSync}
             />
-            {/* <div className={styles.progressSection}>
-              <div className={styles.progressText}>
-                <span>Прогресс тренировки</span>
-                <span>{Math.round(progress)}%</span>
-              </div>
-              <Progress value={progress} className="h-3" />
-            </div> */}
           </div>
           <div className={styles.gridLayout}>
             <div className={styles.mainContent}>

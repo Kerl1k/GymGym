@@ -1,7 +1,9 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, type PluginOption } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+
+import { compileTsServiceWorker } from "./vite-plugins/compile-ts-service-worker.js";
 
 // https://vite.dev/config/
 export default defineConfig(() => {
@@ -10,6 +12,7 @@ export default defineConfig(() => {
       react(),
       tsconfigPaths(),
       tailwindcss(),
+      ...(compileTsServiceWorker() as PluginOption[]),
     ],
   };
 });

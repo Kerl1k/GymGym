@@ -20,7 +20,7 @@ type ActiveTrainingHeaderProps = {
   name: string;
   exerciseId?: string;
   finishTraining: () => void;
-  syncStatus: "synced" | "syncing" | "error";
+  syncStatus: "synced" | "syncing" | "error" | "offline";
   onRetrySync: () => void;
   isRetryingSync: boolean;
 };
@@ -57,6 +57,11 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
   };
 
   const handleConfirmFinish = () => {
+    console.log("[active-training/end] UI:header confirm finish", {
+      name,
+      exerciseId,
+      syncStatus,
+    });
     finishTraining();
   };
 
@@ -77,6 +82,12 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
               <Badge variant="success" className="gap-1">
                 <CheckCircle2Icon className="h-3 w-3" />
                 Синхронизировано
+              </Badge>
+            )}
+            {syncStatus === "offline" && (
+              <Badge variant="warning" className="gap-1">
+                <AlertTriangleIcon className="h-3 w-3" />
+                Оффлайн — сохраняется локально
               </Badge>
             )}
             {syncStatus === "syncing" && (
