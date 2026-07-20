@@ -234,6 +234,10 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
+.profilePage > .section {
+  margin-bottom: 24px;
+}
+
 .sectionHeader {
   display: flex;
   justify-content: space-between;
@@ -705,6 +709,241 @@
   &:hover {
     background: #e2e8f0;
   }
+}
+
+.emptyHint {
+  padding: 24px 8px;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chartBox {
+  height: 220px;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Heatmap */
+.heatmap {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmapDays {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-size: 0.65rem;
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+  height: calc(7 * 12px + 6 * 3px);
+}
+
+.heatmapGrid {
+  display: flex;
+  gap: 3px;
+}
+
+.heatmapWeek {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heatmapCell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--muted);
+}
+
+.heatmapEmpty {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.level0 {
+  background: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+
+.level1 {
+  background: color-mix(in srgb, #48bb78 35%, var(--muted));
+}
+
+.level2 {
+  background: color-mix(in srgb, #48bb78 55%, var(--muted));
+}
+
+.level3 {
+  background: #48bb78;
+}
+
+.level4 {
+  background: #276749;
+}
+
+.heatmapLegend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* Muscles */
+.muscleList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.muscleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.muscleMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.muscleName {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.muscleCount {
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.muscleBarTrack {
+  height: 6px;
+  background: var(--muted);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.muscleBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4299e1, #667eea);
+  border-radius: 3px;
+  min-width: 4px;
+}
+
+/* Programs */
+.programsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.programItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.programRank {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.programName {
+  flex: 1;
+  font-weight: 500;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.programCount {
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Personal records */
+.recordsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recordItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.recordMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.recordName {
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordDate {
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+.recordValue {
+  font-weight: 700;
+  color: var(--foreground);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordReps {
+  margin-left: 4px;
+  font-weight: 500;
+  color: var(--muted-foreground);
 }
 
 /* График прогресса */
