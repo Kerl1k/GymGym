@@ -140,8 +140,13 @@ class TrainingHistoryStore {
       if (result.error) throw result.error;
 
       runInAction(() => {
-        this.lists.clear();
         this.byId.delete(historyId);
+        for (const [key, list] of this.lists.entries()) {
+          if (!list?.content) continue;
+          const nextContent = list.content.filter((item) => item.id !== historyId);
+          if (nextContent.length === list.content.length) continue;
+          this.lists.set(key, { ...list, content: nextContent });
+        }
       });
     } finally {
       runInAction(() => {

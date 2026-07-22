@@ -17,11 +17,9 @@ import { PasswordToggle } from "@/shared/ui/kit/password-toggle";
 import { useLogin } from "../../../entities/auth/use-login";
 
 const loginSchema = z.object({
-  email: z
-    .string({
-      required_error: "Логин обязателен",
-    })
-    .email("Некорректный email"),
+  email: z.string({
+    required_error: "Логин обязателен",
+  }),
   password: z
     .string({
       required_error: "Пароль обязателен",
