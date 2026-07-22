@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { Calendar, Clock, Activity } from "lucide-react";
+import { Calendar, Clock, Activity, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
+import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
 import { useDebounce } from "@/shared/lib/useDebounce";
 import { ROUTES } from "@/shared/model/routes";
@@ -64,6 +65,8 @@ export const TrainingHistory = () => {
       exerciseName: normalizedExerciseFilter || undefined,
       dateFrom,
     });
+  const { deleteExercises, getIsPending: isDeletePendingById } =
+    useActiveTrainingDelete();
 
   const totalPages = meta?.pages ?? 1;
   const hasPrevPage = page > 1;
@@ -195,9 +198,23 @@ export const TrainingHistory = () => {
                 <div className={styles.historyDate}>
                   {formatDate(training.dateStart)}
                 </div>
-                <div className={styles.historyDuration}>
-                  <Clock size={16} />
-                  {formatDuration(training.exercises.flatMap((e) => e.sets))}
+                <div className={styles.historyHeaderActions}>
+                  <div className={styles.historyDuration}>
+                    <Clock size={16} />
+                    {formatDuration(training.exercises.flatMap((e) => e.sets))}
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.deleteButton}
+                    disabled={isDeletePendingById(training.id)}
+                    onClick={() => deleteExercises(training.id)}
+                    aria-label="Удалить тренировку"
+                  >
+                    <Trash2 size={16} />
+                    {isDeletePendingById(training.id)
+                      ? "Удаление..."
+                      : "Удалить"}
+                  </button>
                 </div>
               </div>
 
