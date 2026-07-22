@@ -1,5 +1,6 @@
 import { authStore } from "@/entities/auth/auth.store";
 import { exercisesStore } from "@/entities/exercises/exercises.store";
+import { bootstrapOffline } from "@/entities/offline/bootstrap";
 import { trainingStore } from "@/entities/training/training.store";
 import { activeTrainingStore } from "@/entities/training-active/active-training.store";
 import { trainingHistoryStore } from "@/entities/training-history/training-history.store";
@@ -39,6 +40,8 @@ function trainingHistoryDefaultInit() {
 }
 
 export async function prefetchProtectedAppData(): Promise<void> {
+  await bootstrapOffline();
+
   const trainingQuery = trainingListDefaultInit().params.query;
   const historyQuery = trainingHistoryDefaultInit().params.query;
 

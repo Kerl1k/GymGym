@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
@@ -12,9 +12,15 @@ import { authStore } from "./auth.store";
 export function useLogin() {
   const navigate = useNavigate();
   const session = useSession();
+  const [offlineError, setOfflineError] = useState<string | undefined>();
 
   const login = useCallback(
     async (data: ApiSchemas["AuthLoginBody"]) => {
+      setOfflineError(undefined);
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setOfflineError("Для входа нужен интернет");
+        return;
+      }
       const result = await authStore.login(data);
       if (result?.accessToken) {
         session.login(result.accessToken, result.refreshToken);
@@ -29,11 +35,13 @@ export function useLogin() {
     isPending: authStore.loginPending,
   }));
 
-  const errorMessage = errorCode
-    ? errorCode === "InvalidCredentials"
-      ? "Неправильно введены данные"
-      : "Не удалось выполнить вход"
-    : undefined;
+  const errorMessage =
+    offlineError ??
+    (errorCode
+      ? errorCode === "InvalidCredentials"
+        ? "Неправильно введены данные"
+        : "Не удалось выполнить вход"
+      : undefined);
 
   return {
     login,

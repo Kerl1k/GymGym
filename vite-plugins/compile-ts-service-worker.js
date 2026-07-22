@@ -3,7 +3,12 @@ import rollupPluginTypescript from "@rollup/plugin-typescript";
 import chokidar from "chokidar";
 import { rollup } from "rollup";
 
-const generateCode = async () => {
+const PRECACHE_PLACEHOLDER = '["__SELF_PRECACHE_ASSETS__"]';
+
+const HASHED_ASSET_RE =
+  /^assets\/.+-[A-Za-z0-9_-]{6,}\.(js|css|woff2?|ttf|png|jpg|jpeg|webp|svg|ico)$/;
+
+const generateCode = async (precacheAssets = []) => {
   const inputOptions = {
     input: "gym-sw.ts",
     plugins: [
@@ -20,11 +25,28 @@ const generateCode = async () => {
 
   const bundle = await rollup(inputOptions);
   const { output } = await bundle.generate(outputOptions);
+  let code = output[0].code;
+
+  if (!code.includes(PRECACHE_PLACEHOLDER)) {
+    throw new Error(
+      `[compile-ts-service-worker]: missing placeholder ${PRECACHE_PLACEHOLDER}`,
+    );
+  }
+
+  code = code.replace(PRECACHE_PLACEHOLDER, JSON.stringify(precacheAssets));
+
   return `self.addEventListener('install', (event) => {
   self.skipWaiting(); 
 });
-${output[0].code}`;
+${code}`;
 };
+
+function collectPrecacheAssets(bundle) {
+  return Object.keys(bundle)
+    .filter((fileName) => HASHED_ASSET_RE.test(fileName))
+    .map((fileName) => `/${fileName}`)
+    .sort();
+}
 
 const name = "compile-typescript-service-worker";
 const enforce = "pre";
@@ -35,14 +57,20 @@ export const compileTsServiceWorker = () => {
   return [
     {
       name: `${name}:build`,
-      enforce,
+      // After Vite emits app chunks so we can precache them.
+      enforce: "post",
       apply: "build",
-      async generateBundle() {
+      async generateBundle(_options, bundle) {
         console.log("[compile-ts-service-worker]: build started");
+        const precacheAssets = collectPrecacheAssets(bundle);
+        console.log(
+          "[compile-ts-service-worker]: precache assets",
+          precacheAssets.length,
+        );
         const file = this.emitFile({
           type: "asset",
           fileName: "gym-sw.js",
-          source: await generateCode(),
+          source: await generateCode(precacheAssets),
         });
         console.log("[compile-ts-service-worker]: file emitted", file);
         console.log("[compile-ts-service-worker]: build finished");
@@ -53,6 +81,7 @@ export const compileTsServiceWorker = () => {
       enforce,
       apply: "serve",
       async configureServer(server) {
+        // Dev: do not serve/register SW. Only help clear leftovers on gym-sw.ts edits.
         watcher = chokidar.watch("gym-sw.ts", {
           ignoreInitial: true,
         });
@@ -62,24 +91,12 @@ export const compileTsServiceWorker = () => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
     for (let registration of registrations) {
-      if (registration.active.scriptURL.endsWith('gym-sw.js')) {
-        registration.update();
-      }
+      registration.unregister();
     }
   });
 }`,
           }),
         );
-        server.middlewares.use(async (req, res, next) => {
-          if (req.url === "/gym-sw.js") {
-            res.writeHead(200, {
-              "Content-Type": "application/javascript",
-            });
-            res.end(await generateCode());
-          } else {
-            next();
-          }
-        });
       },
       transformIndexHtml(html) {
         return {
@@ -90,19 +107,9 @@ if ('serviceWorker' in navigator) {
               injectTo: "head",
               attrs: { type: "module" },
               children: `
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker
-    .register("gym-sw.js")
-    .then((registration) => {
-      console.log("SW registered: ", registration);
-    })
-    .catch((registrationError) => {
-      console.log("SW registration failed: ", registrationError);
-    });
-}
 if (import.meta.hot) {
   import.meta.hot.on('gym:unregister-sw', (data) => {
-    eval(data.script);      // Executes the script
+    eval(data.script);
   });
 }`,
             },

@@ -7,6 +7,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#c5d63a" />
     <title>Gym Note</title>
+    <script>
+      // Dev only: kill leftover gym SW before Vite modules load.
+      // A controlling SW can break lazy route imports until the next full reload.
+      (function () {
+        var host = location.hostname;
+        var isLocal = host === "localhost" || host === "127.0.0.1";
+        if (!isLocal || !("serviceWorker" in navigator)) return;
+
+        var reloadKey = "gym-sw-dev-cleared";
+        navigator.serviceWorker.getRegistrations().then(function (regs) {
+          var hadController = !!navigator.serviceWorker.controller;
+          var hadRegistration = regs.length > 0;
+          return Promise.all(
+            regs.map(function (reg) {
+              return reg.unregister();
+            }),
+          )
+            .then(function () {
+              if (!("caches" in window)) return;
+              return caches.keys().then(function (keys) {
+                return Promise.all(
+                  keys
+                    .filter(function (key) {
+                      return key.indexOf("gym-shell-") === 0;
+                    })
+                    .map(function (key) {
+                      return caches.delete(key);
+                    }),
+                );
+              });
+            })
+            .then(function () {
+              if (
+                (hadController || hadRegistration) &&
+                !sessionStorage.getItem(reloadKey)
+              ) {
+                sessionStorage.setItem(reloadKey, "1");
+                location.reload();
+              }
+            });
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

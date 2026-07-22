@@ -1,6 +1,18 @@
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
+import { exercisesStore } from "@/entities/exercises/exercises.store";
 import { fetchClient } from "@/entities/instance";
+import {
+  connectivityStore,
+  createLocalTraining,
+  enqueueMutation,
+  readExercisesSnapshot,
+  readTrainingsSnapshot,
+  removeTrainingFromSnapshot,
+  requestFlush,
+  upsertTrainingInSnapshot,
+  writeTrainingsSnapshot,
+} from "@/entities/offline";
 import { ApiSchemas } from "@/shared/schema";
 
 type TrainingListQuery = {
@@ -34,6 +46,7 @@ class TrainingStore {
   createPending = false;
   changePending = false;
   deletingId: string | null = null;
+  private hydrated = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -97,10 +110,65 @@ class TrainingStore {
     return (this.listLoading.get(key) ?? false) && this.lists.get(key) === undefined;
   }
 
+  applySnapshot(content: ApiSchemas["Training"][]) {
+    this.lists.forEach((_, key) => {
+      const query = parseSerializedObject<TrainingListQuery>(key);
+      if (!query) return;
+      const filtered = content.filter((item) => this.matchesListFilter(item, query));
+      const sorted = this.sortByOrder(filtered, query);
+      this.lists.set(key, { content: sorted.slice(0, query.limit) });
+    });
+    content.forEach((training) => {
+      this.byId.set(training.id, training);
+    });
+  }
+
+  replaceId(tempId: string, serverTraining: ApiSchemas["Training"]) {
+    this.lists.forEach((list, key) => {
+      if (!list?.content) return;
+      this.lists.set(key, {
+        ...list,
+        content: list.content.map((item) =>
+          item.id === tempId ? serverTraining : item,
+        ),
+      });
+    });
+    if (this.byId.has(tempId)) {
+      this.byId.delete(tempId);
+    }
+    this.byId.set(serverTraining.id, serverTraining);
+  }
+
+  async hydrateFromCache(): Promise<void> {
+    if (this.hydrated) return;
+    const snapshot = await readTrainingsSnapshot();
+    if (snapshot?.content) {
+      runInAction(() => {
+        this.applySnapshot(snapshot.content);
+        this.hydrated = true;
+      });
+    }
+  }
+
   async fetchList(query: TrainingListQuery, force = false): Promise<void> {
+    await this.hydrateFromCache();
     const key = this.listKey(query);
     if ((this.listLoading.get(key) ?? false) === true) return;
     if (!force && this.lists.get(key) !== undefined) return;
+
+    if (!connectivityStore.isOnline) {
+      const snapshot = await readTrainingsSnapshot();
+      if (snapshot) {
+        const filtered = snapshot.content.filter((item) =>
+          this.matchesListFilter(item, query),
+        );
+        const sorted = this.sortByOrder(filtered, query);
+        runInAction(() => {
+          this.lists.set(key, { content: sorted.slice(0, query.limit) });
+        });
+      }
+      return;
+    }
 
     this.listLoading.set(key, true);
     try {
@@ -109,9 +177,32 @@ class TrainingStore {
       });
       if (result.error) throw result.error;
 
+      const content = result.data?.content ?? [];
+      // Merge into full snapshot for offline filtering later
+      const previous = (await readTrainingsSnapshot())?.content ?? [];
+      const mergedMap = new Map(previous.map((item) => [item.id, item]));
+      content.forEach((item) => mergedMap.set(item.id, item));
+      const merged = [...mergedMap.values()];
+      await writeTrainingsSnapshot(merged);
+
       runInAction(() => {
-        this.lists.set(key, result.data ?? { content: [] });
+        this.lists.set(key, { content });
+        content.forEach((training) => this.byId.set(training.id, training));
+        this.hydrated = true;
       });
+    } catch {
+      const snapshot = await readTrainingsSnapshot();
+      if (snapshot) {
+        const filtered = snapshot.content.filter((item) =>
+          this.matchesListFilter(item, query),
+        );
+        const sorted = this.sortByOrder(filtered, query);
+        runInAction(() => {
+          this.lists.set(key, { content: sorted.slice(0, query.limit) });
+        });
+      } else {
+        throw new Error("TrainingsUnavailable");
+      }
     } finally {
       runInAction(() => {
         this.listLoading.set(key, false);
@@ -129,8 +220,18 @@ class TrainingStore {
 
   async fetchById(trainingId: string, force = false): Promise<void> {
     if (!trainingId) return;
+    await this.hydrateFromCache();
     if ((this.byIdLoading.get(trainingId) ?? false) === true) return;
     if (!force && this.byId.get(trainingId) !== undefined) return;
+
+    if (!connectivityStore.isOnline) {
+      const snapshot = await readTrainingsSnapshot();
+      const found = snapshot?.content.find((item) => item.id === trainingId) ?? null;
+      runInAction(() => {
+        this.byId.set(trainingId, found);
+      });
+      return;
+    }
 
     this.byIdLoading.set(trainingId, true);
     try {
@@ -143,9 +244,24 @@ class TrainingStore {
       });
       if (result.error) throw result.error;
 
+      const training = result.data ?? null;
+      if (training) {
+        await upsertTrainingInSnapshot(training);
+      }
+
       runInAction(() => {
-        this.byId.set(trainingId, result.data ?? null);
+        this.byId.set(trainingId, training);
       });
+    } catch {
+      const snapshot = await readTrainingsSnapshot();
+      const found = snapshot?.content.find((item) => item.id === trainingId);
+      if (found) {
+        runInAction(() => {
+          this.byId.set(trainingId, found);
+        });
+      } else {
+        throw new Error("TrainingUnavailable");
+      }
     } finally {
       runInAction(() => {
         this.byIdLoading.set(trainingId, false);
@@ -156,36 +272,39 @@ class TrainingStore {
   async create(data: ApiSchemas["TrainingCreateBody"]): Promise<void> {
     this.createPending = true;
     try {
-      const result = await fetchClient.POST("/api/training", { body: data });
-      if (result.error) throw result.error;
-      const createdTraining = result.data;
+      const catalog =
+        exercisesStore.getList(20)?.content ??
+        (await readExercisesSnapshot())?.content ??
+        [];
+      const local = createLocalTraining(data, catalog);
 
       runInAction(() => {
-        if (!createdTraining) {
-          return;
-        }
-
         this.lists.forEach((list, key) => {
           if (!list) return;
-
           const query = parseSerializedObject<TrainingListQuery>(key);
-          if (!query || !this.matchesListFilter(createdTraining, query)) {
-            return;
-          }
+          if (!query || !this.matchesListFilter(local, query)) return;
 
           const previousContent = list.content ?? [];
           const contentWithoutCreated = previousContent.filter(
-            (training) => training.id !== createdTraining.id,
+            (training) => training.id !== local.id,
           );
-          const merged = [createdTraining, ...contentWithoutCreated];
+          const merged = [local, ...contentWithoutCreated];
           const sorted = this.sortByOrder(merged, query);
-
           this.lists.set(key, {
             ...list,
             content: sorted.slice(0, query.limit),
           });
         });
+        this.byId.set(local.id, local);
       });
+
+      await upsertTrainingInSnapshot(local);
+      await enqueueMutation({
+        type: "training.create",
+        tempId: local.id,
+        body: data,
+      });
+      requestFlush();
     } finally {
       runInAction(() => {
         this.createPending = false;
@@ -196,17 +315,43 @@ class TrainingStore {
   async change(data: ApiSchemas["TrainingUpdateBody"]): Promise<void> {
     this.changePending = true;
     try {
-      const result = await fetchClient.PATCH("/api/training", {
-        body: data,
-      });
-      if (result.error) throw result.error;
+      const catalog =
+        exercisesStore.getList(20)?.content ??
+        (await readExercisesSnapshot())?.content ??
+        [];
+      const byId = new Map(catalog.map((item) => [item.id, item]));
+      const existing = this.byId.get(data.id);
+
+      const updated: ApiSchemas["Training"] = {
+        id: data.id,
+        name: data.name ?? existing?.name ?? "",
+        favorite: data.favorite ?? existing?.favorite ?? false,
+        description: data.description ?? existing?.description ?? "",
+        exerciseTypes: data.exerciseTypes.map((ref) => {
+          const fromExisting = existing?.exerciseTypes.find((item) => item.id === ref.id);
+          const fromCatalog = byId.get(ref.id);
+          return {
+            id: ref.id,
+            name: fromExisting?.name ?? fromCatalog?.name ?? "Упражнение",
+            favorite: fromExisting?.favorite ?? fromCatalog?.favorite ?? false,
+            description: fromExisting?.description ?? fromCatalog?.description ?? "",
+            muscleGroups: fromExisting?.muscleGroups ?? fromCatalog?.muscleGroups ?? [],
+            restTime: fromExisting?.restTime ?? fromCatalog?.restTime ?? 90,
+          };
+        }),
+      };
 
       runInAction(() => {
+        this.byId.set(data.id, updated);
         this.lists.clear();
-        if (data.id) {
-          this.byId.delete(data.id);
-        }
       });
+      await upsertTrainingInSnapshot(updated);
+      await enqueueMutation({
+        type: "training.update",
+        entityId: data.id,
+        body: data,
+      });
+      requestFlush();
     } finally {
       runInAction(() => {
         this.changePending = false;
@@ -217,15 +362,16 @@ class TrainingStore {
   async remove(trainingId: string): Promise<void> {
     this.deletingId = trainingId;
     try {
-      const result = await fetchClient.DELETE("/api/training/{id}", {
-        params: { path: { id: trainingId } },
-      });
-      if (result.error) throw result.error;
-
       runInAction(() => {
         this.lists.clear();
         this.byId.delete(trainingId);
       });
+      await removeTrainingFromSnapshot(trainingId);
+      await enqueueMutation({
+        type: "training.delete",
+        entityId: trainingId,
+      });
+      requestFlush();
     } finally {
       runInAction(() => {
         this.deletingId = null;
