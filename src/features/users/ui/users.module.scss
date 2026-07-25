@@ -1,0 +1,194 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  gap: 1rem;
+
+  svg {
+    color: var(--muted-foreground);
+  }
+
+  p {
+    color: var(--muted-foreground);
+    font-size: 1.125rem;
+    margin: 0;
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--foreground);
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--muted);
+  }
+}
+
+.email {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.chevron {
+  color: var(--muted-foreground);
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 32px;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.infoLabel {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+  font-weight: 600;
+}
+
+.infoValue {
+  font-size: 1.1rem;
+  color: var(--foreground);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  color: var(--foreground);
+}
+
+.historyList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.historyItem {
+  display: block;
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    border-color: var(--primary);
+    background: var(--muted);
+  }
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.historyName {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.historyDate {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+.historyDescription {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+
+.historyMeta {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
