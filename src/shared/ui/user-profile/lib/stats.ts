@@ -42,7 +42,15 @@ function formatWeekLabel(iso: string): string {
   return date.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" });
 }
 
-export function computeOverviewStats(history: TrainingHistoryItem[]) {
+export type OverviewStatsOptions = {
+  /** Length of the selected period in days; when set, perWeek uses the whole period */
+  spanDays?: number | null;
+};
+
+export function computeOverviewStats(
+  history: TrainingHistoryItem[],
+  options: OverviewStatsOptions = {},
+) {
   const dates = history
     .map((t) => toDate(t.dateStart))
     .filter((d): d is Date => d !== null)
@@ -64,11 +72,15 @@ export function computeOverviewStats(history: TrainingHistoryItem[]) {
   }
 
   const now = Date.now();
-  const days30 = 30 * 24 * 60 * 60 * 1000;
-  const recent = dates.filter((d) => now - d.getTime() <= days30).length;
-  const perWeek = recent / (30 / 7);
+  const spanDays =
+    options.spanDays != null && options.spanDays > 0 ? options.spanDays : 30;
+  const spanMs = spanDays * 24 * 60 * 60 * 1000;
+  const inSpan =
+    options.spanDays != null && options.spanDays > 0
+      ? trainingsCount
+      : dates.filter((d) => now - d.getTime() <= spanMs).length;
+  const perWeek = inSpan / (spanDays / 7);
 
-  // Streak: consecutive calendar days with ≥1 training, counting back from today or yesterday
   const daySet = uniqueDays;
   let streak = 0;
   const today = startOfDay(new Date());
@@ -82,6 +94,7 @@ export function computeOverviewStats(history: TrainingHistoryItem[]) {
     trainingsCount,
     uniqueDays: uniqueDays.size,
     perWeek: Math.round(perWeek * 10) / 10,
+    perWeekSpanDays: spanDays,
     streak,
     avgExercises:
       trainingsCount > 0
@@ -99,12 +112,12 @@ export function computeOverviewStats(history: TrainingHistoryItem[]) {
 export function computeWeeklyActivity(
   history: TrainingHistoryItem[],
   weeks = 12,
+  endDate: Date = new Date(),
 ) {
-  const now = new Date();
   const buckets = new Map<string, number>();
 
   for (let i = weeks - 1; i >= 0; i -= 1) {
-    const d = new Date(now);
+    const d = new Date(endDate);
     d.setDate(d.getDate() - i * 7);
     buckets.set(weekKey(d), 0);
   }
@@ -133,7 +146,6 @@ export function computeDayOfWeekDistribution(history: TrainingHistoryItem[]) {
     counts[date.getDay()]! += 1;
   }
 
-  // reorder to Mon..Sun
   const ordered = [1, 2, 3, 4, 5, 6, 0].map((dow, index) => ({
     day: DAY_LABELS_ORDERED[index]!,
     count: counts[dow]!,
@@ -228,72 +240,6 @@ export function computePersonalRecords(
     .slice(0, limit);
 }
 
-export type HeatmapDay = {
-  date: string;
-  count: number;
-  level: 0 | 1 | 2 | 3 | 4;
-};
-
-export function computeHeatmap(
-  history: TrainingHistoryItem[],
-  days = 119,
-): { cells: HeatmapDay[]; weeks: HeatmapDay[][] } {
-  const counts = new Map<string, number>();
-
-  for (const training of history) {
-    const date = toDate(training.dateStart);
-    if (!date) continue;
-    const key = toLocalDateKey(date);
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const cells: HeatmapDay[] = [];
-  for (let i = days - 1; i >= 0; i -= 1) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const key = toLocalDateKey(d);
-    const count = counts.get(key) ?? 0;
-    let level: HeatmapDay["level"] = 0;
-    if (count === 1) level = 1;
-    else if (count === 2) level = 2;
-    else if (count === 3) level = 3;
-    else if (count >= 4) level = 4;
-    cells.push({ date: key, count, level });
-  }
-
-  // pad start so weeks start on Monday
-  const firstKey = cells[0]!.date;
-  const [fy, fm, fd] = firstKey.split("-").map(Number);
-  const first = new Date(fy!, fm! - 1, fd!);
-  const pad = (first.getDay() + 6) % 7;
-  const padded: (HeatmapDay | null)[] = [
-    ...Array.from({ length: pad }, () => null),
-    ...cells,
-  ];
-
-  const weeks: HeatmapDay[][] = [];
-  for (let i = 0; i < padded.length; i += 7) {
-    const week = padded.slice(i, i + 7).map(
-      (cell) =>
-        cell ??
-        ({
-          date: "",
-          count: 0,
-          level: 0,
-        } as HeatmapDay),
-    );
-    while (week.length < 7) {
-      week.push({ date: "", count: 0, level: 0 });
-    }
-    weeks.push(week as HeatmapDay[]);
-  }
-
-  return { cells, weeks };
-}
-
 export function formatShortDate(value: string): string {
   const date = toDate(value);
   if (!date) return "—";
@@ -301,5 +247,15 @@ export function formatShortDate(value: string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+  });
+}
+
+export function formatHistoryDate(dateString: string): string {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("ru-RU", {
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
