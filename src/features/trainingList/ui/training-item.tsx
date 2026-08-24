@@ -110,14 +110,14 @@ export function TrainingItem({
 
   return (
     <Card className="mb-4 hover:shadow-md transition-shadow duration-200 border-border">
-      <CardHeader className="pb-2 sm:pb-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-3">
+      <CardHeader className="pb-2 sm:pb-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <div className="flex-shrink-0 w-8 sm:w-10 h-8 sm:h-10 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center">
               <PlayIcon className="w-4 sm:w-5 h-4 sm:h-5 text-primary" />
             </div>
-            <div>
-              <CardTitle className="text-base sm:text-lg font-semibold text-foreground">
+            <div className="min-w-0">
+              <CardTitle className="text-base sm:text-lg font-semibold text-foreground truncate">
                 {training.name}
               </CardTitle>
             </div>
@@ -125,7 +125,11 @@ export function TrainingItem({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 shrink-0"
+              >
                 <DotsVerticalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
