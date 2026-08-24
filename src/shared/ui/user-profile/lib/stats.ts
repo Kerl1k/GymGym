@@ -104,8 +104,7 @@ export function computeOverviewStats(
       trainingsCount > 0
         ? Math.round((totalSets / trainingsCount) * 10) / 10
         : 0,
-    donePercent:
-      totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0,
+    donePercent: totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0,
   };
 }
 
@@ -173,10 +172,7 @@ export function computeMuscleDistribution(history: TrainingHistoryItem[]) {
     .slice(0, 8);
 }
 
-export function computeTopPrograms(
-  history: TrainingHistoryItem[],
-  limit = 5,
-) {
+export function computeTopPrograms(history: TrainingHistoryItem[], limit = 5) {
   const map = new Map<string, number>();
 
   for (const training of history) {
@@ -198,10 +194,19 @@ export type PersonalRecord = {
   dateTs: number;
 };
 
-export function computePersonalRecords(
+export function isBetterRecord(
+  candidate: Pick<PersonalRecord, "weight" | "reps">,
+  baseline: Pick<PersonalRecord, "weight" | "reps">,
+): boolean {
+  return (
+    candidate.weight > baseline.weight ||
+    (candidate.weight === baseline.weight && candidate.reps > baseline.reps)
+  );
+}
+
+export function computeBestByExercise(
   history: TrainingHistoryItem[],
-  limit = 6,
-): PersonalRecord[] {
+): Map<string, PersonalRecord> {
   const best = new Map<string, PersonalRecord>();
 
   for (const training of history) {
@@ -217,10 +222,7 @@ export function computePersonalRecords(
         if (weight <= 0) continue;
 
         const prev = best.get(exercise.name);
-        const better =
-          !prev ||
-          weight > prev.weight ||
-          (weight === prev.weight && reps > prev.reps);
+        const better = !prev || isBetterRecord({ weight, reps }, prev);
 
         if (better) {
           best.set(exercise.name, {
@@ -235,7 +237,14 @@ export function computePersonalRecords(
     }
   }
 
-  return [...best.values()]
+  return best;
+}
+
+export function computePersonalRecords(
+  history: TrainingHistoryItem[],
+  limit = 6,
+): PersonalRecord[] {
+  return [...computeBestByExercise(history).values()]
     .sort((a, b) => b.weight - a.weight)
     .slice(0, limit);
 }

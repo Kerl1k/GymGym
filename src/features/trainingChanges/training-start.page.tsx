@@ -10,7 +10,11 @@ import {
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
-import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
+import {
+  getRepeatsLike,
+  getWeightLike,
+  unitsFromCatalogStrings,
+} from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
@@ -21,6 +25,11 @@ import { ExerciseSelectModal } from "@/shared/ui/kit/exercise-select-modal";
 import { Label } from "@/shared/ui/kit/label";
 import { Loader } from "@/shared/ui/kit/loader";
 import { Textarea } from "@/shared/ui/kit/Textarea";
+import {
+  formatShortDate,
+  isBetterRecord,
+  type PersonalRecord,
+} from "@/shared/ui/user-profile";
 
 import Approach from "./approach";
 import styles from "./training-start.module.scss";
@@ -28,9 +37,72 @@ import styles from "./training-start.module.scss";
 type TrainingChangesProps = {
   data: ApiSchemas["ActiveTraining"];
   onSave: (data: ApiSchemas["ActiveTraining"]) => void;
+  previousBestByExercise?: Record<string, PersonalRecord>;
 };
 
-export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
+function formatBestSet(record: Pick<PersonalRecord, "weight" | "reps">) {
+  return record.reps > 0
+    ? `${record.weight} кг × ${record.reps}`
+    : `${record.weight} кг`;
+}
+
+function PreviousBestHint({
+  previousBest,
+  currentBest,
+}: {
+  previousBest: PersonalRecord;
+  currentBest?: Pick<PersonalRecord, "weight" | "reps">;
+}) {
+  const isNewRecord =
+    currentBest !== undefined && isBetterRecord(currentBest, previousBest);
+
+  return (
+    <p className="text-muted-foreground mb-2 text-xs">
+      Лучший: {formatBestSet(previousBest)}
+      {" · "}
+      {formatShortDate(previousBest.date)}
+      {isNewRecord ? " · новый рекорд" : ""}
+    </p>
+  );
+}
+
+function getExerciseBest(
+  exercise: ApiSchemas["ActiveTraining"]["exercises"][number],
+): Pick<PersonalRecord, "weight" | "reps"> | undefined {
+  let best: Pick<PersonalRecord, "weight" | "reps"> | undefined;
+
+  for (const set of exercise.sets) {
+    const weight = getWeightLike(set);
+    const reps = getRepeatsLike(set);
+    if (weight <= 0) continue;
+    if (!best || isBetterRecord({ weight, reps }, best)) {
+      best = { weight, reps };
+    }
+  }
+
+  return best;
+}
+
+function renderPreviousBestHint(
+  exercise: ApiSchemas["ActiveTraining"]["exercises"][number],
+  previousBestByExercise?: Record<string, PersonalRecord>,
+) {
+  const previousBest = previousBestByExercise?.[exercise.name];
+  if (!previousBest) return null;
+
+  return (
+    <PreviousBestHint
+      previousBest={previousBest}
+      currentBest={getExerciseBest(exercise)}
+    />
+  );
+}
+
+export const TrainingChanges: FC<TrainingChangesProps> = ({
+  data,
+  onSave,
+  previousBestByExercise,
+}) => {
   const [activeTraining, setActiveTraining] = useState<
     ApiSchemas["ActiveTraining"] | null
   >(data);
@@ -215,6 +287,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({ data, onSave }) => {
                   </div>
                   <div>
                     <h3 className={styles.exerciseName}>{exercise.name}</h3>
+                    {renderPreviousBestHint(exercise, previousBestByExercise)}
                     <div className={styles.exerciseTags}>
                       {exercise.muscleGroups?.map((group, i) => (
                         <Badge

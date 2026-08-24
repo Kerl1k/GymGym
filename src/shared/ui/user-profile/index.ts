@@ -9,6 +9,7 @@ export { TrainingHistoryList } from "./training-history-list";
 export { UserProfileView } from "./user-profile-view";
 export type { UserProfileViewProps } from "./user-profile-view";
 export {
+  computeBestByExercise,
   computeDayOfWeekDistribution,
   computeMuscleDistribution,
   computeOverviewStats,
@@ -17,6 +18,7 @@ export {
   computeWeeklyActivity,
   formatHistoryDate,
   formatShortDate,
+  isBetterRecord,
   type PersonalRecord,
   type TrainingHistoryItem,
 } from "./lib/stats";
