@@ -33,9 +33,17 @@ import { RestTimer } from "./RestTimer";
 type TrainingSyncStatus = "synced" | "syncing" | "error" | "offline";
 const SYNC_DEBOUNCE_MS = 1200;
 
-export const ActiveTrainingContent: FC<{
+type ActiveTrainingContentProps = {
   data: ApiSchemas["ActiveTraining"];
-}> = ({ data }) => {
+  onFinishStart: () => void;
+  onFinishError: () => void;
+};
+
+export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
+  data,
+  onFinishStart,
+  onFinishError,
+}) => {
   const { end } = useEndActiveTraining();
   const { change } = useUpdateActiveTraining();
 
@@ -177,15 +185,20 @@ export const ActiveTrainingContent: FC<{
       return ex;
     });
 
-    setTrainingWrapper({
+    const nextTraining = {
       ...trainingData,
       exercises: updatedExercises,
-    });
+    };
+
+    // Keep the ref in sync before any setState/unmount — the last set
+    // used to be lost because finishTraining ran before React flushed.
+    latestTrainingRef.current = nextTraining;
+    setTrainingWrapper(nextTraining);
 
     const nextIndex = getIndex(updatedExercises);
 
     if (nextIndex === -1) {
-      finishTraining();
+      await finishTraining(nextTraining);
     }
   };
 
@@ -229,12 +242,21 @@ export const ActiveTrainingContent: FC<{
     }
   }, [scheduleRestNotification]);
 
-  const finishTraining = async () => {
+  const finishTraining = async (
+    snapshot?: ApiSchemas["ActiveTraining"],
+  ) => {
+    const finalData = snapshot ?? latestTrainingRef.current;
+    latestTrainingRef.current = finalData;
+    onFinishStart();
     // Cancel pending debounced update — end() sends finalData itself.
     console.log("[active-training/end] UI:finishTraining start", {
-      trainingName: latestTrainingRef.current?.name,
-      exercisesCount: latestTrainingRef.current?.exercises?.length,
-      dateStart: latestTrainingRef.current?.dateStart,
+      trainingName: finalData?.name,
+      exercisesCount: finalData?.exercises?.length,
+      dateStart: finalData?.dateStart,
+      lastExerciseSets: finalData?.exercises?.at(-1)?.sets?.map((set) => ({
+        done: set.done,
+        units: set.units,
+      })),
       syncStatus,
       isOnline: connectivityStore.isOnline,
     });
@@ -246,7 +268,7 @@ export const ActiveTrainingContent: FC<{
       );
     }
     try {
-      const historyId = await end(latestTrainingRef.current);
+      const historyId = await end(finalData);
       console.log("[active-training/end] UI:finishTraining success", {
         historyId,
         isLocal: isLocalHistoryId(historyId),
@@ -255,9 +277,10 @@ export const ActiveTrainingContent: FC<{
         navigate(ROUTES.TRAINING);
         return;
       }
-      navigate(`${ROUTES.END.replace(/:id/, historyId)}`);
+      navigate(ROUTES.END.replace(":id", historyId));
     } catch (error) {
       console.log("[active-training/end] UI:finishTraining failed", error);
+      onFinishError();
       throw error;
     }
   };
@@ -265,11 +288,17 @@ export const ActiveTrainingContent: FC<{
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,
   ) => {
-    setTrainingData((prev) => {
-      const next = typeof value === "function" ? value(prev) : value;
-      scheduleTrainingSync(next);
-      return next;
-    });
+    if (typeof value === "function") {
+      setTrainingData((prev) => {
+        const next = value(prev);
+        scheduleTrainingSync(next);
+        return next;
+      });
+      return;
+    }
+
+    scheduleTrainingSync(value);
+    setTrainingData(value);
   };
 
   useEffect(() => {

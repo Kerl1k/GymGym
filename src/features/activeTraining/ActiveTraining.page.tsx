@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 
 import { activeTrainingStore } from "@/entities/training-active/active-training.store";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ROUTES } from "@/shared/model/routes";
 import { Button } from "@/shared/ui/kit/button";
 import {
@@ -28,12 +29,32 @@ const ActiveTraining = () => {
     isError,
     fetchStatus,
   } = useActiveTrainingFetch();
+  const isEnding = useMobxSelector(() => activeTrainingStore.isEnding);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const handleTrainingRepeated = async () => {
     setRefreshKey((prev) => prev + 1);
     await activeTrainingStore.fetch(true);
   };
+
+  if (isFinishing || isEnding) {
+    return (
+      <div className={styles.container}>
+        <Card className="p-8">
+          <CardContent className={styles.loaderContainer}>
+            <Loader size="large" />
+            <CardTitle className={styles.loadingTitle}>
+              Идет завершение тренировки
+            </CardTitle>
+            <CardDescription className={styles.loadingDescription}>
+              Пожалуйста, подождите...
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (error === "NotFound") {
     return (
@@ -127,7 +148,13 @@ const ActiveTraining = () => {
     );
   }
 
-  return <ActiveTrainingContent data={data} />;
+  return (
+    <ActiveTrainingContent
+      data={data}
+      onFinishStart={() => setIsFinishing(true)}
+      onFinishError={() => setIsFinishing(false)}
+    />
+  );
 };
 
 export const Component = ActiveTraining;

@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from "mobx";
+import { makeAutoObservable, runInAction, when } from "mobx";
 
 import { toApiErrorCode } from "@/entities/api/request";
 import { exercisesStore } from "@/entities/exercises/exercises.store";
@@ -302,22 +302,27 @@ class ActiveTrainingStore {
         syncEngine.lastEndedHistoryId = null;
       });
       console.log("[active-training/end] store:end enqueue active.end");
+      runInAction(() => {
+        this.data = snapshotToSync;
+        this.error = undefined;
+      });
+      await writeActiveTrainingSnapshot(snapshotToSync);
       await enqueueMutation({
         type: "active.end",
         finalData: snapshotToSync,
       });
 
-      runInAction(() => {
-        this.data = null;
-        this.error = "NotFound";
-      });
-      await writeActiveTrainingSnapshot(null);
-      clearActiveTrainingDraft();
-      console.log("[active-training/end] store:end local state cleared");
-
       if (connectivityStore.isOnline) {
         console.log("[active-training/end] store:end flush start");
-        await syncEngine.flush();
+        const waitForHistoryId = when(() =>
+          Boolean(syncEngine.lastEndedHistoryId),
+        );
+        const flushPromise = syncEngine.flush();
+        try {
+          await Promise.race([waitForHistoryId, flushPromise]);
+        } finally {
+          waitForHistoryId.cancel();
+        }
         console.log("[active-training/end] store:end flush done", {
           lastEndedHistoryId: syncEngine.lastEndedHistoryId,
           lastError: syncEngine.lastError,
@@ -342,6 +347,14 @@ class ActiveTrainingStore {
         throw syncEngine.lastError ?? "ActiveEndNotSynced";
       }
 
+      runInAction(() => {
+        this.data = null;
+        this.error = "NotFound";
+      });
+      await writeActiveTrainingSnapshot(null);
+      clearActiveTrainingDraft();
+      console.log("[active-training/end] store:end local state cleared");
+
       console.log(
         "[active-training/end] store:end offline — requestFlush + local id",
       );
@@ -355,10 +368,14 @@ class ActiveTrainingStore {
       console.log("[active-training/end] store:end caught error", error);
       throw error;
     } finally {
-      runInAction(() => {
-        this.isEnding = false;
+      // Keep isEnding until the next microtask so the caller can navigate
+      // to /end/:id before the page would render "Тренировка не начата".
+      queueMicrotask(() => {
+        runInAction(() => {
+          this.isEnding = false;
+        });
+        console.log("[active-training/end] store:end finally isEnding=false");
       });
-      console.log("[active-training/end] store:end finally isEnding=false");
     }
   }
 

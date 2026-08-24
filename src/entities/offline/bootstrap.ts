@@ -30,6 +30,8 @@ export async function bootstrapOffline(): Promise<void> {
       activeTrainingStore.applyActiveTraining(data);
     },
     refetchAfterSync: async () => {
+      const skipActive =
+        activeTrainingStore.isEnding || activeTrainingStore.isStarting;
       await Promise.allSettled([
         exercisesStore.fetchList(20, true),
         trainingStore.fetchList(
@@ -41,7 +43,7 @@ export async function bootstrapOffline(): Promise<void> {
           },
           true,
         ),
-        activeTrainingStore.fetch(true),
+        skipActive ? Promise.resolve() : activeTrainingStore.fetch(true),
       ]);
     },
   });
