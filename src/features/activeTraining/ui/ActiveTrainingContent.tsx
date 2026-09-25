@@ -253,10 +253,12 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
       trainingName: finalData?.name,
       exercisesCount: finalData?.exercises?.length,
       dateStart: finalData?.dateStart,
-      lastExerciseSets: finalData?.exercises?.at(-1)?.sets?.map((set) => ({
-        done: set.done,
-        units: set.units,
-      })),
+      lastExerciseSets: finalData?.exercises
+        ?.slice(-1)[0]
+        ?.sets?.map((set) => ({
+          done: set.done,
+          units: set.units,
+        })),
       syncStatus,
       isOnline: connectivityStore.isOnline,
     });
