@@ -69,7 +69,7 @@ export function TrainingItem({
       if (toApiErrorCode(error) === "AlreadyExists") {
         openAlreadyStarted();
       } else {
-        throw error;
+        console.error("Failed to start training:", error);
       }
     }
   };

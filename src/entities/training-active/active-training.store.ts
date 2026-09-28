@@ -211,21 +211,31 @@ class ActiveTrainingStore {
       }
 
       if (connectivityStore.isOnline) {
-        const result = await fetchClient.POST("/api/active-training/start", {
-          body: { id, dateStart },
-        });
-        if (result.error) {
-          throw result.error;
-        }
-
-        const serverActive = result.data ?? null;
-        if (serverActive) {
-          runInAction(() => {
-            this.data = serverActive;
-            this.error = undefined;
+        const result = await fetchClient
+          .POST("/api/active-training/start", {
+            body: { id, dateStart },
+          })
+          .catch((error: unknown) => {
+            if (error instanceof TypeError) {
+              return null;
+            }
+            throw error;
           });
-          await writeActiveTrainingSnapshot(serverActive);
-          return;
+
+        if (result) {
+          if (result.error) {
+            throw result.error;
+          }
+
+          const serverActive = result.data ?? null;
+          if (serverActive) {
+            runInAction(() => {
+              this.data = serverActive;
+              this.error = undefined;
+            });
+            await writeActiveTrainingSnapshot(serverActive);
+            return;
+          }
         }
       }
 
