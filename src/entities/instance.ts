@@ -1,5 +1,6 @@
 import createFetchClient from "openapi-fetch";
 
+import { apiLoggingMiddleware } from "@/entities/api/logging-middleware";
 import { publicFetchClient } from "@/entities/api/public-client";
 import { useSession } from "@/entities/session/session";
 import { CONFIG } from "@/shared/model/config";
@@ -20,3 +21,5 @@ fetchClient.use({
     }
   },
 });
+
+fetchClient.use(apiLoggingMiddleware);
