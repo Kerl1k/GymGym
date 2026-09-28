@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
+import { toast } from "@/shared/lib/toast";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
@@ -27,7 +28,7 @@ const TrainingStartPage = () => {
       await change(data);
     } catch (error) {
       console.error("Не удалось сохранить тренировку", error);
-      alert("Не удалось сохранить изменения. Попробуйте ещё раз.");
+      toast.error("Не удалось сохранить изменения. Попробуйте ещё раз.");
       return;
     }
 

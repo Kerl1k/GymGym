@@ -116,3 +116,26 @@ export function unitsFromCatalogStrings(catalog: string[] | undefined): Training
 export function sumSetsWeightLike(sets: TrainingSet[]): number {
   return sets.reduce((sum, s) => sum + getWeightLike(s), 0);
 }
+
+export function roundToHalf(value: number): number {
+  return Math.round(value * 2) / 2;
+}
+
+/** Epley formula; above ~12 reps the estimate becomes unreliable. */
+export function estimateOneRepMax(weight: number, reps: number): number {
+  if (weight <= 0 || reps <= 0) return 0;
+  if (reps === 1) return weight;
+  return roundToHalf(weight * (1 + reps / 30));
+}
+
+export function getSetOneRepMax(set: TrainingSet): number {
+  return estimateOneRepMax(getWeightLike(set), getRepeatsLike(set));
+}
+
+export function getSetTonnage(set: TrainingSet): number {
+  return getWeightLike(set) * getRepeatsLike(set);
+}
+
+export function sumSetsTonnage(sets: TrainingSet[]): number {
+  return sets.reduce((sum, s) => sum + getSetTonnage(s), 0);
+}

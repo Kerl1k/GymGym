@@ -4,7 +4,7 @@ import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { trainingHistoryStore } from "./training-history.store";
 
-type FetchTrainingHistoryWithFiltersProps = {
+export type FetchTrainingHistoryWithFiltersProps = {
   limit?: number;
   page?: number;
   sort?: string;
@@ -13,7 +13,7 @@ type FetchTrainingHistoryWithFiltersProps = {
   dateFrom?: string;
 };
 
-export function useFetchTrainingHistoryWithFilters({
+export function buildTrainingHistoryQuery({
   limit = 50,
   page,
   sort,
@@ -21,9 +21,8 @@ export function useFetchTrainingHistoryWithFilters({
   exerciseName,
   dateFrom,
 }: FetchTrainingHistoryWithFiltersProps) {
-  const orderBySerialized = useMemo(
-    () => JSON.stringify(sort ? { [sort]: sortDirection } : undefined),
-    [sort, sortDirection],
+  const orderBy = JSON.stringify(
+    sort ? { [sort]: sortDirection } : undefined,
   );
   const where =
     exerciseName || dateFrom
@@ -50,14 +49,28 @@ export function useFetchTrainingHistoryWithFilters({
         })
       : undefined;
 
+  return { limit, page, orderBy, where };
+}
+
+export function useFetchTrainingHistoryWithFilters({
+  limit = 50,
+  page,
+  sort,
+  sortDirection = "desc",
+  exerciseName,
+  dateFrom,
+}: FetchTrainingHistoryWithFiltersProps) {
   const query = useMemo(
-    () => ({
-      limit: limit,
-      page: page,
-      orderBy: orderBySerialized,
-      where,
-    }),
-    [limit, page, orderBySerialized, where],
+    () =>
+      buildTrainingHistoryQuery({
+        limit,
+        page,
+        sort,
+        sortDirection,
+        exerciseName,
+        dateFrom,
+      }),
+    [limit, page, sort, sortDirection, exerciseName, dateFrom],
   );
 
   useEffect(() => {

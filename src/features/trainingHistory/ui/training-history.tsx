@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 
-import { Calendar, Clock, Activity, Trash2 } from "lucide-react";
+import { Calendar, Clock, Activity, Download, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useActiveTrainingDelete } from "@/entities/training-history/use-training-history-delete";
+import { useTrainingHistoryExport } from "@/entities/training-history/use-training-history-export";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
+import { toast } from "@/shared/lib/toast";
+import {
+  downloadFile,
+  exportFileName,
+  trainingHistoryToCsv,
+} from "@/shared/lib/training-export";
 import { useDebounce } from "@/shared/lib/useDebounce";
 import { ROUTES } from "@/shared/model/routes";
 import type { ApiSchemas } from "@/shared/schema";
@@ -89,6 +96,35 @@ export const TrainingHistory = () => {
     return `${totalSets} подходов`;
   };
 
+  const { fetchAll, isPending: isExportPending } = useTrainingHistoryExport();
+
+  const handleExport = async (format: "csv" | "json") => {
+    const all = await fetchAll({
+      sort: "dateStart",
+      sortDirection,
+      exerciseName: normalizedExerciseFilter || undefined,
+      dateFrom,
+    });
+    if (all.length === 0) {
+      toast.info("Нет тренировок для экспорта");
+      return;
+    }
+    if (format === "csv") {
+      downloadFile(
+        trainingHistoryToCsv(all),
+        exportFileName("csv"),
+        "text/csv;charset=utf-8",
+      );
+    } else {
+      downloadFile(
+        JSON.stringify(all, null, 2),
+        exportFileName("json"),
+        "application/json",
+      );
+    }
+    toast.success(`Экспортировано тренировок: ${all.length}`);
+  };
+
   const handleExerciseSelect = (exerciseId: string) => {
     const selected = exercises.find((exercise) => exercise.id === exerciseId);
     if (!selected) return;
@@ -101,9 +137,31 @@ export const TrainingHistory = () => {
         <h1 className={styles.title}>
           <Calendar size={24} /> История тренировок
         </h1>
-        <Link to={ROUTES.PROFILE} className={styles.backButton}>
-          Назад в профиль
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport("csv")}
+            disabled={isExportPending}
+            className="gap-2"
+          >
+            <Download size={16} />
+            CSV
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport("json")}
+            disabled={isExportPending}
+            className="gap-2"
+          >
+            <Download size={16} />
+            JSON
+          </Button>
+          <Link to={ROUTES.PROFILE} className={styles.backButton}>
+            Назад в профиль
+          </Link>
+        </div>
       </div>
 
       <div className={styles.filters}>

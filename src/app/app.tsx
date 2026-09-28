@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Outlet } from "react-router-dom";
 
 import { AppHeader } from "@/features/header";
+import { Toaster } from "@/shared/ui/kit/toaster";
 
 export function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -36,6 +37,7 @@ export function App() {
       <main className="flex-1 bg-background text-foreground">
         <Outlet />
       </main>
+      <Toaster />
     </div>
   );
 }

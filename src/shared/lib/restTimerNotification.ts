@@ -34,3 +34,12 @@ export async function showRestTimerDoneNotification(): Promise<void> {
     /* ignore */
   }
 }
+
+export function vibrateRestTimerDone(): void {
+  if (typeof navigator === "undefined" || !("vibrate" in navigator)) return;
+  try {
+    navigator.vibrate([200, 100, 200, 100, 400]);
+  } catch {
+    /* ignore */
+  }
+}

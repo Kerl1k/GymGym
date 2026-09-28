@@ -2,9 +2,9 @@ import { FC, useCallback } from "react";
 
 import {
   ArrowDownIcon,
+  ArrowLeftRightIcon,
   ArrowUpIcon,
   CheckCircle2Icon,
-  PencilIcon,
   PlusIcon,
 } from "lucide-react";
 
@@ -23,6 +23,7 @@ type ExercisesSidebarProps = {
   >;
   setTraining: React.Dispatch<React.SetStateAction<ApiSchemas["ActiveTraining"]>>;
   openExerciseModal: () => void;
+  onReplaceExercise: (index: number) => void;
 };
 
 type ExerciseRowProps = {
@@ -36,6 +37,7 @@ type ExerciseRowProps = {
   canMoveDown: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
+  onReplace: () => void;
 };
 
 const rowIconButtonBase =
@@ -54,7 +56,10 @@ const ExerciseRow: FC<ExerciseRowProps> = ({
   canMoveUp,
   onMoveDown,
   onMoveUp,
+  onReplace,
 }) => {
+  const canReplace = doneCount === 0;
+
   return (
     <div
       className={`group w-full rounded-xl border p-3 text-left transition-all sm:p-4 ${
@@ -114,12 +119,25 @@ const ExerciseRow: FC<ExerciseRowProps> = ({
             </button>
           </div>
 
-          <span
-            className={`${rowIconButtonBase} text-muted-foreground`}
-            aria-hidden="true"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReplace();
+            }}
+            disabled={!canReplace}
+            className={`${rowIconButtonBase} ${
+              canReplace ? rowIconButtonEnabled : rowIconButtonDisabled
+            }`}
+            aria-label="Заменить упражнение"
+            title={
+              canReplace
+                ? "Заменить упражнение"
+                : "Нельзя заменить: уже есть выполненные подходы"
+            }
           >
-            <PencilIcon className="h-3.5 w-3.5" />
-          </span>
+            <ArrowLeftRightIcon className="h-3.5 w-3.5" />
+          </button>
         </div>
       </div>
     </div>
@@ -134,6 +152,7 @@ export const ExercisesSidebar: FC<ExercisesSidebarProps> = ({
   setSelectedExerciseIndex,
   setTraining,
   openExerciseModal,
+  onReplaceExercise,
 }) => {
   const { keys, move: moveKey } = useListKeys(exercises.length);
 
@@ -198,6 +217,7 @@ export const ExercisesSidebar: FC<ExercisesSidebarProps> = ({
             canMoveDown={index < exercises.length - 1}
             onMoveUp={() => moveExercise(index, index - 1)}
             onMoveDown={() => moveExercise(index, index + 1)}
+            onReplace={() => onReplaceExercise(index)}
           />
         );
       })}

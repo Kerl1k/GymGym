@@ -1,12 +1,16 @@
 import { useMemo } from "react";
 
+import { Share2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useTrainingHistoryByName } from "@/entities/training-history/use-training-history-by-name";
 import { useChangeTrainingHistory } from "@/entities/training-history/use-training-history-change";
 import { useTrainingHistoryFetchId } from "@/entities/training-history/use-training-history-fetch-id";
+import { toast } from "@/shared/lib/toast";
+import { shareText, trainingSummaryText } from "@/shared/lib/training-export";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
+import { Button } from "@/shared/ui/kit/button";
 import { computeBestByExercise } from "@/shared/ui/user-profile";
 
 import { TrainingChanges } from "../trainingChanges/training-start.page";
@@ -77,11 +81,12 @@ const TrainingEndPage = () => {
         await change(trainingHistoryUpdate);
       } catch (error) {
         console.error("Не удалось сохранить тренировку", error);
-        alert("Не удалось сохранить изменения. Попробуйте ещё раз.");
+        toast.error("Не удалось сохранить изменения. Попробуйте ещё раз.");
         return;
       }
     }
 
+    toast.success("Тренировка сохранена");
     navigate(ROUTES.HOME);
   };
 
@@ -93,8 +98,23 @@ const TrainingEndPage = () => {
     return <div>Тренировка не найдена</div>;
   }
 
+  const handleShare = async () => {
+    const result = await shareText(
+      history.name,
+      trainingSummaryText(history),
+    );
+    if (result === "copied") toast.success("Итоги скопированы в буфер обмена");
+    if (result === "failed") toast.error("Не удалось поделиться итогами");
+  };
+
   return (
     <>
+      <div className="mx-auto flex max-w-[1200px] justify-end px-4 pt-4 sm:px-6">
+        <Button variant="outline" onClick={handleShare} className="gap-2">
+          <Share2Icon className="h-4 w-4" />
+          Поделиться итогами
+        </Button>
+      </div>
       <BestResults
         current={history}
         previousHistory={previousHistory}

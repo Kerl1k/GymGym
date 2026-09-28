@@ -12,6 +12,10 @@ import {
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useFetchTrainingHistoryWithFilters } from "@/entities/training-history/use-training-history-with-filters";
+import {
+  getSetOneRepMax,
+  sumSetsTonnage,
+} from "@/shared/lib/active-training-units";
 import { Button } from "@/shared/ui/kit/button";
 import {
   Card,
@@ -30,7 +34,13 @@ import {
 } from "@/shared/ui/kit/select";
 
 type RangeKey = "7d" | "30d" | "90d" | "365d" | "all";
-type MetricKey = "maxValue" | "avgValue" | "volume";
+type MetricKey = "maxValue" | "avgValue" | "volume" | "oneRepMax" | "tonnage";
+
+/** These metrics are computed from weight and reps, so the unit selector does not apply. */
+const WEIGHT_REPS_METRICS: ReadonlySet<MetricKey> = new Set([
+  "oneRepMax",
+  "tonnage",
+]);
 
 const RANGE_OPTIONS: Array<{ key: RangeKey; label: string; days?: number }> = [
   { key: "7d", label: "7 дней", days: 7 },
@@ -55,6 +65,16 @@ const METRIC_OPTIONS: Array<{ key: MetricKey; label: string; hint: string }> = [
     key: "volume",
     label: "Сумма за тренировку",
     hint: "Сумма значений параметра по подходам",
+  },
+  {
+    key: "oneRepMax",
+    label: "Расчётный 1ПМ",
+    hint: "Лучший расчётный максимум на 1 повторение за тренировку (формула Эпли)",
+  },
+  {
+    key: "tonnage",
+    label: "Тоннаж",
+    hint: "Сумма «вес × повторения» по всем подходам тренировки",
   },
 ];
 
@@ -177,9 +197,14 @@ export const Statistics = () => {
         if (values.length === 0) return null;
 
         const maxValue = Math.max(...values);
-        const avgValue = values.reduce((acc, v) => acc + v, 0) / values.length;
+        const avgValue =
+          Math.round(
+            (values.reduce((acc, v) => acc + v, 0) / values.length) * 10,
+          ) / 10;
         const setsCount = values.length;
         const volume = values.reduce((acc, v) => acc + v, 0);
+        const oneRepMax = Math.max(0, ...exercise.sets.map(getSetOneRepMax));
+        const tonnage = Math.round(sumSetsTonnage(exercise.sets));
 
         return {
           dateTs: ts,
@@ -187,6 +212,8 @@ export const Statistics = () => {
           avgValue,
           setsCount,
           volume,
+          oneRepMax,
+          tonnage,
         };
       })
       .filter((p): p is NonNullable<typeof p> => p !== null)
@@ -229,7 +256,12 @@ export const Statistics = () => {
     setIsModalOpen(false);
   };
 
-  const unitSuffix = selectedUnit?.name ? ` ${selectedUnit.name}` : "";
+  const isWeightRepsMetric = WEIGHT_REPS_METRICS.has(selectedMetric);
+  const unitSuffix = isWeightRepsMetric
+    ? " кг"
+    : selectedUnit?.name
+      ? ` ${selectedUnit.name}`
+      : "";
   const selectedMetricMeta =
     METRIC_OPTIONS.find((m) => m.key === selectedMetric) ?? METRIC_OPTIONS[0]!;
 
@@ -277,7 +309,7 @@ export const Statistics = () => {
             searchPlaceholder="Поиск упражнения"
           />
 
-          {selectedExercise && availableUnits.length > 0 && (
+          {selectedExercise && availableUnits.length > 0 && !isWeightRepsMetric && (
             <Select
               value={selectedUnitKey ?? availableUnits[0]!.key}
               onValueChange={(v) => setSelectedUnitKey(v)}

@@ -1,6 +1,8 @@
 import {
+  estimateOneRepMax,
   getRepeatsLike,
   getWeightLike,
+  sumSetsTonnage,
 } from "@/shared/lib/active-training-units";
 import type { ApiSchemas } from "@/shared/schema";
 
@@ -62,12 +64,15 @@ export function computeOverviewStats(
   let totalExercises = 0;
   let totalSets = 0;
   let doneSets = 0;
+  let totalTonnage = 0;
 
   for (const training of history) {
     totalExercises += training.exercises.length;
     for (const exercise of training.exercises) {
       totalSets += exercise.sets.length;
-      doneSets += exercise.sets.filter((s) => s.done).length;
+      const done = exercise.sets.filter((s) => s.done);
+      doneSets += done.length;
+      totalTonnage += sumSetsTonnage(done);
     }
   }
 
@@ -105,7 +110,54 @@ export function computeOverviewStats(
         ? Math.round((totalSets / trainingsCount) * 10) / 10
         : 0,
     donePercent: totalSets > 0 ? Math.round((doneSets / totalSets) * 100) : 0,
+    totalTonnage: Math.round(totalTonnage),
   };
+}
+
+export type HeatmapDay = {
+  key: string;
+  date: Date;
+  count: number;
+  isFuture: boolean;
+};
+
+/** Columns are weeks (Mon..Sun), the last column contains today. */
+export function computeActivityHeatmap(
+  history: TrainingHistoryItem[],
+  weeks = 26,
+  endDate: Date = new Date(),
+): HeatmapDay[][] {
+  const counts = new Map<string, number>();
+  for (const training of history) {
+    const date = toDate(training.dateStart);
+    if (!date) continue;
+    const key = toLocalDateKey(date);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+
+  const today = startOfDay(endDate);
+  const lastMonday = new Date(endDate);
+  lastMonday.setDate(lastMonday.getDate() - ((lastMonday.getDay() + 6) % 7));
+  lastMonday.setHours(0, 0, 0, 0);
+
+  const columns: HeatmapDay[][] = [];
+  for (let w = weeks - 1; w >= 0; w -= 1) {
+    const column: HeatmapDay[] = [];
+    for (let d = 0; d < 7; d += 1) {
+      const date = new Date(lastMonday);
+      date.setDate(lastMonday.getDate() - w * 7 + d);
+      const key = toLocalDateKey(date);
+      column.push({
+        key,
+        date,
+        count: counts.get(key) ?? 0,
+        isFuture: date.getTime() > today,
+      });
+    }
+    columns.push(column);
+  }
+
+  return columns;
 }
 
 export function computeWeeklyActivity(
@@ -192,6 +244,8 @@ export type PersonalRecord = {
   reps: number;
   date: string;
   dateTs: number;
+  /** Best estimated 1RM across all sets, may come from a different set than `weight`. */
+  estimatedOneRepMax: number;
 };
 
 export function isBetterRecord(
@@ -223,6 +277,10 @@ export function computeBestByExercise(
 
         const prev = best.get(exercise.name);
         const better = !prev || isBetterRecord({ weight, reps }, prev);
+        const oneRepMax = Math.max(
+          estimateOneRepMax(weight, reps),
+          prev?.estimatedOneRepMax ?? 0,
+        );
 
         if (better) {
           best.set(exercise.name, {
@@ -231,7 +289,10 @@ export function computeBestByExercise(
             reps,
             date: training.dateStart,
             dateTs,
+            estimatedOneRepMax: oneRepMax,
           });
+        } else if (prev) {
+          prev.estimatedOneRepMax = oneRepMax;
         }
       }
     }

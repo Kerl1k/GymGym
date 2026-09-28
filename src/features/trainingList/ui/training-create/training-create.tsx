@@ -14,6 +14,7 @@ import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-
 import { useChangeTraining } from "@/entities/training/use-training-change";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { cn } from "@/shared/lib/css";
+import { toast } from "@/shared/lib/toast";
 import { useListKeys } from "@/shared/lib/useListKeys";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
@@ -155,7 +156,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
       form.exerciseTypes.length === 0 ||
       form.exerciseTypes.some((ex) => ex.id === UNSELECTED_EXERCISE_ID)
     ) {
-      alert(
+      toast.error(
         "Пожалуйста, заполните название тренировки и выберите упражнение в каждой строке",
       );
       return false;
@@ -171,7 +172,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
       close();
     } catch (error) {
       console.error("Не удалось создать тренировку", error);
-      alert("Не удалось создать тренировку. Попробуйте ещё раз.");
+      toast.error("Не удалось создать тренировку. Попробуйте ещё раз.");
     }
   };
 
@@ -183,7 +184,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
       close();
     } catch (error) {
       console.error("Не удалось сохранить тренировку", error);
-      alert("Не удалось сохранить тренировку. Попробуйте ещё раз.");
+      toast.error("Не удалось сохранить тренировку. Попробуйте ещё раз.");
     }
   };
 

@@ -1,14 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 
-import { ClockIcon, EditIcon, CheckIcon, XIcon } from "lucide-react";
+import {
+  ClockIcon,
+  EditIcon,
+  CheckIcon,
+  TrendingUpIcon,
+  XIcon,
+} from "lucide-react";
 
 import {
+  getWeightLike,
   parseDecimalInput,
   setUnitValueAt,
+  WEIGHT_UNIT_INDEX,
 } from "@/shared/lib/active-training-units";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
+
+import { getProgressionHint } from "../model/progression";
 
 type CurrentExerciseProps = {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][number];
@@ -76,6 +86,31 @@ export function CurrentExercise({
     setEditingUnitIndex(null);
   };
 
+  const progressionHint =
+    activeSet && !activeSet.done ? getProgressionHint(previousSet) : null;
+  const isHintApplied =
+    !!progressionHint &&
+    !!activeSet &&
+    getWeightLike(activeSet) === progressionHint.weight;
+
+  const applyProgressionHint = () => {
+    if (!progressionHint) return;
+    setTraining((prev) => ({
+      ...prev,
+      exercises: prev.exercises.map((ex) => {
+        if (ex.id !== exercise.id) return ex;
+        return {
+          ...ex,
+          sets: ex.sets.map((set, index) =>
+            index === activeSetIndex
+              ? setUnitValueAt(set, WEIGHT_UNIT_INDEX, progressionHint.weight)
+              : set,
+          ),
+        };
+      }),
+    }));
+  };
+
   const cancelEdit = (unitIndex: number) => {
     const set = exercise.sets[activeSetIndex];
     const u = set?.units[unitIndex];
@@ -100,6 +135,29 @@ export function CurrentExercise({
       </CardHeader>
 
       <CardContent>
+        {progressionHint && (
+          <div className="mb-4 flex flex-col gap-3 rounded-xl border border-primary/30 bg-primary/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-2 text-sm">
+              <TrendingUpIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+              <span>
+                В прошлый раз {progressionHint.previousWeight} кг
+                {progressionHint.reps > 0 ? ` × ${progressionHint.reps}` : ""}.
+                Попробуйте{" "}
+                <b className="tabular-nums">{progressionHint.weight} кг</b> (+
+                {progressionHint.weight - progressionHint.previousWeight} кг)
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant={isHintApplied ? "ghost" : "outline"}
+              onClick={applyProgressionHint}
+              disabled={isHintApplied}
+              className="shrink-0"
+            >
+              {isHintApplied ? "Применено" : "Применить"}
+            </Button>
+          </div>
+        )}
         <div className="mb-6 space-y-3">
           {units.length === 0 ? (
             <p className="text-muted-foreground text-sm">

@@ -12,8 +12,10 @@ import { useEndActiveTraining } from "@/entities/training-active/use-active-trai
 import { useLatestTrainingHistoryByName } from "@/entities/training-history/use-latest-training-history-by-name";
 import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
 import { runInBackground } from "@/shared/lib/background";
+import { toast } from "@/shared/lib/toast";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { useOpen } from "@/shared/lib/useOpen";
+import { useWakeLock } from "@/shared/lib/useWakeLock";
 import { ROUTES } from "@/shared/model/routes";
 import { ApiSchemas } from "@/shared/schema";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -32,6 +34,25 @@ import { RestTimer } from "./RestTimer";
 
 type TrainingSyncStatus = "synced" | "syncing" | "error" | "offline";
 const SYNC_DEBOUNCE_MS = 1200;
+const DEFAULT_REST_TIME_SEC = 90;
+
+function toActiveExercise(
+  exercise: ApiSchemas["ExerciseType"],
+  setsCount: number,
+): ApiSchemas["ActiveTraining"]["exercises"][number] {
+  return {
+    id: exercise.id,
+    name: exercise.name,
+    description: exercise.description || "",
+    restTime: exercise.restTime > 0 ? exercise.restTime : DEFAULT_REST_TIME_SEC,
+    sets: Array.from({ length: setsCount }, () => ({
+      units: unitsFromCatalogStrings(exercise.units),
+      done: false,
+    })),
+    muscleGroups: exercise.muscleGroups || [],
+    useCustomSets: true,
+  };
+}
 
 type ActiveTrainingContentProps = {
   data: ApiSchemas["ActiveTraining"];
@@ -46,6 +67,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
 }) => {
   const { end } = useEndActiveTraining();
   const { change } = useUpdateActiveTraining();
+  useWakeLock();
 
   const navigate = useNavigate();
   const { close, isOpen, open } = useOpen();
@@ -147,27 +169,37 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
     if (!selectedExercise) return;
 
-    setTrainingWrapper((prev) => {
-      const newExercise = {
-        id: selectedExercise.id,
-        name: selectedExercise.name,
-        description: selectedExercise.description || "",
-        restTime: 90,
-        sets: [
-          {
-            units: unitsFromCatalogStrings(selectedExercise.units),
-            done: false,
-          },
-        ],
-        muscleGroups: selectedExercise.muscleGroups || [],
-        useCustomSets: true,
-      };
+    setTrainingWrapper((prev) => ({
+      ...prev,
+      exercises: [...prev.exercises, toActiveExercise(selectedExercise, 1)],
+    }));
+  };
 
-      return {
-        ...prev,
-        exercises: [...prev.exercises, newExercise],
-      };
-    });
+  const [replaceExerciseIndex, setReplaceExerciseIndex] = useState<
+    number | null
+  >(null);
+
+  const replacementCandidates = useMemo(() => {
+    if (replaceExerciseIndex === null) return [];
+    const usedNames = new Set(trainingData.exercises.map((ex) => ex.name));
+    return exercises.filter((ex) => !usedNames.has(ex.name));
+  }, [exercises, replaceExerciseIndex, trainingData.exercises]);
+
+  const replaceExercise = (exerciseId: string) => {
+    const index = replaceExerciseIndex;
+    const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
+    setReplaceExerciseIndex(null);
+    if (index === null || !selectedExercise) return;
+
+    setTrainingWrapper((prev) => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) =>
+        i === index
+          ? toActiveExercise(selectedExercise, Math.max(ex.sets.length, 1))
+          : ex,
+      ),
+    }));
+    toast.success(`Упражнение заменено на «${selectedExercise.name}»`);
   };
 
   const completeSet = async (
@@ -395,6 +427,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
                     setSelectedExerciseIndex={setSelectedExerciseIndex}
                     setTraining={setTrainingWrapper}
                     openExerciseModal={openExerciseModal}
+                    onReplaceExercise={setReplaceExerciseIndex}
                   />
                 </CardContent>
               </Card>
@@ -405,6 +438,14 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
                 isOpen={isExerciseModalOpen}
                 close={closeExerciseModal}
                 isLoading={isExercisesLoading}
+              />
+              <ExerciseSelectModal
+                exercises={replacementCandidates}
+                onSelect={replaceExercise}
+                isOpen={replaceExerciseIndex !== null}
+                close={() => setReplaceExerciseIndex(null)}
+                isLoading={isExercisesLoading}
+                searchPlaceholder="Найти замену..."
               />
             </div>
           </div>

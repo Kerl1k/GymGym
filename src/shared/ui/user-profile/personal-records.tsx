@@ -32,11 +32,21 @@ export function PersonalRecords({ records }: PersonalRecordsProps) {
                   {formatShortDate(pr.date)}
                 </span>
               </div>
-              <div className={styles.recordValue}>
-                {pr.weight} кг
-                {pr.reps > 0 ? (
-                  <span className={styles.recordReps}>× {pr.reps}</span>
-                ) : null}
+              <div className={styles.recordValueColumn}>
+                <div className={styles.recordValue}>
+                  {pr.weight} кг
+                  {pr.reps > 0 ? (
+                    <span className={styles.recordReps}>× {pr.reps}</span>
+                  ) : null}
+                </div>
+                {pr.estimatedOneRepMax > 0 && (
+                  <span
+                    className={styles.recordOneRepMax}
+                    title="Расчётный максимум на 1 повторение (формула Эпли)"
+                  >
+                    1ПМ ≈ {pr.estimatedOneRepMax} кг
+                  </span>
+                )}
               </div>
             </div>
           ))}
