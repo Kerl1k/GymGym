@@ -8,6 +8,7 @@ import {
   PlusIcon,
 } from "lucide-react";
 
+import { useListKeys } from "@/shared/lib/useListKeys";
 import { ApiSchemas } from "@/shared/schema";
 
 type ExerciseType = ApiSchemas["ActiveTraining"]["exercises"][number];
@@ -134,10 +135,13 @@ export const ExercisesSidebar: FC<ExercisesSidebarProps> = ({
   setTraining,
   openExerciseModal,
 }) => {
+  const { keys, move: moveKey } = useListKeys(exercises.length);
+
   const moveExercise = useCallback(
     (dragIndex: number, hoverIndex: number) => {
       if (dragIndex === hoverIndex) return;
 
+      moveKey(dragIndex, hoverIndex);
       setTraining((prev) => {
         const nextExercises = [...prev.exercises];
         const [removed] = nextExercises.splice(dragIndex, 1);
@@ -159,7 +163,7 @@ export const ExercisesSidebar: FC<ExercisesSidebarProps> = ({
         return prev + 1;
       });
     },
-    [setSelectedExerciseIndex, setTraining],
+    [moveKey, setSelectedExerciseIndex, setTraining],
   );
 
   return (
@@ -183,7 +187,7 @@ export const ExercisesSidebar: FC<ExercisesSidebarProps> = ({
 
         return (
           <ExerciseRow
-            key={`${exercise.id}-${index}`}
+            key={keys[index]}
             exercise={exercise}
             index={index}
             isSelected={isSelected}

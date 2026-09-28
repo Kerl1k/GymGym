@@ -10,13 +10,15 @@ export function useUserFetch(userId: string) {
     void userStore.fetchById(userId);
   }, [userId]);
 
-  const { user, isPending } = useMobxSelector(() => ({
+  const { user, isPending, error } = useMobxSelector(() => ({
     user: userStore.getById(userId),
     isPending: userStore.isByIdLoading(userId),
+    error: userStore.getByIdError(userId),
   }));
 
   return {
     user: user ?? null,
-    isPending: isPending || user === undefined,
+    error,
+    isPending: isPending || (user === undefined && !error && Boolean(userId)),
   };
 }

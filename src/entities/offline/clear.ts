@@ -2,15 +2,17 @@ import { clearActiveTrainingDraft } from "@/entities/training-active/active-trai
 
 import {
   STORE_ID_MAP,
-  STORE_OUTBOX,
   STORE_SNAPSHOTS,
   idbClearStore,
 } from "./db";
+import { clearOutbox } from "./outbox";
+import { syncEngine } from "./sync-engine";
 
 export async function clearOfflineData(): Promise<void> {
+  syncEngine.reset();
   await Promise.all([
     idbClearStore(STORE_SNAPSHOTS),
-    idbClearStore(STORE_OUTBOX),
+    clearOutbox(),
     idbClearStore(STORE_ID_MAP),
   ]);
   clearActiveTrainingDraft();

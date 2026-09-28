@@ -8,7 +8,7 @@ import { Loader } from "@/shared/ui/kit/loader";
 import styles from "./users.module.scss";
 
 export function UsersList() {
-  const { users, isPending } = useUsersList();
+  const { users, isPending, error } = useUsersList();
 
   return (
     <div className={styles.page}>
@@ -28,7 +28,11 @@ export function UsersList() {
       {!isPending && users.length === 0 && (
         <div className={styles.emptyState}>
           <Users size={48} />
-          <p>Пользователи не найдены</p>
+          <p>
+            {error
+              ? "Не удалось загрузить пользователей"
+              : "Пользователи не найдены"}
+          </p>
         </div>
       )}
 

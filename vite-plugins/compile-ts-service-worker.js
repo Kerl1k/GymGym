@@ -1,9 +1,12 @@
+import { createHash } from "node:crypto";
+
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import rollupPluginTypescript from "@rollup/plugin-typescript";
 import chokidar from "chokidar";
 import { rollup } from "rollup";
 
 const PRECACHE_PLACEHOLDER = '["__SELF_PRECACHE_ASSETS__"]';
+const BUILD_ID_PLACEHOLDER = "__SW_BUILD_ID__";
 
 const HASHED_ASSET_RE =
   /^assets\/.+-[A-Za-z0-9_-]{6,}\.(js|css|woff2?|ttf|png|jpg|jpeg|webp|svg|ico)$/;
@@ -33,7 +36,21 @@ const generateCode = async (precacheAssets = []) => {
     );
   }
 
-  code = code.replace(PRECACHE_PLACEHOLDER, JSON.stringify(precacheAssets));
+  if (!code.includes(BUILD_ID_PLACEHOLDER)) {
+    throw new Error(
+      `[compile-ts-service-worker]: missing placeholder ${BUILD_ID_PLACEHOLDER}`,
+    );
+  }
+
+  // Hashed asset names change with content, so their list identifies the build.
+  const buildId = createHash("sha256")
+    .update(JSON.stringify(precacheAssets))
+    .digest("hex")
+    .slice(0, 12);
+
+  code = code
+    .replace(PRECACHE_PLACEHOLDER, JSON.stringify(precacheAssets))
+    .replaceAll(BUILD_ID_PLACEHOLDER, buildId);
 
   return `self.addEventListener('install', (event) => {
   self.skipWaiting(); 

@@ -76,23 +76,11 @@ export function TrainingItem({
 
   const handleEndCurrentAndStartNew = async () => {
     try {
-      console.log(
-        "[active-training/end] UI:handleEndCurrentAndStartNew start",
-        { nextTrainingId: training.id },
-      );
       await endCurrentTraining();
-      console.log(
-        "[active-training/end] UI:handleEndCurrentAndStartNew end ok, starting",
-        { nextTrainingId: training.id },
-      );
       await start(training.id);
       closeAlreadyStarted();
       navigator(ROUTES.START);
     } catch (error) {
-      console.log(
-        "[active-training/end] UI:handleEndCurrentAndStartNew failed",
-        error,
-      );
       console.error("Failed to end current training:", error);
     }
   };

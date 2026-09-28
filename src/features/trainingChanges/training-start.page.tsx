@@ -16,6 +16,7 @@ import {
   unitsFromCatalogStrings,
 } from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
+import { useListKeys } from "@/shared/lib/useListKeys";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
@@ -36,7 +37,7 @@ import styles from "./training-start.module.scss";
 
 type TrainingChangesProps = {
   data: ApiSchemas["ActiveTraining"];
-  onSave: (data: ApiSchemas["ActiveTraining"]) => void;
+  onSave: (data: ApiSchemas["ActiveTraining"]) => void | Promise<void>;
   previousBestByExercise?: Record<string, PersonalRecord>;
 };
 
@@ -113,6 +114,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
   );
 
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
+  const exerciseKeys = useListKeys(activeTraining?.exercises.length ?? 0);
 
   useEffect(() => {
     setActiveTraining((prev) => {
@@ -120,7 +122,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
       const nextExercises = prev.exercises.map((ex) => ({
         ...ex,
         useCustomSets: true,
-        restTime: 0,
       }));
       return { ...prev, exercises: nextExercises };
     });
@@ -129,6 +130,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
   const removeExercise = (exerciseIndex: number) => {
     if (!activeTraining || activeTraining.exercises.length <= 1) return;
 
+    exerciseKeys.remove(exerciseIndex);
     setActiveTraining((prev) => {
       if (!prev) return prev;
 
@@ -144,6 +146,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
 
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex >= 0 && newIndex < activeTraining.exercises.length) {
+      exerciseKeys.move(index, newIndex);
       setActiveTraining((prev) => {
         if (!prev) return prev;
 
@@ -209,7 +212,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
           done: false,
         },
       ],
-      restTime: 0,
+      restTime: selectedExercise.restTime ?? 90,
     };
 
     setActiveTraining((prev) => {
@@ -237,7 +240,6 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
         exercises: data.exercises.map((ex) => ({
           ...ex,
           useCustomSets: true,
-          restTime: 0,
         })),
       });
     }
@@ -277,7 +279,10 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
       {/* Упражнения */}
       <div className={styles.exercisesList}>
         {activeTraining.exercises.map((exercise, exerciseIndex) => (
-          <Card key={exerciseIndex} className={styles.exerciseCard}>
+          <Card
+            key={exerciseKeys.keys[exerciseIndex]}
+            className={styles.exerciseCard}
+          >
             <CardContent className={styles.exerciseContent}>
               {/* Заголовок упражнения */}
               <div className={styles.exerciseHeader}>

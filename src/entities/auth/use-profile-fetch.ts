@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 
+import { runInBackground } from "@/shared/lib/background";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { authStore } from "./auth.store";
 
 export function useFetchProfile() {
   useEffect(() => {
-    void authStore.fetchProfile();
+    runInBackground(authStore.fetchProfile());
   }, []);
 
   const { profile, isPending } = useMobxSelector(() => ({

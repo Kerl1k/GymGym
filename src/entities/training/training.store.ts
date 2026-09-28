@@ -170,7 +170,9 @@ class TrainingStore {
       return;
     }
 
-    this.listLoading.set(key, true);
+    runInAction(() => {
+      this.listLoading.set(key, true);
+    });
     try {
       const result = await fetchClient.GET("/api/training", {
         params: { query },
@@ -233,7 +235,9 @@ class TrainingStore {
       return;
     }
 
-    this.byIdLoading.set(trainingId, true);
+    runInAction(() => {
+      this.byIdLoading.set(trainingId, true);
+    });
     try {
       const result = await fetchClient.GET("/api/training/{id}", {
         params: {

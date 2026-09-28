@@ -28,6 +28,13 @@ export function ensureUnitsMinLength(set: TrainingSet, min: number): TrainingSet
   return { ...set, units };
 }
 
+/** Accepts both "62.5" and "62,5"; invalid or empty input becomes 0. */
+export function parseDecimalInput(raw: string): number {
+  if (raw === "") return 0;
+  const n = Number(raw.replace(/,/g, "."));
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function getUnitValue(set: TrainingSet, index: number): number {
   return set.units[index]?.value ?? 0;
 }

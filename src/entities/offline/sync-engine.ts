@@ -1,17 +1,19 @@
 import { makeAutoObservable, runInAction } from "mobx";
 
 import { fetchClient } from "@/entities/instance";
-import { useSession } from "@/shared/model/session";
+import { useSession } from "@/entities/session/session";
 import type { ApiSchemas } from "@/shared/schema";
 
 import { toUpdateActiveTrainingBody } from "./active-training-body";
 import { connectivityStore } from "./connectivity";
 import { registerFlushHandler } from "./flush-scheduler";
-import { rememberIdMapping } from "./id-map";
+import { readIdMap, rememberIdMapping } from "./id-map";
 import {
   applyIdMapToOutbox,
+  markMutationInFlight,
+  markOutboxError,
   readOutbox,
-  replaceOutbox,
+  removeFromOutbox,
   sortMutationsForFlush,
 } from "./outbox";
 import {
@@ -32,8 +34,36 @@ type StoreHooks = {
   refetchAfterSync: () => Promise<void>;
 };
 
+type FlushOptions = {
+  /** User-initiated retry: ignores the error backoff window. */
+  force?: boolean;
+};
+
+const RETRY_BASE_MS = 5_000;
+const RETRY_MAX_MS = 5 * 60_000;
+
 /** In-flight flush chain (kept off the MobX tree). */
 let flushPromise: Promise<void> | null = null;
+
+function errorMessageOf(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return "SyncFailed";
+}
+
+function isNetworkFailure(message: string): boolean {
+  return (
+    !connectivityStore.isOnline ||
+    message === "Failed to fetch" ||
+    message.includes("NetworkError") ||
+    message.toLowerCase().includes("network") ||
+    message.includes("Load failed")
+  );
+}
 
 class SyncEngine {
   status: SyncStatus = "synced";
@@ -44,6 +74,11 @@ class SyncEngine {
   private queued = false;
   private hooks: StoreHooks | null = null;
   private started = false;
+  /** Bumped on reset so a flush started for a previous session stops. */
+  private generation = 0;
+  private failedAttempts = 0;
+  private retryAfter = 0;
+  private retryTimer: number | null = null;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -78,29 +113,56 @@ class SyncEngine {
     }
   }
 
+  /** Stops any in-flight flush and forgets per-session state (logout). */
+  reset() {
+    this.generation += 1;
+    this.queued = false;
+    this.failedAttempts = 0;
+    this.retryAfter = 0;
+    if (this.retryTimer !== null) {
+      window.clearTimeout(this.retryTimer);
+      this.retryTimer = null;
+    }
+    markMutationInFlight(null);
+    this.status = "synced";
+    this.lastError = null;
+    this.pendingCount = 0;
+    this.lastEndedHistoryId = null;
+  }
+
   async refreshPendingCount() {
-    const items = await readOutbox();
+    let count: number;
+    try {
+      count = (await readOutbox()).length;
+    } catch (error) {
+      console.warn("Не удалось прочитать очередь синхронизации", error);
+      return;
+    }
     runInAction(() => {
-      this.pendingCount = items.length;
+      this.pendingCount = count;
       if (!connectivityStore.isOnline) {
         this.status = "offline";
-      } else if (items.length === 0 && this.status !== "error") {
+      } else if (count === 0 && this.status !== "error") {
         this.status = "synced";
       }
     });
   }
 
-  async flush(): Promise<void> {
-    console.log("[active-training/end] sync:flush enter", {
-      isOnline: connectivityStore.isOnline,
-      status: this.status,
-      lastError: this.lastError,
-      pendingCount: this.pendingCount,
-      hasInFlight: Boolean(flushPromise),
-      lastEndedHistoryId: this.lastEndedHistoryId,
-    });
+  /** Never rejects: failures are reflected in `status` / `lastError`. */
+  async flush(options: FlushOptions = {}): Promise<void> {
+    try {
+      await this.flushUnsafe(options);
+    } catch (error) {
+      console.error("Sync flush failed", error);
+      runInAction(() => {
+        this.status = "error";
+        this.lastError = errorMessageOf(error);
+      });
+    }
+  }
+
+  private async flushUnsafe(options: FlushOptions): Promise<void> {
     if (!connectivityStore.isOnline) {
-      console.log("[active-training/end] sync:flush skip offline");
       runInAction(() => {
         this.status = "offline";
       });
@@ -108,50 +170,63 @@ class SyncEngine {
       return;
     }
 
+    if (!options.force && Date.now() < this.retryAfter) {
+      this.scheduleRetry();
+      return;
+    }
+
     // Coalesce concurrent callers onto one chain; mark queued so the
     // in-flight loop does another pass after new mutations land.
     if (flushPromise) {
-      console.log(
-        "[active-training/end] sync:flush coalesce onto in-flight",
-      );
       this.queued = true;
       await flushPromise;
       // Mutation may have been enqueued after the loop's last empty check.
       if (
         connectivityStore.isOnline &&
-        (await readOutbox()).length > 0 &&
-        this.status !== "error"
+        this.status !== "error" &&
+        (await readOutbox()).length > 0
       ) {
-        console.log(
-          "[active-training/end] sync:flush re-enter after coalesce",
-        );
-        return this.flush();
+        return this.flushUnsafe(options);
       }
-      console.log("[active-training/end] sync:flush coalesce done", {
-        status: this.status,
-        lastError: this.lastError,
-        lastEndedHistoryId: this.lastEndedHistoryId,
-      });
       return;
     }
 
-    flushPromise = this.runFlushLoop().finally(() => {
+    flushPromise = this.runFlushLoop(this.generation).finally(() => {
       flushPromise = null;
     });
 
     await flushPromise;
-    console.log("[active-training/end] sync:flush complete", {
-      status: this.status,
-      lastError: this.lastError,
-      pendingCount: this.pendingCount,
-      lastEndedHistoryId: this.lastEndedHistoryId,
-    });
   }
 
-  private async runFlushLoop(): Promise<void> {
+  private scheduleRetry() {
+    if (this.retryTimer !== null) return;
+    const delay = Math.max(0, this.retryAfter - Date.now());
+    this.retryTimer = window.setTimeout(() => {
+      this.retryTimer = null;
+      void this.flush();
+    }, delay);
+  }
+
+  private registerFailure() {
+    this.failedAttempts += 1;
+    const delay = Math.min(
+      RETRY_MAX_MS,
+      RETRY_BASE_MS * 2 ** (this.failedAttempts - 1),
+    );
+    this.retryAfter = Date.now() + delay;
+    this.scheduleRetry();
+  }
+
+  private registerSuccess() {
+    this.failedAttempts = 0;
+    this.retryAfter = 0;
+  }
+
+  private async runFlushLoop(generation: number): Promise<void> {
     do {
       this.queued = false;
-      await this.runFlushPass();
+      await this.runFlushPass(generation);
+      if (generation !== this.generation) return;
       if (this.status === "error" || this.status === "offline") {
         return;
       }
@@ -164,17 +239,15 @@ class SyncEngine {
     } while (this.queued || (await readOutbox()).length > 0);
   }
 
-  private async runFlushPass(): Promise<void> {
+  private async runFlushPass(generation: number): Promise<void> {
     runInAction(() => {
       this.status = "syncing";
       this.lastError = null;
     });
 
     const token = await useSession.getState().refreshToken();
+    if (generation !== this.generation) return;
     if (!token) {
-      console.log(
-        "[active-training/end] sync:flushPass FAIL AuthRequired",
-      );
       runInAction(() => {
         this.status = "error";
         this.lastError = "AuthRequired";
@@ -187,94 +260,59 @@ class SyncEngine {
     // Re-read after each mutation so concurrent enqueueMutation
     // (e.g. active.end during an in-flight update flush) is not wiped.
     while (true) {
+      if (generation !== this.generation) return;
+
       const remaining = sortMutationsForFlush(await readOutbox());
       if (remaining.length === 0) break;
 
       const mutation = remaining[0];
-      console.log("[active-training/end] sync:flushPass next mutation", {
-        id: mutation.id,
-        type: mutation.type,
-        status: mutation.status,
-        queueLength: remaining.length,
-        typesAhead: remaining.map((item) => item.type),
-      });
+      markMutationInFlight(mutation.id);
       try {
         await this.replayMutation(mutation);
-        const after = await readOutbox();
-        const next = after.filter((item) => item.id !== mutation.id);
-        await replaceOutbox(next);
+        if (generation !== this.generation) return;
+
+        const next = await removeFromOutbox(mutation.id);
+        if (mutation.type === "exercise.create" || mutation.type === "training.create") {
+          // Later mutations may reference the temp id just resolved.
+          await applyIdMapToOutbox();
+        }
+        this.registerSuccess();
         runInAction(() => {
           this.pendingCount = next.length;
         });
-        if (mutation.type === "active.end") {
-          console.log(
-            "[active-training/end] sync:flushPass active.end removed from outbox",
-            { lastEndedHistoryId: this.lastEndedHistoryId },
-          );
-        }
       } catch (error) {
-        const message =
-          typeof error === "string"
-            ? error
-            : error instanceof Error
-              ? error.message
-              : "SyncFailed";
+        if (generation !== this.generation) return;
 
-        console.log("[active-training/end] sync:flushPass mutation catch", {
-          mutationType: mutation.type,
-          mutationId: mutation.id,
-          message,
-          error,
-        });
-
-        const isNetworkError =
-          !connectivityStore.isOnline ||
-          message === "Failed to fetch" ||
-          message.includes("NetworkError") ||
-          message.includes("network");
-
-        if (isNetworkError) {
-          console.log(
-            "[active-training/end] sync:flushPass network error → offline",
-            { mutationType: mutation.type, message },
-          );
+        const message = errorMessageOf(error);
+        if (isNetworkFailure(message)) {
+          // No "online" event will fire if the browser already thinks it is
+          // online, so retry on our own.
+          if (connectivityStore.isOnline) {
+            this.registerFailure();
+          }
           runInAction(() => {
             this.status = "offline";
           });
           return;
         }
 
-        const after = await readOutbox();
-        const marked: OutboxMutation = {
-          ...mutation,
-          status: "error",
-          errorMessage: message,
-        };
-        const next = [
-          marked,
-          ...after.filter((item) => item.id !== mutation.id),
-        ];
-        await replaceOutbox(next);
-        console.log(
-          "[active-training/end] sync:flushPass marked mutation error",
-          {
-            mutationType: mutation.type,
-            message,
-            pendingCount: next.length,
-          },
-        );
+        const next = await markOutboxError(mutation.id, message);
+        this.registerFailure();
         runInAction(() => {
           this.status = "error";
           this.lastError = message;
           this.pendingCount = next.length;
         });
         return;
+      } finally {
+        markMutationInFlight(null);
       }
     }
 
     if (this.hooks) {
       await this.hooks.refetchAfterSync();
     }
+    if (generation !== this.generation) return;
 
     runInAction(() => {
       this.status = "synced";
@@ -283,9 +321,16 @@ class SyncEngine {
     });
   }
 
+  /** True when a previous attempt already created this entity on the server. */
+  private async isAlreadyCreated(tempId: string): Promise<boolean> {
+    const map = await readIdMap();
+    return Boolean(map[tempId]);
+  }
+
   private async replayMutation(mutation: OutboxMutation): Promise<void> {
     switch (mutation.type) {
       case "exercise.create": {
+        if (await this.isAlreadyCreated(mutation.tempId)) return;
         const result = await fetchClient.POST("/api/exercise-type", {
           body: mutation.body,
         });
@@ -312,6 +357,7 @@ class SyncEngine {
         return;
       }
       case "training.create": {
+        if (await this.isAlreadyCreated(mutation.tempId)) return;
         const result = await fetchClient.POST("/api/training", {
           body: mutation.body,
         });
@@ -358,57 +404,17 @@ class SyncEngine {
       case "active.end": {
         // Prefer end-with-body so offline sets/weights are applied on finish.
         // Fall back to empty body only if we somehow lost finalData.
-        console.log("[active-training/end] sync:replay POST /api/active-training/end", {
-          hasFinalData: Boolean(mutation.finalData),
-          trainingName: mutation.finalData?.name,
-          exercisesCount: mutation.finalData?.exercises?.length,
-          dateStart: mutation.finalData?.dateStart,
-          bodyPreview: mutation.finalData
-            ? {
-                name: mutation.finalData.name,
-                exercises: mutation.finalData.exercises?.map((ex) => ({
-                  id: ex.id,
-                  name: ex.name,
-                  setsDone: ex.sets?.filter((s) => s.done).length,
-                  setsTotal: ex.sets?.length,
-                })),
-              }
-            : null,
-        });
         const result = mutation.finalData
           ? await fetchClient.POST("/api/active-training/end", {
               body: mutation.finalData,
             })
           : await fetchClient.POST("/api/active-training/end", {});
-        console.log("[active-training/end] sync:replay response", {
-          hasError: Boolean(result.error),
-          error: result.error,
-          hasData: Boolean(result.data),
-          historyId: (result.data as ApiSchemas["TrainingHistory"] | undefined)
-            ?.id,
-          response: result.data,
-        });
-        if (result.error) {
-          console.log(
-            "[active-training/end] sync:replay FAIL result.error",
-            result.error,
-          );
-          throw result.error;
-        }
+        if (result.error) throw result.error;
         const history = result.data as ApiSchemas["TrainingHistory"] | undefined;
         if (history?.id) {
           runInAction(() => {
             this.lastEndedHistoryId = history.id;
           });
-          console.log(
-            "[active-training/end] sync:replay lastEndedHistoryId set",
-            { historyId: history.id },
-          );
-        } else {
-          console.log(
-            "[active-training/end] sync:replay WARN no history.id in response",
-            { data: result.data },
-          );
         }
         await writeActiveTrainingSnapshot(null);
         this.hooks?.applyActiveTraining(null);

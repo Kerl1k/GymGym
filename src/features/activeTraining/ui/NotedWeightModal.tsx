@@ -6,6 +6,7 @@ import {
   createEmptySetFromExerciseTemplate,
   ensureUnitsMinLength,
   getUnitValue,
+  parseDecimalInput,
   REPS_UNIT_INDEX,
   setUnitValueAt,
   WEIGHT_UNIT_INDEX,
@@ -32,7 +33,7 @@ type NotedWeightModalProps = {
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"]
     | ApiSchemas["ActiveTraining"]["exercises"][0]["sets"][number];
   previousSets?: ApiSchemas["Set"][];
-  completeSet: (set: ApiSchemas["Set"]) => void;
+  completeSet: (set: ApiSchemas["Set"]) => Promise<{ finished: boolean }>;
 };
 
 function stripLeadingZerosFromNumericInput(value: string): string {
@@ -76,13 +77,6 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
     return stripLeadingZerosFromNumericInput(before + after);
   }
 
-  function parseDecimalInputToNumber(raw: string): number {
-    if (raw === "") return 0;
-    const normalized = raw.replace(/,/g, ".");
-    const n = Number(normalized);
-    return Number.isFinite(n) ? n : 0;
-  }
-
   const handleSetChange = (index: number, unitIndex: number, raw: string) => {
     const normalized = normalizeDecimalInput(raw);
 
@@ -95,7 +89,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
     setSets((prev) => {
       const nextSets = [...prev];
-      const numValue = parseDecimalInputToNumber(normalized);
+      const numValue = parseDecimalInput(normalized);
       nextSets[index] = setUnitValueAt(nextSets[index], unitIndex, numValue);
       return nextSets;
     });
@@ -135,9 +129,9 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
 
   const handleSave = async () => {
     const first = ensureUnitsMinLength(sets[0], 2);
-    completeSet({ ...first, done: true });
     close();
-    onAfterClose?.();
+    const { finished } = await completeSet({ ...first, done: true });
+    if (!finished) onAfterClose?.();
   };
 
   useEffect(() => {

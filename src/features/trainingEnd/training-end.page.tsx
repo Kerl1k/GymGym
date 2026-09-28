@@ -69,11 +69,17 @@ const TrainingEndPage = () => {
 
   const navigate = useNavigate();
 
-  const onSave = (data: ApiSchemas["ActiveTraining"]) => {
+  const onSave = async (data: ApiSchemas["ActiveTraining"]) => {
     if (history) {
       const trainingHistoryUpdate =
         convertActiveTrainingToTrainingHistoryUpdate(data, history.id);
-      change(trainingHistoryUpdate);
+      try {
+        await change(trainingHistoryUpdate);
+      } catch (error) {
+        console.error("Не удалось сохранить тренировку", error);
+        alert("Не удалось сохранить изменения. Попробуйте ещё раз.");
+        return;
+      }
     }
 
     navigate(ROUTES.HOME);

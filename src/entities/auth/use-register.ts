@@ -2,9 +2,9 @@ import { useCallback, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
+import { useSession } from "@/entities/session/session";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ROUTES } from "@/shared/model/routes";
-import { useSession } from "@/shared/model/session";
 import { ApiSchemas } from "@/shared/schema";
 
 import { authStore } from "./auth.store";

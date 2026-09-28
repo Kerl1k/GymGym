@@ -6,5 +6,7 @@ export function registerFlushHandler(handler: () => Promise<void>): void {
 
 export function requestFlush(): void {
   if (!flushImpl) return;
-  void flushImpl();
+  flushImpl().catch((error: unknown) => {
+    console.error("Sync flush failed", error);
+  });
 }

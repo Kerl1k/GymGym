@@ -5,12 +5,20 @@ import { activeTrainingStore } from "@/entities/training-active/active-training.
 import { connectivityStore } from "./connectivity";
 import { syncEngine } from "./sync-engine";
 
-let bootstrapped = false;
+let bootstrapPromise: Promise<void> | null = null;
 
-export async function bootstrapOffline(): Promise<void> {
-  if (bootstrapped) return;
-  bootstrapped = true;
+/** Safe to call from several places: every caller awaits the same run. */
+export function bootstrapOffline(): Promise<void> {
+  if (!bootstrapPromise) {
+    bootstrapPromise = runBootstrap().catch((error: unknown) => {
+      bootstrapPromise = null;
+      throw error;
+    });
+  }
+  return bootstrapPromise;
+}
 
+async function runBootstrap(): Promise<void> {
   connectivityStore.start();
 
   syncEngine.bindHooks({

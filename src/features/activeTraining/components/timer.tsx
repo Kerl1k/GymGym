@@ -76,8 +76,19 @@ export function Timer({
 
     tick();
     const interval = window.setInterval(tick, TICK_MS);
+    // setInterval is throttled in background tabs; a single timeout at the
+    // deadline fires the notification closer to the actual end of rest.
+    const deadline = window.setTimeout(
+      () => {
+        if (!completedRef.current) finishTimer();
+      },
+      Math.max(0, timeLeftRef.current * 1000),
+    );
 
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      window.clearTimeout(deadline);
+    };
   }, [isRunning, finishTimer, setTimeLeft]);
 
   useEffect(() => {

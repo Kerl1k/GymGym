@@ -23,7 +23,13 @@ const TrainingStartPage = () => {
   const navigate = useNavigate();
 
   const onSave = async (data: ApiSchemas["ActiveTraining"]) => {
-    await change(data);
+    try {
+      await change(data);
+    } catch (error) {
+      console.error("Не удалось сохранить тренировку", error);
+      alert("Не удалось сохранить изменения. Попробуйте ещё раз.");
+      return;
+    }
 
     navigate(ROUTES.ACTIVE_TRAINING);
   };
@@ -58,8 +64,8 @@ const TrainingStartPage = () => {
           <CardHeader>
             <CardTitle className="text-center">
               {isLoading || isFetching
-                ? "Лоадинг"
-                : "Какая-то ошибка, я сам хз"}
+                ? "Загрузка..."
+                : "Не удалось загрузить тренировку"}
             </CardTitle>
           </CardHeader>
         </Card>

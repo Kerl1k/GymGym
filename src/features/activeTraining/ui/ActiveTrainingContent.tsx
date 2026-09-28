@@ -3,7 +3,7 @@ import { useState, useEffect, FC, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
-import { connectivityStore, requestFlush, syncEngine } from "@/entities/offline";
+import { connectivityStore, syncEngine } from "@/entities/offline";
 import {
   isLocalHistoryId,
 } from "@/entities/training-active/active-training.store";
@@ -11,7 +11,7 @@ import { useUpdateActiveTraining } from "@/entities/training-active/use-active-t
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import { useLatestTrainingHistoryByName } from "@/entities/training-history/use-latest-training-history-by-name";
 import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
-import { showRestTimerDoneNotification } from "@/shared/lib/restTimerNotification";
+import { runInBackground } from "@/shared/lib/background";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ROUTES } from "@/shared/model/routes";
@@ -131,13 +131,13 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
       }
 
       if (immediate) {
-        void flushTrainingSync();
+        runInBackground(flushTrainingSync(), "Не удалось сохранить тренировку");
         return;
       }
 
       syncTimeoutRef.current = window.setTimeout(() => {
         syncTimeoutRef.current = null;
-        void flushTrainingSync();
+        runInBackground(flushTrainingSync(), "Не удалось сохранить тренировку");
       }, SYNC_DEBOUNCE_MS);
     },
     [flushTrainingSync],
@@ -170,7 +170,9 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     });
   };
 
-  const completeSet = async (completedSet: ApiSchemas["Set"]) => {
+  const completeSet = async (
+    completedSet: ApiSchemas["Set"],
+  ): Promise<{ finished: boolean }> => {
     const updatedExercises = trainingData.exercises.map((ex, index) => {
       if (index === activeExerciseIndex) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
@@ -199,7 +201,9 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
 
     if (nextIndex === -1) {
       await finishTraining(nextTraining);
+      return { finished: true };
     }
+    return { finished: false };
   };
 
   const handleSetCompletion = async () => {
@@ -224,23 +228,14 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     open();
   };
 
-  const scheduleRestNotification = useCallback(async (delayMs: number) => {
-    if (delayMs <= 0) return;
-
-    window.setTimeout(() => {
-      void showRestTimerDoneNotification();
-    }, delayMs);
-  }, []);
-
   const handleAfterNotedWeightClose = useCallback(() => {
     const delayMs = pendingRestMsRef.current;
     pendingRestMsRef.current = 0;
 
     if (delayMs > 0) {
       setIsResting(true);
-      void scheduleRestNotification(delayMs);
     }
-  }, [scheduleRestNotification]);
+  }, []);
 
   const finishTraining = async (
     snapshot?: ApiSchemas["ActiveTraining"],
@@ -248,42 +243,22 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     const finalData = snapshot ?? latestTrainingRef.current;
     latestTrainingRef.current = finalData;
     onFinishStart();
-    // Cancel pending debounced update — end() sends finalData itself.
-    console.log("[active-training/end] UI:finishTraining start", {
-      trainingName: finalData?.name,
-      exercisesCount: finalData?.exercises?.length,
-      dateStart: finalData?.dateStart,
-      lastExerciseSets: finalData?.exercises
-        ?.slice(-1)[0]
-        ?.sets?.map((set) => ({
-          done: set.done,
-          units: set.units,
-        })),
-      syncStatus,
-      isOnline: connectivityStore.isOnline,
-    });
+    setIsResting(false);
+    // end() sends finalData itself, so the debounced update is redundant.
     if (syncTimeoutRef.current !== null) {
       window.clearTimeout(syncTimeoutRef.current);
       syncTimeoutRef.current = null;
-      console.log(
-        "[active-training/end] UI:finishTraining cancelled pending sync timeout",
-      );
     }
     try {
       const historyId = await end(finalData);
-      console.log("[active-training/end] UI:finishTraining success", {
-        historyId,
-        isLocal: isLocalHistoryId(historyId),
-      });
       if (isLocalHistoryId(historyId)) {
         navigate(ROUTES.TRAINING);
         return;
       }
       navigate(ROUTES.END.replace(":id", historyId));
     } catch (error) {
-      console.log("[active-training/end] UI:finishTraining failed", error);
+      console.error("Не удалось завершить тренировку", error);
       onFinishError();
-      throw error;
     }
   };
 
@@ -316,10 +291,21 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     latestTrainingRef.current = data;
   }, [data]);
 
+  const changeRef = useRef(change);
+  changeRef.current = change;
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
       if (syncTimeoutRef.current !== null) {
         window.clearTimeout(syncTimeoutRef.current);
+        syncTimeoutRef.current = null;
+        runInBackground(
+          changeRef.current(latestTrainingRef.current),
+          "Не удалось сохранить тренировку",
+        );
       }
     };
   }, []);
@@ -328,10 +314,11 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     setIsRetryingSync(true);
     try {
       await flushTrainingSync();
-      requestFlush();
-      await syncEngine.flush();
+      await syncEngine.flush({ force: true });
+    } catch (error) {
+      console.error("Не удалось повторить синхронизацию", error);
     } finally {
-      setIsRetryingSync(false);
+      if (isMountedRef.current) setIsRetryingSync(false);
     }
   }, [flushTrainingSync]);
 

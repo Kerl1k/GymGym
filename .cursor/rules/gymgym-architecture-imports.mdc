@@ -10,8 +10,8 @@ alwaysApply: false
 
 - **`app/`** — корень приложения: `main.tsx`, `app.tsx`, `router.tsx`, `providers.tsx`, глобальные стили `index.css`, защищённые маршруты.
 - **`features/<имяФичи>/`** — страницы (`*.page.tsx`), UI фичи (`ui/`), локальные компоненты (`components/`), модель (`model/`). Фича не импортирует `app/`.
-- **`entities/<сущность>/`** — хуки данных и действий с API (`use-*.ts`, `use*.ts`), клиент запросов не дублировать: использовать `fetchClient` / `publicFetchClient` из `@/entities/instance` и локальный `queryClient` из `@/entities/query-client`. Сущности не импортируют `features/`.
-- **`shared/`** — переиспользуемое: `ui/kit`, `lib`, `model` (конфиг, маршруты, сессия), `schema`. Не импортировать из `app/` и `features/`.
+- **`entities/<сущность>/`** — MobX-сторы (`*.store.ts`) и хуки данных и действий с API (`use-*.ts`, `use*.ts`), клиент запросов не дублировать: использовать `fetchClient` / `publicFetchClient` из `@/entities/instance`. Сессия и токены — `@/entities/session/session`; офлайн-очередь и снапшоты — `@/entities/offline`. Сущности не импортируют `features/` и `app/`.
+- **`shared/`** — переиспользуемое: `ui/kit`, `lib`, `model` (конфиг, маршруты), `schema`. Не импортировать из `app/`, `features/` и `entities/`.
 
 Порядок зависимостей сверху вниз: **app → features → entities → shared**.
 

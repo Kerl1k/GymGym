@@ -2,7 +2,10 @@ import { useState, useRef, useEffect } from "react";
 
 import { ClockIcon, EditIcon, CheckIcon, XIcon } from "lucide-react";
 
-import { setUnitValueAt } from "@/shared/lib/active-training-units";
+import {
+  parseDecimalInput,
+  setUnitValueAt,
+} from "@/shared/lib/active-training-units";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
@@ -16,12 +19,6 @@ type CurrentExerciseProps = {
   onCompleteSet: () => void;
   showCompleteButton?: boolean;
 };
-
-function parseUnitInput(raw: string): number {
-  if (raw === "") return 0;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 0;
-}
 
 export function CurrentExercise({
   exercise,
@@ -67,7 +64,7 @@ export function CurrentExercise({
             ...ex,
             sets: ex.sets.map((set, index) => {
               if (index === activeSetIndex) {
-                return setUnitValueAt(set, unitIndex, parseUnitInput(raw));
+                return setUnitValueAt(set, unitIndex, parseDecimalInput(raw));
               }
               return set;
             }),

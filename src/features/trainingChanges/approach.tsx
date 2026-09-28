@@ -4,6 +4,7 @@ import { PlusIcon, TrashIcon, ClockIcon, DumbbellIcon } from "lucide-react";
 
 import {
   cloneUnitsTemplate,
+  parseDecimalInput,
   setUnitValueAt,
 } from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
@@ -28,12 +29,6 @@ type Props = {
 };
 
 const SETS_PREVIEW = 4;
-
-function parseUnitInput(raw: string): number {
-  if (raw === "") return 0;
-  const n = Number(raw);
-  return Number.isFinite(n) ? n : 0;
-}
 
 /** В инпуте не показываем 0 — удобнее вводить число с пустого поля */
 function zeroAsEmpty(n: number | undefined): string | number {
@@ -71,7 +66,7 @@ const Approach: FC<Props> = ({
       newSets[setIndex] = setUnitValueAt(
         set,
         unitIndex,
-        parseUnitInput(raw),
+        parseDecimalInput(raw),
       );
       newExercises[exerciseIndex] = { ...ex, sets: newSets };
 
@@ -145,7 +140,7 @@ const Approach: FC<Props> = ({
                 const newExercises = [...prev.exercises];
                 newExercises[exerciseIndex] = {
                   ...newExercises[exerciseIndex],
-                  restTime: e.target.value === "" ? 0 : Number(e.target.value),
+                  restTime: Math.max(0, parseDecimalInput(e.target.value)),
                 };
                 return {
                   ...prev,

@@ -139,7 +139,9 @@ class ExercisesStore {
       return;
     }
 
-    this.loadingByLimit.set(limit, true);
+    runInAction(() => {
+      this.loadingByLimit.set(limit, true);
+    });
     try {
       const result = await fetchClient.GET("/api/exercise-type", {
         params: {

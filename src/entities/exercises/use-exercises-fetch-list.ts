@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import { runInBackground } from "@/shared/lib/background";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { exercisesStore } from "./exercises.store";
@@ -20,7 +21,7 @@ export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
 
   useEffect(() => {
     if (!hasData) {
-      void exercisesStore.fetchList(limit);
+      runInBackground(exercisesStore.fetchList(limit));
     }
   }, [hasData, limit]);
 

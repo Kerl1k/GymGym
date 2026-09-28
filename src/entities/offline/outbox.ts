@@ -1,4 +1,4 @@
-import { STORE_OUTBOX, idbGetAll, idbPutAll } from "./db";
+import { STORE_OUTBOX, idbClearStore, idbGetAll, idbPutAll } from "./db";
 import { readIdMap, resolveId, rewriteIdsInValue } from "./id-map";
 
 import type { OutboxMutation } from "./types";
@@ -99,22 +99,6 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
     const finalData =
       ("finalData" in terminal ? terminal.finalData : undefined) ??
       latestUpdate?.body;
-    console.log("[active-training/end] outbox:coalesce active.end", {
-      hasTerminalFinalData: Boolean(
-        "finalData" in terminal ? terminal.finalData : undefined,
-      ),
-      hasLatestUpdateBody: Boolean(latestUpdate?.body),
-      hasFinalData: Boolean(finalData),
-      trainingName: finalData?.name,
-      dateStart: finalData?.dateStart,
-      keepStart: Boolean(start),
-      activeQueueTypes: active.map((item) => item.type),
-    });
-    if (!finalData) {
-      console.log(
-        "[active-training/end] outbox:coalesce WARN active.end without finalData",
-      );
-    }
     // Never drop end from the queue — without it start would sync alone.
     result.push({
       id: terminal.id,
@@ -139,8 +123,22 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
   return result;
 }
 
-/** Coalesce pending mutations to minimize REST calls (LWW). */
-export function coalesceMutations(mutations: OutboxMutation[]): OutboxMutation[] {
+/**
+ * Coalesce pending mutations to minimize REST calls (LWW).
+ * Mutations listed in `frozenIds` are already being sent to the server:
+ * they are kept untouched and never used as a merge target, otherwise
+ * changes folded into them would be dropped when the flush removes them.
+ */
+export function coalesceMutations(
+  mutations: OutboxMutation[],
+  frozenIds: ReadonlySet<string> = new Set(),
+): OutboxMutation[] {
+  const frozen = mutations.filter((item) => frozenIds.has(item.id));
+  const mergeable = mutations.filter((item) => !frozenIds.has(item.id));
+  return [...frozen, ...coalesceMergeable(mergeable)];
+}
+
+function coalesceMergeable(mutations: OutboxMutation[]): OutboxMutation[] {
   // IDB returns by primary key (UUID); always process chronologically first.
   const chronological = sortByCreatedAt(mutations);
   const catalog: OutboxMutation[] = [];
@@ -261,12 +259,27 @@ export function sortMutationsForFlush(mutations: OutboxMutation[]): OutboxMutati
   });
 }
 
+let outboxLock: Promise<unknown> = Promise.resolve();
+const inFlightIds = new Set<string>();
+
+/** Serializes every read-modify-write of the outbox store. */
+function withOutboxLock<T>(task: () => Promise<T>): Promise<T> {
+  const run = outboxLock.then(task, task);
+  outboxLock = run.catch(() => undefined);
+  return run;
+}
+
+export function markMutationInFlight(id: string | null): void {
+  inFlightIds.clear();
+  if (id) inFlightIds.add(id);
+}
+
 export async function readOutbox(): Promise<OutboxMutation[]> {
   const items = await idbGetAll<OutboxMutation>(STORE_OUTBOX);
   return sortByCreatedAt(items);
 }
 
-export async function writeOutbox(mutations: OutboxMutation[]): Promise<void> {
+async function writeOutbox(mutations: OutboxMutation[]): Promise<void> {
   await idbPutAll(STORE_OUTBOX, mutations);
 }
 
@@ -282,52 +295,70 @@ export async function enqueueMutation(
     };
   }[OutboxMutation["type"]],
 ): Promise<OutboxMutation[]> {
-  const current = await readOutbox();
-  const nextItem = {
-    ...mutation,
-    id: mutation.id ?? newMutationId(),
-    createdAt: mutation.createdAt ?? Date.now(),
-    status: mutation.status ?? "pending",
-  } as OutboxMutation;
+  return withOutboxLock(async () => {
+    const current = await readOutbox();
+    const nextItem = {
+      ...mutation,
+      id: mutation.id ?? newMutationId(),
+      createdAt: mutation.createdAt ?? Date.now(),
+      status: mutation.status ?? "pending",
+    } as OutboxMutation;
 
-  if (mutation.type === "active.end") {
-    console.log("[active-training/end] outbox:enqueue before coalesce", {
-      currentTypes: current.map((item) => item.type),
-      currentCount: current.length,
-      hasFinalData:
-        "finalData" in mutation ? Boolean(mutation.finalData) : false,
-    });
-  }
-
-  const coalesced = coalesceMutations([...current, nextItem]);
-  await writeOutbox(coalesced);
-
-  if (mutation.type === "active.end") {
-    console.log("[active-training/end] outbox:enqueue after coalesce", {
-      coalescedTypes: coalesced.map((item) => item.type),
-      coalescedCount: coalesced.length,
-      endItem: coalesced.find((item) => item.type === "active.end"),
-    });
-  }
-
-  return coalesced;
+    const coalesced = coalesceMutations([...current, nextItem], inFlightIds);
+    await writeOutbox(coalesced);
+    return coalesced;
+  });
 }
 
-export async function replaceOutbox(mutations: OutboxMutation[]): Promise<void> {
-  await writeOutbox(mutations);
+/** Drops a mutation that the server has acknowledged. */
+export async function removeFromOutbox(id: string): Promise<OutboxMutation[]> {
+  return withOutboxLock(async () => {
+    const current = await readOutbox();
+    const next = current.filter((item) => item.id !== id);
+    if (next.length !== current.length) {
+      await writeOutbox(next);
+    }
+    return next;
+  });
+}
+
+export async function markOutboxError(
+  id: string,
+  errorMessage: string,
+): Promise<OutboxMutation[]> {
+  return withOutboxLock(async () => {
+    const current = await readOutbox();
+    const next = current.map((item) =>
+      item.id === id ? { ...item, status: "error" as const, errorMessage } : item,
+    );
+    await writeOutbox(next);
+    return next;
+  });
+}
+
+export async function clearOutbox(): Promise<void> {
+  return withOutboxLock(async () => {
+    inFlightIds.clear();
+    await idbClearStore(STORE_OUTBOX);
+  });
 }
 
 export async function applyIdMapToOutbox(): Promise<OutboxMutation[]> {
+  return withOutboxLock(applyIdMapToOutboxUnlocked);
+}
+
+async function applyIdMapToOutboxUnlocked(): Promise<OutboxMutation[]> {
   const map = await readIdMap();
   const current = await readOutbox();
   if (Object.keys(map).length === 0) return current;
 
   const rewritten = current.map((mutation) => {
     switch (mutation.type) {
+      // tempId of a create is its identity in the queue and in the id map;
+      // rewriting it would make a retried create look like a new entity.
       case "exercise.create":
         return {
           ...mutation,
-          tempId: resolveId(mutation.tempId, map),
           body: rewriteIdsInValue(mutation.body, map),
         };
       case "exercise.update":
@@ -347,7 +378,6 @@ export async function applyIdMapToOutbox(): Promise<OutboxMutation[]> {
       case "training.create":
         return {
           ...mutation,
-          tempId: resolveId(mutation.tempId, map),
           body: {
             ...mutation.body,
             exerciseTypes: mutation.body.exerciseTypes.map((item) => ({

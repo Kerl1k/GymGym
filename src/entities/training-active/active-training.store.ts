@@ -107,7 +107,7 @@ class ActiveTrainingStore {
     }
 
     // Prefer local pending active lifecycle over server while outbox has active ops
-    const outbox = await readOutbox();
+    const outbox = await readOutbox().catch(() => []);
     const hasPendingActive = outbox.some((item) => item.type.startsWith("active."));
     if (hasPendingActive && this.data !== undefined) {
       runInAction(() => {
@@ -262,15 +262,6 @@ class ActiveTrainingStore {
     finalData?: ApiSchemas["ActiveTraining"] | null,
   ): Promise<string> {
     this.isEnding = true;
-    console.log("[active-training/end] store:end start", {
-      hasFinalData: Boolean(finalData),
-      hasStoreData: Boolean(this.data),
-      isOnline: connectivityStore.isOnline,
-      isEnding: this.isEnding,
-      syncStatus: syncEngine.status,
-      lastError: syncEngine.lastError,
-      pendingCount: syncEngine.pendingCount,
-    });
     try {
       const snapshotFromCache = finalData
         ? null
@@ -278,30 +269,13 @@ class ActiveTrainingStore {
       const snapshotToSync =
         finalData ?? this.data ?? snapshotFromCache ?? null;
 
-      console.log("[active-training/end] store:end snapshot resolved", {
-        source: finalData
-          ? "finalData"
-          : this.data
-            ? "store.data"
-            : snapshotFromCache
-              ? "cache"
-              : "missing",
-        trainingName: snapshotToSync?.name,
-        exercisesCount: snapshotToSync?.exercises?.length,
-        dateStart: snapshotToSync?.dateStart,
-      });
-
       if (!snapshotToSync) {
-        console.log(
-          "[active-training/end] store:end FAIL ActiveTrainingDataMissing",
-        );
         throw new Error("ActiveTrainingDataMissing");
       }
 
       runInAction(() => {
         syncEngine.lastEndedHistoryId = null;
       });
-      console.log("[active-training/end] store:end enqueue active.end");
       runInAction(() => {
         this.data = snapshotToSync;
         this.error = undefined;
@@ -313,60 +287,29 @@ class ActiveTrainingStore {
       });
 
       if (connectivityStore.isOnline) {
-        console.log("[active-training/end] store:end flush start");
         const waitForHistoryId = when(() =>
           Boolean(syncEngine.lastEndedHistoryId),
         );
-        const flushPromise = syncEngine.flush();
+        const flushPromise = syncEngine.flush({ force: true });
         try {
           await Promise.race([waitForHistoryId, flushPromise]);
         } finally {
           waitForHistoryId.cancel();
         }
-        console.log("[active-training/end] store:end flush done", {
-          lastEndedHistoryId: syncEngine.lastEndedHistoryId,
-          lastError: syncEngine.lastError,
-          syncStatus: syncEngine.status,
-          pendingCount: syncEngine.pendingCount,
-        });
         if (syncEngine.lastEndedHistoryId) {
-          console.log("[active-training/end] store:end success historyId", {
-            historyId: syncEngine.lastEndedHistoryId,
-          });
           return syncEngine.lastEndedHistoryId;
+        }
+        // Server unreachable despite navigator.onLine: active.end stays
+        // in the outbox and is replayed later, so finish locally.
+        if (syncEngine.status === "offline") {
+          return await this.finishLocally();
         }
         // Online flush must produce a history id. Empty outbox without one
         // means the end never reached the server (e.g. silent IDB write loss).
-        console.log(
-          "[active-training/end] store:end FAIL ActiveEndNotSynced",
-          {
-            lastError: syncEngine.lastError,
-            pendingCount: syncEngine.pendingCount,
-          },
-        );
         throw syncEngine.lastError ?? "ActiveEndNotSynced";
       }
 
-      runInAction(() => {
-        this.data = null;
-        this.error = "NotFound";
-      });
-      await writeActiveTrainingSnapshot(null);
-      clearActiveTrainingDraft();
-      console.log("[active-training/end] store:end local state cleared");
-
-      console.log(
-        "[active-training/end] store:end offline — requestFlush + local id",
-      );
-      requestFlush();
-      const localId = `${LOCAL_END_PREFIX}${crypto.randomUUID()}`;
-      console.log("[active-training/end] store:end return local id", {
-        localId,
-      });
-      return localId;
-    } catch (error) {
-      console.log("[active-training/end] store:end caught error", error);
-      throw error;
+      return await this.finishLocally();
     } finally {
       // Keep isEnding until the next microtask so the caller can navigate
       // to /end/:id before the page would render "Тренировка не начата".
@@ -374,9 +317,20 @@ class ActiveTrainingStore {
         runInAction(() => {
           this.isEnding = false;
         });
-        console.log("[active-training/end] store:end finally isEnding=false");
       });
     }
+  }
+
+  private async finishLocally(): Promise<string> {
+    runInAction(() => {
+      this.data = null;
+      this.error = "NotFound";
+    });
+    await writeActiveTrainingSnapshot(null);
+    clearActiveTrainingDraft();
+
+    requestFlush();
+    return `${LOCAL_END_PREFIX}${crypto.randomUUID()}`;
   }
 
   async cancel(): Promise<void> {

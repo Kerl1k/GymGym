@@ -4,9 +4,9 @@ import { MoonIcon, SunIcon, MenuIcon, XIcon, CloudOffIcon, RefreshCwIcon } from 
 import { Link } from "react-router-dom";
 
 import { connectivityStore, syncEngine } from "@/entities/offline";
+import { useSession } from "@/entities/session/session";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { ROUTES } from "@/shared/model/routes";
-import { useSession } from "@/shared/model/session";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 
@@ -89,7 +89,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             <Badge
               variant="warning"
               className="gap-1 cursor-pointer shrink-0"
-              onClick={() => void syncEngine.flush()}
+              onClick={() => void syncEngine.flush({ force: true })}
             >
               <RefreshCwIcon className="h-3 w-3" />
               Ошибка синхронизации

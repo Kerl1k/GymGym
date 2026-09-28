@@ -10,19 +10,21 @@ export function useUserHistory(userId: string) {
     void userStore.fetchHistory(userId);
   }, [userId]);
 
-  const { history, meta, isPending, hasData } = useMobxSelector(() => {
+  const { history, meta, isPending, hasData, error } = useMobxSelector(() => {
     const data = userStore.getHistory(userId);
     return {
       history: data?.content ?? [],
       meta: data?.meta,
       isPending: userStore.isHistoryLoading(userId),
       hasData: data !== undefined,
+      error: userStore.getHistoryError(userId),
     };
   });
 
   return {
     history,
     meta,
-    isPending: isPending || !hasData,
+    error,
+    isPending: isPending || (!hasData && !error && Boolean(userId)),
   };
 }

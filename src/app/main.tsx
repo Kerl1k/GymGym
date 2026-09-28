@@ -4,8 +4,9 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { RouterProvider } from "react-router-dom";
 
+import { clearOfflineData } from "@/entities/offline/clear";
+import { onUserDataReset, useSession } from "@/entities/session/session";
 import { initSentry, setSentryUser } from "@/shared/lib/sentry";
-import { useSession } from "@/shared/model/session";
 
 import { router } from "./router";
 
@@ -29,6 +30,7 @@ async function bootstrap() {
   await clearDevServiceWorkers();
 
   initSentry();
+  onUserDataReset(clearOfflineData);
   const currentSession = useSession.getState().session;
   if (currentSession) {
     setSentryUser({ id: currentSession.userId, email: currentSession.email });

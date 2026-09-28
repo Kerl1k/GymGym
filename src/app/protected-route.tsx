@@ -5,8 +5,9 @@ import { Outlet, redirect, Navigate } from "react-router-dom";
 import { bootstrapOffline } from "@/entities/offline/bootstrap";
 import { prefetchProtectedAppData } from "@/entities/prefetch/prefetchProtectedAppData";
 import { prefetchProtectedRouteModules } from "@/entities/prefetch/prefetchProtectedRouteModules";
+import { useSession } from "@/entities/session/session";
+import { runInBackground } from "@/shared/lib/background";
 import { ROUTES } from "@/shared/model/routes";
-import { useSession } from "@/shared/model/session";
 
 export function ProtectedRoute() {
   const { session } = useSession();
@@ -19,13 +20,16 @@ export function ProtectedRoute() {
     }
     if (didPrefetch.current) return;
     didPrefetch.current = true;
-    void (async () => {
-      await bootstrapOffline();
-      await Promise.all([
-        prefetchProtectedAppData(),
-        prefetchProtectedRouteModules(),
-      ]);
-    })();
+    runInBackground(
+      (async () => {
+        await bootstrapOffline();
+        await Promise.all([
+          prefetchProtectedAppData(),
+          prefetchProtectedRouteModules(),
+        ]);
+      })(),
+      "Prefetch failed",
+    );
   }, [session]);
 
   if (!session) {

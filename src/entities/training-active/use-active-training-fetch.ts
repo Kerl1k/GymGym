@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 
+import { runInBackground } from "@/shared/lib/background";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { activeTrainingStore } from "./active-training.store";
 
 export function useActiveTrainingFetch() {
   useEffect(() => {
-    void activeTrainingStore.fetch();
+    runInBackground(activeTrainingStore.fetch());
   }, []);
 
   const { data, isLoading, isFetching, error } = useMobxSelector(() => ({

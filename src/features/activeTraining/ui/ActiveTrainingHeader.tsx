@@ -57,11 +57,6 @@ export const ActiveTrainingHeader: FC<ActiveTrainingHeaderProps> = ({
   };
 
   const handleConfirmFinish = () => {
-    console.log("[active-training/end] UI:header confirm finish", {
-      name,
-      exerciseId,
-      syncStatus,
-    });
     finishTraining();
   };
 

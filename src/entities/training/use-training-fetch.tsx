@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 
+import { runInBackground } from "@/shared/lib/background";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 
 import { trainingStore } from "./training.store";
@@ -46,7 +47,7 @@ export function useTrainingList({
 
   useEffect(() => {
     if (!hasData) {
-      void trainingStore.fetchList(query);
+      runInBackground(trainingStore.fetchList(query));
     }
   }, [hasData, query]);
 

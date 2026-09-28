@@ -14,6 +14,7 @@ import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-
 import { useChangeTraining } from "@/entities/training/use-training-change";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { cn } from "@/shared/lib/css";
+import { useListKeys } from "@/shared/lib/useListKeys";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
@@ -33,6 +34,8 @@ type TrainingCreateProps = {
 
 type ExerciseForm = ApiSchemas["ExerciseType"];
 
+const UNSELECTED_EXERCISE_ID = "";
+
 export const TrainingCreate: FC<TrainingCreateProps> = ({
   close,
   training,
@@ -40,7 +43,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const { exercises: exercisesList, isPending: isLoading } =
     useExercisesFetchList({});
   const { create, isPending } = useCreateTraining();
-  const { change } = useChangeTraining();
+  const { change, isPending: isChangePending } = useChangeTraining();
 
   const { close: closeModal, isOpen, open } = useOpen();
   const [exerciseModalIndex, setExerciseModalIndex] = useState<number | null>(
@@ -53,6 +56,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     favorite: false,
     exerciseTypes: [],
   });
+  const exerciseKeys = useListKeys(form.exerciseTypes.length);
 
   const handleFormChange = (
     field: string,
@@ -104,7 +108,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
       exerciseTypes: [
         ...prev.exerciseTypes,
         {
-          id: Date.now().toString(),
+          id: UNSELECTED_EXERCISE_ID,
         },
       ],
     }));
@@ -112,6 +116,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
   const removeExercise = (index: number) => {
     if (form.exerciseTypes.length > 1) {
+      exerciseKeys.remove(index);
       setForm((prev) => ({
         ...prev,
         exerciseTypes: prev.exerciseTypes.filter((_, i) => i !== index),
@@ -122,6 +127,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const moveExercise = (index: number, direction: "up" | "down") => {
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex >= 0 && newIndex < form.exerciseTypes.length) {
+      exerciseKeys.move(index, newIndex);
       const newExercises = [...form.exerciseTypes];
       [newExercises[index], newExercises[newIndex]] = [
         newExercises[newIndex],
@@ -144,31 +150,49 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     }));
   };
 
-  const createTraining = () => {
-    if (!form.name || isPending) return;
+  const validateForm = () => {
     if (
       form.exerciseTypes.length === 0 ||
-      form.exerciseTypes.some((ex) => !ex.id || ex.id === Date.now().toString())
+      form.exerciseTypes.some((ex) => ex.id === UNSELECTED_EXERCISE_ID)
     ) {
       alert(
-        "Пожалуйста, заполните название тренировки и выберите хотя бы одно упражнение",
+        "Пожалуйста, заполните название тренировки и выберите упражнение в каждой строке",
       );
-      return;
+      return false;
     }
-    create(form);
-    close();
+    return true;
   };
 
-  const changeTraining = () => {
-    if (!form.name || isPending || !training) return;
-    change({ id: training.id, ...form });
-    close();
+  const createTraining = async () => {
+    if (!form.name || isPending) return;
+    if (!validateForm()) return;
+    try {
+      await create(form);
+      close();
+    } catch (error) {
+      console.error("Не удалось создать тренировку", error);
+      alert("Не удалось создать тренировку. Попробуйте ещё раз.");
+    }
+  };
+
+  const changeTraining = async () => {
+    if (!form.name || isChangePending || !training) return;
+    if (!validateForm()) return;
+    try {
+      await change({ id: training.id, ...form });
+      close();
+    } catch (error) {
+      console.error("Не удалось сохранить тренировку", error);
+      alert("Не удалось сохранить тренировку. Попробуйте ещё раз.");
+    }
   };
 
   useEffect(() => {
     if (training) {
+      exerciseKeys.reset();
       setForm(training);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [training]);
 
   return (
@@ -250,7 +274,10 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
 
               <div className={styles.exercisesList}>
                 {form.exerciseTypes.map((exercise, index) => (
-                  <Card key={exercise.id} className={styles.exerciseCard}>
+                  <Card
+                    key={exerciseKeys.keys[index]}
+                    className={styles.exerciseCard}
+                  >
                     <CardContent className={styles.exerciseCardContent}>
                       <div className={styles.exerciseHeader}>
                         <div className={styles.exerciseInfo}>
@@ -437,7 +464,9 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                   )}
                 </Button>
               ) : (
-                <Button onClick={changeTraining}>Сохранить</Button>
+                <Button onClick={changeTraining} disabled={isChangePending}>
+                  Сохранить
+                </Button>
               )}
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { makeAutoObservable, observable, runInAction } from "mobx";
 
+import { toApiErrorCode } from "@/entities/api/request";
 import { fetchClient } from "@/entities/instance";
 import { ApiSchemas } from "@/shared/schema";
 
@@ -15,6 +16,7 @@ type UserHistoryResponse = {
 class UserStore {
   private list: ApiSchemas["User"][] | undefined = undefined;
   private listLoading = false;
+  private listError: string | null = null;
   private byId = observable.map<string, ApiSchemas["User"] | null | undefined>(
     undefined,
     { deep: false },
@@ -22,11 +24,17 @@ class UserStore {
   private byIdLoading = observable.map<string, boolean>(undefined, {
     deep: false,
   });
+  private byIdError = observable.map<string, string>(undefined, {
+    deep: false,
+  });
   private historyByUserId = observable.map<
     string,
     UserHistoryResponse | undefined
   >(undefined, { deep: false });
   private historyLoading = observable.map<string, boolean>(undefined, {
+    deep: false,
+  });
+  private historyError = observable.map<string, string>(undefined, {
     deep: false,
   });
 
@@ -38,6 +46,10 @@ class UserStore {
     return this.list;
   }
 
+  getListError(): string | null {
+    return this.listError;
+  }
+
   isListLoading(): boolean {
     return this.listLoading && this.list === undefined;
   }
@@ -47,12 +59,17 @@ class UserStore {
     if (!force && this.list !== undefined) return;
 
     this.listLoading = true;
+    this.listError = null;
     try {
       const result = await fetchClient.GET("/api/user");
       if (result.error) throw result.error;
 
       runInAction(() => {
         this.list = result.data ?? [];
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.listError = toApiErrorCode(error);
       });
     } finally {
       runInAction(() => {
@@ -63,6 +80,10 @@ class UserStore {
 
   getById(userId: string): ApiSchemas["User"] | null | undefined {
     return this.byId.get(userId);
+  }
+
+  getByIdError(userId: string): string | null {
+    return this.byIdError.get(userId) ?? null;
   }
 
   isByIdLoading(userId: string): boolean {
@@ -78,6 +99,7 @@ class UserStore {
     if (!force && this.byId.get(userId) !== undefined) return;
 
     this.byIdLoading.set(userId, true);
+    this.byIdError.delete(userId);
     try {
       const result = await fetchClient.GET("/api/user/{id}", {
         params: { path: { id: userId } },
@@ -86,6 +108,10 @@ class UserStore {
 
       runInAction(() => {
         this.byId.set(userId, result.data ?? null);
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.byIdError.set(userId, toApiErrorCode(error));
       });
     } finally {
       runInAction(() => {
@@ -96,6 +122,10 @@ class UserStore {
 
   getHistory(userId: string): UserHistoryResponse | undefined {
     return this.historyByUserId.get(userId);
+  }
+
+  getHistoryError(userId: string): string | null {
+    return this.historyError.get(userId) ?? null;
   }
 
   isHistoryLoading(userId: string): boolean {
@@ -111,6 +141,7 @@ class UserStore {
     if (!force && this.historyByUserId.get(userId) !== undefined) return;
 
     this.historyLoading.set(userId, true);
+    this.historyError.delete(userId);
     try {
       const result = await fetchClient.GET("/api/user/{id}/history", {
         params: { path: { id: userId } },
@@ -122,6 +153,10 @@ class UserStore {
           content: result.data?.content ?? [],
           meta: result.data?.meta ?? {},
         });
+      });
+    } catch (error) {
+      runInAction(() => {
+        this.historyError.set(userId, toApiErrorCode(error));
       });
     } finally {
       runInAction(() => {

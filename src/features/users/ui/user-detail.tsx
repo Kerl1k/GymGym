@@ -14,7 +14,11 @@ type UserDetailProps = {
 };
 
 export function UserDetail({ userId }: UserDetailProps) {
-  const { user, isPending: isUserPending } = useUserFetch(userId);
+  const {
+    user,
+    isPending: isUserPending,
+    error: userError,
+  } = useUserFetch(userId);
   const { history, isPending: isHistoryPending } = useUserHistory(userId);
 
   const isPending = isUserPending || isHistoryPending;
@@ -34,7 +38,11 @@ export function UserDetail({ userId }: UserDetailProps) {
       <div className={styles.page}>
         <div className={styles.emptyState}>
           <User size={48} />
-          <p>Пользователь не найден</p>
+          <p>
+            {userError
+              ? "Не удалось загрузить пользователя"
+              : "Пользователь не найден"}
+          </p>
           <Link to={ROUTES.USERS} className={styles.backButton}>
             Вернуться к списку
           </Link>

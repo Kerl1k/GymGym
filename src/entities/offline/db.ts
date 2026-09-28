@@ -39,7 +39,19 @@ function openDb(): Promise<IDBDatabase> {
         }
       };
 
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        // Another tab upgraded the schema or the browser closed the
+        // connection: drop the cached handle so the next call reopens it.
+        db.onversionchange = () => {
+          db.close();
+          dbPromise = null;
+        };
+        db.onclose = () => {
+          dbPromise = null;
+        };
+        resolve(db);
+      };
       request.onerror = () => {
         dbPromise = null;
         reject(request.error ?? new Error("Failed to open IndexedDB"));
@@ -78,7 +90,8 @@ export async function idbGet<T>(storeName: StoreName, key: string): Promise<T | 
     const value = await requestToPromise(store.get(key));
     await txDone(tx);
     return value as T | undefined;
-  } catch {
+  } catch (error) {
+    console.warn(`IndexedDB read failed: ${storeName}/${key}`, error);
     return undefined;
   }
 }
@@ -102,16 +115,16 @@ export async function idbDelete(storeName: StoreName, key: string): Promise<void
   }
 }
 
+/**
+ * Throws on failure: callers rewrite the whole store from this result,
+ * so treating a broken DB as "empty" would silently wipe queued data.
+ */
 export async function idbGetAll<T>(storeName: StoreName): Promise<T[]> {
-  try {
-    const db = await openDb();
-    const tx = db.transaction(storeName, "readonly");
-    const values = await requestToPromise(tx.objectStore(storeName).getAll());
-    await txDone(tx);
-    return (values as T[]) ?? [];
-  } catch {
-    return [];
-  }
+  const db = await openDb();
+  const tx = db.transaction(storeName, "readonly");
+  const values = await requestToPromise(tx.objectStore(storeName).getAll());
+  await txDone(tx);
+  return (values as T[]) ?? [];
 }
 
 export async function idbPutAll<T extends { id: string }>(
@@ -135,7 +148,7 @@ export async function idbClearStore(storeName: StoreName): Promise<void> {
     const tx = db.transaction(storeName, "readwrite");
     tx.objectStore(storeName).clear();
     await txDone(tx);
-  } catch {
-    // no-op
+  } catch (error) {
+    console.warn(`IndexedDB clear failed: ${storeName}`, error);
   }
 }

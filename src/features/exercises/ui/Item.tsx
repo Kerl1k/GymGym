@@ -7,10 +7,8 @@ import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
 import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
-import { ExercisesCreate } from "./exercisesCreate";
 import { ExercisesListItem } from "./exercises-list-item/exercises-list-item";
-
-
+import { ExercisesCreate } from "./exercisesCreate";
 
 export function ExerciseItem({
   exercises,
@@ -31,12 +29,6 @@ export function ExerciseItem({
       <ExercisesListItem
         key={exercises.id}
         exercise={exercises}
-        // rightActions={
-        //   <ExercisesFavoriteToggle
-        //     isFavorite={updateFavorite.isOptimisticFavorite(exercises)}
-        //     onToggle={() => updateFavorite.toggle(exercises)}
-        //   />
-        // }
         menuActions={
           <>
             <DropdownMenuItem onClick={() => open()} className="gap-2">
