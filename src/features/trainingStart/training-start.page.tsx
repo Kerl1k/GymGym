@@ -74,7 +74,9 @@ const TrainingStartPage = () => {
     );
   }
 
-  return <TrainingChanges data={data} onSave={onSave} />;
+  return (
+    <TrainingChanges data={data} onSave={onSave} showFillFromPrevious />
+  );
 };
 
 export const Component = TrainingStartPage;

@@ -16,7 +16,6 @@ interface TimerProps {
 }
 
 const TICK_MS = 250;
-const ADJUST_STEP_SEC = 15;
 
 export function Timer({
   duration,
@@ -24,9 +23,7 @@ export function Timer({
   setTimeLeft,
   timeLeft,
 }: TimerProps) {
-  const [extraSec, setExtraSec] = useState(0);
-  const [restartToken, setRestartToken] = useState(0);
-  const totalDuration = Math.max(duration + extraSec, 1);
+  const totalDuration = Math.max(duration, 1);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -100,7 +97,7 @@ export function Timer({
       window.clearInterval(interval);
       window.clearTimeout(deadline);
     };
-  }, [isRunning, restartToken, finishTimer, setTimeLeft]);
+  }, [isRunning, finishTimer, setTimeLeft]);
 
   useEffect(() => {
     const onVis = () => syncFromDeadline();
@@ -114,22 +111,9 @@ export function Timer({
 
   const resetTimer = () => {
     completedRef.current = false;
-    setExtraSec(0);
     setTimeLeft(duration);
     setIsRunning(false);
     endAtMsRef.current = null;
-  };
-
-  const adjustTime = (deltaSec: number) => {
-    if (completedRef.current) return;
-    const current = endAtMsRef.current
-      ? Math.max(0, Math.ceil((endAtMsRef.current - Date.now()) / 1000))
-      : timeLeftRef.current;
-    const next = Math.max(0, current + deltaSec);
-    setExtraSec((prev) => prev + (next - current));
-    setTimeLeft(next);
-    // Restarts the running effect so the deadline timeout matches the new end.
-    if (isRunning) setRestartToken((t) => t + 1);
   };
 
   return (
@@ -151,26 +135,6 @@ export function Timer({
             style={{ width: `${progress}%` }}
           />
         </div>
-      </div>
-
-      <div className="mb-2 flex gap-2">
-        <Button
-          onClick={() => adjustTime(-ADJUST_STEP_SEC)}
-          variant="outline"
-          className="flex-1 text-sm tabular-nums sm:text-base"
-          disabled={timeLeft <= 0}
-          aria-label={`Убавить ${ADJUST_STEP_SEC} секунд`}
-        >
-          −{ADJUST_STEP_SEC} с
-        </Button>
-        <Button
-          onClick={() => adjustTime(ADJUST_STEP_SEC)}
-          variant="outline"
-          className="flex-1 text-sm tabular-nums sm:text-base"
-          aria-label={`Добавить ${ADJUST_STEP_SEC} секунд`}
-        >
-          +{ADJUST_STEP_SEC} с
-        </Button>
       </div>
 
       <div className="flex gap-2">

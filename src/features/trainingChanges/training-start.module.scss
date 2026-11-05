@@ -29,11 +29,24 @@
   margin-bottom: 1.5rem;
 }
 
+.headerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
 .title {
   font-size: 1.875rem;
   font-weight: 700;
   color: var(--foreground);
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+}
+
+.previousButton {
+  gap: 0.5rem;
 }
 
 .stats {
@@ -111,17 +124,24 @@
   font-weight: 700;
 }
 
+.exerciseTitleText {
+  flex: 1;
+  min-width: 0;
+}
+
 .exerciseName {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--foreground);
   margin-bottom: 0.5rem;
+  overflow-wrap: anywhere;
 }
 
 .exerciseTags {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
+  max-width: 100%;
 }
 
 .tag {

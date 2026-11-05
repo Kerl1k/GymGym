@@ -13,6 +13,7 @@ import {
   upsertTrainingInSnapshot,
   writeTrainingsSnapshot,
 } from "@/entities/offline";
+import { normalizeRestTime } from "@/shared/lib/rest-time";
 import { ApiSchemas } from "@/shared/schema";
 
 type TrainingListQuery = {
@@ -340,7 +341,9 @@ class TrainingStore {
             favorite: fromExisting?.favorite ?? fromCatalog?.favorite ?? false,
             description: fromExisting?.description ?? fromCatalog?.description ?? "",
             muscleGroups: fromExisting?.muscleGroups ?? fromCatalog?.muscleGroups ?? [],
-            restTime: fromExisting?.restTime ?? fromCatalog?.restTime ?? 90,
+            restTime: normalizeRestTime(
+              fromExisting?.restTime ?? fromCatalog?.restTime,
+            ),
           };
         }),
       };

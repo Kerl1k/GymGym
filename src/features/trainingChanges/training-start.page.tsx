@@ -6,16 +6,23 @@ import {
   ArrowUpIcon,
   ArrowDownIcon,
   PlusIcon,
+  HistoryIcon,
 } from "lucide-react";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
+import {
+  historyExerciseKey,
+  useLatestTrainingHistoryByName,
+} from "@/entities/training-history/use-latest-training-history-by-name";
 import {
   getRepeatsLike,
   getWeightLike,
   unitsFromCatalogStrings,
 } from "@/shared/lib/active-training-units";
 import { cn } from "@/shared/lib/css";
+import { normalizeRestTime } from "@/shared/lib/rest-time";
+import { toast } from "@/shared/lib/toast";
 import { useListKeys } from "@/shared/lib/useListKeys";
 import { getMuscleGroupColor } from "@/shared/lib/utils";
 import { ApiSchemas } from "@/shared/schema";
@@ -39,7 +46,58 @@ type TrainingChangesProps = {
   data: ApiSchemas["ActiveTraining"];
   onSave: (data: ApiSchemas["ActiveTraining"]) => void | Promise<void>;
   previousBestByExercise?: Record<string, PersonalRecord>;
+  /** На /start: подставить веса и повторения из прошлой тренировки. */
+  showFillFromPrevious?: boolean;
 };
+
+type ActiveExercise = ApiSchemas["ActiveTraining"]["exercises"][number];
+
+function setsWorthCopying(sets: ApiSchemas["Set"][]): ApiSchemas["Set"][] {
+  const withValues = (list: ApiSchemas["Set"][]) =>
+    list.filter((set) => set.units.some((unit) => unit.value !== 0));
+  const done = withValues(sets.filter((set) => set.done));
+  if (done.length > 0) return done;
+  return withValues(sets);
+}
+
+function copySetValues(
+  currentUnits: ApiSchemas["Unit"][] | undefined,
+  previous: ApiSchemas["Set"],
+): ApiSchemas["Set"] {
+  const template = currentUnits?.length ? currentUnits : previous.units;
+  return {
+    done: false,
+    units: template.map((unit, index) => {
+      const matched = previous.units.find(
+        (candidate) =>
+          historyExerciseKey(candidate.name) === historyExerciseKey(unit.name),
+      );
+      return {
+        name: unit.name,
+        value: matched?.value ?? previous.units[index]?.value ?? 0,
+      };
+    }),
+  };
+}
+
+function withPreviousValues(
+  exercise: ActiveExercise,
+  previousSets: ApiSchemas["Set"][],
+  previousRest: number | undefined,
+): ActiveExercise | null {
+  const source = setsWorthCopying(previousSets);
+  if (source.length === 0) return null;
+
+  const currentUnits = exercise.sets[0]?.units;
+  return {
+    ...exercise,
+    restTime:
+      previousRest !== undefined
+        ? normalizeRestTime(previousRest)
+        : exercise.restTime,
+    sets: source.map((set) => copySetValues(currentUnits, set)),
+  };
+}
 
 function formatBestSet(record: Pick<PersonalRecord, "weight" | "reps">) {
   return record.reps > 0
@@ -103,6 +161,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
   data,
   onSave,
   previousBestByExercise,
+  showFillFromPrevious = false,
 }) => {
   const [activeTraining, setActiveTraining] = useState<
     ApiSchemas["ActiveTraining"] | null
@@ -115,6 +174,10 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
 
   const [isExerciseModalOpen, setIsExerciseModalOpen] = useState(false);
   const exerciseKeys = useListKeys(activeTraining?.exercises.length ?? 0);
+  const { latestHistory, previousSetsByExerciseName, isPending: isPreviousPending } =
+    useLatestTrainingHistoryByName({
+      trainingName: showFillFromPrevious ? data.name : undefined,
+    });
 
   useEffect(() => {
     setActiveTraining((prev) => {
@@ -212,7 +275,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
           done: false,
         },
       ],
-      restTime: selectedExercise.restTime ?? 90,
+      restTime: normalizeRestTime(selectedExercise.restTime),
     };
 
     setActiveTraining((prev) => {
@@ -225,6 +288,39 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
     });
 
     setIsExerciseModalOpen(false);
+  };
+
+  const fillFromPrevious = () => {
+    if (!activeTraining) return;
+
+    const restByExercise = new Map<string, number>();
+    for (const exercise of latestHistory?.exercises ?? []) {
+      const key = historyExerciseKey(exercise.name);
+      if (!restByExercise.has(key)) restByExercise.set(key, exercise.restTime);
+    }
+
+    let filled = 0;
+    const exercises = activeTraining.exercises.map((exercise) => {
+      const key = historyExerciseKey(exercise.name);
+      const previousSets = previousSetsByExerciseName[key];
+      if (!previousSets) return exercise;
+      const next = withPreviousValues(
+        exercise,
+        previousSets,
+        restByExercise.get(key),
+      );
+      if (!next) return exercise;
+      filled += 1;
+      return next;
+    });
+
+    if (filled === 0) {
+      toast.info("В прошлой тренировке нет значений для этих упражнений");
+      return;
+    }
+
+    setActiveTraining({ ...activeTraining, exercises });
+    toast.success("Значения прошлой тренировки подставлены");
   };
 
   const handleSave = async () => {
@@ -261,7 +357,23 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
     <div className={styles.container}>
       {/* Шапка */}
       <div className={styles.header}>
-        <h1 className={styles.title}>{"Тренировка: " + activeTraining.name}</h1>
+        <div className={styles.headerTop}>
+          <h1 className={styles.title}>{"Тренировка: " + activeTraining.name}</h1>
+          {showFillFromPrevious && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={fillFromPrevious}
+              disabled={isPreviousPending}
+              className={styles.previousButton}
+            >
+              <HistoryIcon className="h-4 w-4" />
+              {isPreviousPending
+                ? "Ищем прошлую тренировку..."
+                : "Подставить с прошлой тренировки"}
+            </Button>
+          )}
+        </div>
         <div className={styles.stats}>
           <div className={styles.statItem}>
             <span className={styles.statValue}>
@@ -290,7 +402,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
                   <div className={styles.exerciseNumber}>
                     {exerciseIndex + 1}
                   </div>
-                  <div>
+                  <div className={styles.exerciseTitleText}>
                     <h3 className={styles.exerciseName}>{exercise.name}</h3>
                     {renderPreviousBestHint(exercise, previousBestByExercise)}
                     <div className={styles.exerciseTags}>

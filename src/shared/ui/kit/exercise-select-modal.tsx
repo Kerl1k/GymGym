@@ -221,22 +221,15 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
 
                       {exercise.muscleGroups &&
                         exercise.muscleGroups.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {exercise.muscleGroups
-                              .slice(0, 3)
-                              .map((muscleGroup) => (
-                                <span
-                                  key={muscleGroup}
-                                  className={`text-xs px-2 py-1 rounded-full font-medium ${getMuscleGroupColor(muscleGroup)}`}
-                                >
-                                  {muscleGroup}
-                                </span>
-                              ))}
-                            {exercise.muscleGroups.length > 3 && (
-                              <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded-full font-medium border border-border">
-                                +{exercise.muscleGroups.length - 3}
+                          <div className="mb-2 flex flex-wrap gap-2">
+                            {exercise.muscleGroups.map((muscleGroup) => (
+                              <span
+                                key={muscleGroup}
+                                className={`rounded-full px-2 py-1 text-xs font-medium ${getMuscleGroupColor(muscleGroup)}`}
+                              >
+                                {muscleGroup}
                               </span>
-                            )}
+                            ))}
                           </div>
                         )}
 

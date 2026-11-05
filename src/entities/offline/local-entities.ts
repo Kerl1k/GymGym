@@ -1,4 +1,5 @@
 import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
+import { normalizeRestTime } from "@/shared/lib/rest-time";
 import type { ApiSchemas } from "@/shared/schema";
 
 export function buildActiveTrainingFromTemplate(
@@ -18,7 +19,9 @@ export function buildActiveTrainingFromTemplate(
         id: exerciseType.id,
         name: exerciseType.name,
         description: exerciseType.description || "",
-        restTime: exerciseType.restTime || catalog?.restTime || 90,
+        restTime: normalizeRestTime(
+          exerciseType.restTime ?? catalog?.restTime,
+        ),
         sets: [
           {
             units: unitsFromCatalogStrings(catalog?.units),
@@ -41,7 +44,7 @@ export function createLocalExercise(
     name: body.name,
     favorite: body.favorite ?? false,
     description: body.description ?? "",
-    restTime: body.restTime ?? 90,
+    restTime: normalizeRestTime(body.restTime),
     muscleGroups: body.muscleGroups ?? [],
     units: body.units ?? ["Вес", "Повторения"],
   };
@@ -67,7 +70,7 @@ export function createLocalTraining(
         favorite: exercise?.favorite ?? false,
         description: exercise?.description ?? "",
         muscleGroups: exercise?.muscleGroups ?? [],
-        restTime: exercise?.restTime ?? 90,
+        restTime: normalizeRestTime(exercise?.restTime),
       };
     }),
   };

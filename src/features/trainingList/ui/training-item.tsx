@@ -168,52 +168,29 @@ export function TrainingItem({
             ).map((exercise, index) => (
               <div
                 key={exercise.id}
-                className="flex items-center justify-between p-2 sm:p-3 bg-muted/50 rounded-lg border border-border hover:bg-muted transition-colors"
+                className="flex flex-col gap-2 rounded-lg border border-border bg-muted/50 p-2 transition-colors hover:bg-muted sm:p-3"
               >
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex-shrink-0 w-6 sm:w-8 h-6 sm:h-8 bg-background border border-border rounded-md flex items-center justify-center text-xs sm:text-sm font-medium text-muted-foreground">
+                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                  <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-border bg-background text-xs font-medium text-muted-foreground sm:h-8 sm:w-8 sm:text-sm">
                     {index + 1}
                   </div>
-                  <div>
-                    <div className="text-sm sm:text-base font-medium text-foreground">
-                      {exercise.name}
-                    </div>
+                  <div className="min-w-0 break-words text-sm font-medium text-foreground sm:text-base">
+                    {exercise.name}
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  {exercise.muscleGroups.slice(0, 3).map((muscleGroup) => (
-                    <Badge
-                      key={muscleGroup}
-                      variant="secondary"
-                      className={`text-xs sm:text-sm capitalize ${getMuscleGroupColor(muscleGroup)}`}
-                    >
-                      {muscleGroup}
-                    </Badge>
-                  ))}
-                  {exercise.muscleGroups.length > 3 && (
-                    <div className="relative group">
+                {exercise.muscleGroups.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {exercise.muscleGroups.map((muscleGroup) => (
                       <Badge
+                        key={muscleGroup}
                         variant="secondary"
-                        className="text-xs sm:text-sm capitalize cursor-pointer"
+                        className={`text-xs capitalize sm:text-sm ${getMuscleGroupColor(muscleGroup)}`}
                       >
-                        +{exercise.muscleGroups.length - 3}
+                        {muscleGroup}
                       </Badge>
-                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-background border border-border rounded-md p-2 shadow-lg z-10">
-                        <div className="flex flex-wrap gap-1">
-                          {exercise.muscleGroups.slice(3).map((muscleGroup) => (
-                            <Badge
-                              key={muscleGroup}
-                              variant="secondary"
-                              className={`text-xs sm:text-sm capitalize ${getMuscleGroupColor(muscleGroup)}`}
-                            >
-                              {muscleGroup}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             {training.exerciseTypes.length > 5 && (

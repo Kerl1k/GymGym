@@ -9,9 +9,16 @@ import {
 } from "@/entities/training-active/active-training.store";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
-import { useLatestTrainingHistoryByName } from "@/entities/training-history/use-latest-training-history-by-name";
-import { unitsFromCatalogStrings } from "@/shared/lib/active-training-units";
+import {
+  historyExerciseKey,
+  useLatestTrainingHistoryByName,
+} from "@/entities/training-history/use-latest-training-history-by-name";
+import {
+  isUntouchedSet,
+  unitsFromCatalogStrings,
+} from "@/shared/lib/active-training-units";
 import { runInBackground } from "@/shared/lib/background";
+import { normalizeRestTime } from "@/shared/lib/rest-time";
 import { toast } from "@/shared/lib/toast";
 import { useMobxSelector } from "@/shared/lib/useMobxSelector";
 import { useOpen } from "@/shared/lib/useOpen";
@@ -34,7 +41,32 @@ import { RestTimer } from "./RestTimer";
 
 type TrainingSyncStatus = "synced" | "syncing" | "error" | "offline";
 const SYNC_DEBOUNCE_MS = 1200;
-const DEFAULT_REST_TIME_SEC = 90;
+
+function commitOpenSet(
+  training: ApiSchemas["ActiveTraining"],
+  exerciseIndex: number,
+): ApiSchemas["ActiveTraining"] {
+  const exercise = training.exercises[exerciseIndex];
+  if (!exercise) return training;
+
+  const openIndex = exercise.sets.findIndex((set) => !set.done);
+  if (openIndex === -1) return training;
+  if (isUntouchedSet(exercise.sets[openIndex])) return training;
+
+  return {
+    ...training,
+    exercises: training.exercises.map((item, index) =>
+      index === exerciseIndex
+        ? {
+            ...item,
+            sets: item.sets.map((set, setIndex) =>
+              setIndex === openIndex ? { ...set, done: true } : set,
+            ),
+          }
+        : item,
+    ),
+  };
+}
 
 function toActiveExercise(
   exercise: ApiSchemas["ExerciseType"],
@@ -44,7 +76,7 @@ function toActiveExercise(
     id: exercise.id,
     name: exercise.name,
     description: exercise.description || "",
-    restTime: exercise.restTime > 0 ? exercise.restTime : DEFAULT_REST_TIME_SEC,
+    restTime: normalizeRestTime(exercise.restTime),
     sets: Array.from({ length: setsCount }, () => ({
       units: unitsFromCatalogStrings(exercise.units),
       done: false,
@@ -99,7 +131,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     number | null
   >(null);
   const [isRetryingSync, setIsRetryingSync] = useState(false);
-  const { latestHistory } = useLatestTrainingHistoryByName({
+  const { previousSetsByExerciseName } = useLatestTrainingHistoryByName({
     trainingName: trainingData.name,
   });
 
@@ -107,6 +139,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const pendingRestMsRef = useRef<number>(0);
   const syncTimeoutRef = useRef<number | null>(null);
   const hasHydratedRef = useRef(false);
+  const finishingRef = useRef(false);
 
   const syncStatus: TrainingSyncStatus = engineStatus;
 
@@ -116,21 +149,16 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const isViewingPastExercise =
     selectedExerciseIndex !== null &&
     selectedExerciseIndex !== indexCurrentExercise;
-  const previousSetsByExerciseName = useMemo(() => {
-    const grouped = new Map<string, ApiSchemas["Set"][]>();
-    if (!latestHistory?.exercises) return grouped;
-
-    latestHistory.exercises.forEach((exercise) => {
-      grouped.set(exercise.name, exercise.sets ?? []);
-    });
-
-    return grouped;
-  }, [latestHistory]);
+  const activeExerciseIndexRef = useRef(activeExerciseIndex);
+  activeExerciseIndexRef.current = activeExerciseIndex;
+  const indexCurrentExerciseRef = useRef(indexCurrentExercise);
+  indexCurrentExerciseRef.current = indexCurrentExercise;
   const previousSetsForActiveExercise = activeExercise
-    ? previousSetsByExerciseName.get(activeExercise.name) ?? []
+    ? previousSetsByExerciseName[historyExerciseKey(activeExercise.name)] ?? []
     : [];
 
   useEffect(() => {
+    if (finishingRef.current) return;
     latestTrainingRef.current = trainingData;
   }, [trainingData]);
 
@@ -205,9 +233,18 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const completeSet = async (
     completedSet: ApiSchemas["Set"],
   ): Promise<{ finished: boolean }> => {
-    const updatedExercises = trainingData.exercises.map((ex, index) => {
-      if (index === activeExerciseIndex) {
+    const base = latestTrainingRef.current;
+    const exerciseIndex = activeExerciseIndexRef.current;
+    const updatedExercises = base.exercises.map((ex, index) => {
+      if (index === exerciseIndex) {
         const doneSetsCount = ex.sets.filter((set) => set.done).length;
+        if (doneSetsCount >= ex.sets.length) {
+          if (isUntouchedSet(completedSet)) return ex;
+          return {
+            ...ex,
+            sets: [...ex.sets, { ...completedSet, done: true }],
+          };
+        }
 
         return {
           ...ex,
@@ -220,7 +257,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     });
 
     const nextTraining = {
-      ...trainingData,
+      ...base,
       exercises: updatedExercises,
     };
 
@@ -272,7 +309,15 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const finishTraining = async (
     snapshot?: ApiSchemas["ActiveTraining"],
   ) => {
-    const finalData = snapshot ?? latestTrainingRef.current;
+    finishingRef.current = true;
+    const openExerciseIndex =
+      indexCurrentExerciseRef.current >= 0
+        ? indexCurrentExerciseRef.current
+        : activeExerciseIndexRef.current;
+    const finalData = commitOpenSet(
+      snapshot ?? latestTrainingRef.current,
+      openExerciseIndex,
+    );
     latestTrainingRef.current = finalData;
     onFinishStart();
     setIsResting(false);
@@ -331,6 +376,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (finishingRef.current) return;
       if (syncTimeoutRef.current !== null) {
         window.clearTimeout(syncTimeoutRef.current);
         syncTimeoutRef.current = null;

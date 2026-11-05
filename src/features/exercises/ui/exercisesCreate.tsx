@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 
 import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
 import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
+import { normalizeRestTime } from "@/shared/lib/rest-time";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
@@ -216,7 +217,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
     muscleGroups: ["strength"],
     description: "",
     favorite: false,
-    restTime: 60,
+    restTime: 0,
   });
 
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
@@ -285,7 +286,10 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
 
   useEffect(() => {
     if (exercises) {
-      setForm(exercises);
+      setForm({
+        ...exercises,
+        restTime: normalizeRestTime(exercises.restTime),
+      });
       setSelectedMuscles(exercises.muscleGroups);
       const fromApi = exercises.units?.filter((u) => u.trim());
       setUnitRows(

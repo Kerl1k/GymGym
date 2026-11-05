@@ -16,6 +16,7 @@ import {
   writeActiveTrainingSnapshot,
 } from "@/entities/offline";
 import { trainingStore } from "@/entities/training/training.store";
+import { normalizeActiveTrainingRest } from "@/shared/lib/rest-time";
 import { ApiSchemas } from "@/shared/schema";
 
 import {
@@ -59,7 +60,12 @@ class ActiveTrainingStore {
   }
 
   applyActiveTraining(data: ApiSchemas["ActiveTraining"] | null) {
-    this.data = data;
+    this.adoptExternal(data);
+  }
+
+  /** Server and cache payloads use 60s when rest was never set. */
+  private adoptExternal(data: ApiSchemas["ActiveTraining"] | null) {
+    this.data = data ? normalizeActiveTrainingRest(data) : null;
     this.error = data ? undefined : "NotFound";
   }
 
@@ -67,8 +73,7 @@ class ActiveTrainingStore {
     const snapshot = await readActiveTrainingSnapshot();
     if (snapshot) {
       runInAction(() => {
-        this.data = snapshot.data;
-        this.error = snapshot.data ? undefined : "NotFound";
+        this.adoptExternal(snapshot.data);
       });
       return;
     }
@@ -79,8 +84,7 @@ class ActiveTrainingStore {
       await writeActiveTrainingSnapshot(draft.data);
       clearActiveTrainingDraft();
       runInAction(() => {
-        this.data = draft.data;
-        this.error = undefined;
+        this.adoptExternal(draft.data);
       });
     }
   }
@@ -124,12 +128,13 @@ class ActiveTrainingStore {
         throw result.error;
       }
 
-      const serverData = result.data ?? null;
+      const serverData = result.data
+        ? normalizeActiveTrainingRest(result.data)
+        : null;
       await writeActiveTrainingSnapshot(serverData);
 
       runInAction(() => {
-        this.data = serverData;
-        this.error = serverData ? undefined : "NotFound";
+        this.adoptExternal(serverData);
       });
     } catch (error) {
       const snapshot = await readActiveTrainingSnapshot();
@@ -137,13 +142,11 @@ class ActiveTrainingStore {
 
       runInAction(() => {
         if (snapshot?.data) {
-          this.data = snapshot.data;
-          this.error = undefined;
+          this.adoptExternal(snapshot.data);
           return;
         }
         if (legacyDraft?.data) {
-          this.data = legacyDraft.data;
-          this.error = undefined;
+          this.adoptExternal(legacyDraft.data);
           return;
         }
         if (this.data !== undefined && this.data !== null) {
@@ -227,11 +230,12 @@ class ActiveTrainingStore {
             throw result.error;
           }
 
-          const serverActive = result.data ?? null;
+          const serverActive = result.data
+            ? normalizeActiveTrainingRest(result.data)
+            : null;
           if (serverActive) {
             runInAction(() => {
-              this.data = serverActive;
-              this.error = undefined;
+              this.adoptExternal(serverActive);
             });
             await writeActiveTrainingSnapshot(serverActive);
             return;
@@ -291,6 +295,18 @@ class ActiveTrainingStore {
         this.error = undefined;
       });
       await writeActiveTrainingSnapshot(snapshotToSync);
+
+      // /end keeps whatever the server already stored. The debounced update is
+      // cancelled on finish, so the last set must be patched and acknowledged
+      // before the workout is closed.
+      if (connectivityStore.isOnline) {
+        await enqueueMutation({
+          type: "active.update",
+          body: snapshotToSync,
+        });
+        await syncEngine.flush({ force: true });
+      }
+
       await enqueueMutation({
         type: "active.end",
         finalData: snapshotToSync,

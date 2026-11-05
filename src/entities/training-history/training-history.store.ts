@@ -7,6 +7,9 @@ type HistoryListQuery = {
   limit: number;
   page?: number;
   orderBy?: string;
+  /** Documented query param. Same JSON shape as the trainings list. */
+  filter?: string;
+  /** Kept for backends that still read the old name. */
   where?: string;
 };
 

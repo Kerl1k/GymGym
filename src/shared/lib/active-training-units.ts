@@ -107,10 +107,22 @@ export function createEmptySetFromExerciseTemplate(
 export function unitsFromCatalogStrings(catalog: string[] | undefined): TrainingUnit[] {
   const names =
     catalog && catalog.length > 0 ? catalog : [DEFAULT_FIRST, DEFAULT_SECOND];
-  return names.map((name, index) => ({
+  return names.map((name) => ({
     name,
-    value: index === 1 ? 10 : 0,
+    value: 0,
   }));
+}
+
+/** True when the set still has the values assigned at creation, not entered by hand. */
+export function isUntouchedSet(set: TrainingSet): boolean {
+  if (set.units.length === 0) return true;
+  return set.units.every((unit, index) => {
+    if (index === REPS_UNIT_INDEX) {
+      // 10 was the old default for a new set and is not a value the person entered.
+      return unit.value === 0 || unit.value === 10;
+    }
+    return unit.value === 0;
+  });
 }
 
 export function sumSetsWeightLike(sets: TrainingSet[]): number {
