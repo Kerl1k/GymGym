@@ -3,7 +3,6 @@ import { PlusIcon } from "lucide-react";
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Button } from "@/shared/ui/kit/button";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import {
   ExercisesListLayout,
@@ -44,9 +43,7 @@ const ExercisesPage = () => {
             ))
           }
         />
-        <Modal close={close} isOpen={isOpen} title="Создание упражнения">
-          <ExercisesCreate close={close} />
-        </Modal>
+        {isOpen ? <ExercisesCreate close={close} /> : null}
       </ExercisesListLayout>
     </div>
   );

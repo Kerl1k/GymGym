@@ -6,7 +6,6 @@ import { PlusIcon, StarIcon } from "lucide-react";
 import { useDebounce } from "@/shared/lib/useDebounce";
 import { useOpen } from "@/shared/lib/useOpen";
 import { Button } from "@/shared/ui/kit/button";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { useTrainingList } from "../../entities/training/use-training-fetch";
 import { TrainingSortSelect } from "../../entities/training/use-training-sort";
@@ -95,9 +94,7 @@ const TrainingPage = () => {
             ))
           }
         />
-        <Modal close={close} isOpen={isOpen} title="Создание тренировки">
-          <TrainingCreate close={close} />
-        </Modal>
+        {isOpen ? <TrainingCreate close={close} /> : null}
       </ExercisesListLayout>
     </div>
   );

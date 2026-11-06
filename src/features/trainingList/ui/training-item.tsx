@@ -28,7 +28,6 @@ import {
 } from "@/shared/ui/kit/dropdown-menu";
 import { Loader } from "@/shared/ui/kit/loader";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { useDeleteTraining } from "../../../entities/training/use-training-delete";
 
@@ -227,9 +226,7 @@ export function TrainingItem({
           </Button>
         </div>
       </CardContent>
-      <Modal close={close} isOpen={isOpen} title="Изменение тренировки">
-        <TrainingCreate training={training} close={close} />
-      </Modal>
+      {isOpen ? <TrainingCreate training={training} close={close} /> : null}
       <ModalDelete
         isOpen={isDeleteOpen}
         close={closeDelete}

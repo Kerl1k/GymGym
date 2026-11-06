@@ -9,12 +9,14 @@ import {
   ArrowDownIcon,
   LayersIcon,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { useChangeTraining } from "@/entities/training/use-training-change";
 import { useCreateTraining } from "@/entities/training/use-training-create";
 import { cn } from "@/shared/lib/css";
 import { toast } from "@/shared/lib/toast";
+import { usePhoneSheet } from "@/shared/lib/use-phone-sheet";
 import { useListKeys } from "@/shared/lib/useListKeys";
 import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
@@ -47,6 +49,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
   const { change, isPending: isChangePending } = useChangeTraining();
 
   const { close: closeModal, isOpen, open } = useOpen();
+  const { overlayStyle, contentRef } = usePhoneSheet(close);
   const [exerciseModalIndex, setExerciseModalIndex] = useState<number | null>(
     null,
   );
@@ -196,13 +199,18 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [training]);
 
-  return (
-    <div className={styles.modalOverlay}>
-      <Card className={styles.modalCard}>
+  return createPortal(
+    <div className={styles.modalOverlay} style={overlayStyle}>
+      <Card
+        className={cn(styles.modalCard, "gap-0")}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="training-create-title"
+      >
         <CardHeader className={styles.cardHeader}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <CardTitle className={styles.cardTitle}>
-              Создание новой тренировки
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle id="training-create-title" className={styles.cardTitle}>
+              {training ? "Изменение тренировки" : "Создание новой тренировки"}
             </CardTitle>
             <Button
               variant="ghost"
@@ -215,7 +223,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
           </div>
         </CardHeader>
 
-        <CardContent className={styles.cardContent}>
+        <CardContent ref={contentRef} className={styles.cardContent}>
           <div className={styles.contentWrapper}>
             {/* Основная информация */}
             <div className={styles.section}>
@@ -250,7 +258,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                   onChange={(e) =>
                     handleFormChange("description", e.target.value)
                   }
-                  className={styles.textarea}
+                  className={`${styles.textarea} max-md:text-base!`}
                   rows={2}
                 />
               </div>
@@ -372,7 +380,7 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
                               "Нет описания"
                             }
                             readOnly={true}
-                            className={`h-16 text-sm ${styles.readonlyTextarea}`}
+                            className={`h-16 max-md:text-base! ${styles.readonlyTextarea}`}
                           />
                         </div>
                       </div>
@@ -431,48 +439,45 @@ export const TrainingCreate: FC<TrainingCreateProps> = ({
         </CardContent>
 
         <div className={styles.footer}>
-          <div className={styles.footerContent}>
-            <div className={styles.footerText}></div>
+          <div className={styles.actions}>
+            <Button
+              variant="ghost"
+              onClick={close}
+              disabled={isPending}
+              className="text-sm"
+            >
+              Отмена
+            </Button>
 
-            <div className={styles.actions}>
+            {!training ? (
               <Button
-                variant="ghost"
-                onClick={close}
-                disabled={isPending}
-                className="text-sm sm:text-base"
+                onClick={createTraining}
+                disabled={
+                  !form.name || form.exerciseTypes.length === 0 || isPending
+                }
+                className={styles.createButton}
               >
-                Отмена
+                {isPending ? (
+                  <>
+                    <div className={styles.spinner} />
+                    Создание...
+                  </>
+                ) : (
+                  <>
+                    <PlusIcon className={styles.createIcon} />
+                    Создать тренировку
+                  </>
+                )}
               </Button>
-
-              {!training ? (
-                <Button
-                  onClick={createTraining}
-                  disabled={
-                    !form.name || form.exerciseTypes.length === 0 || isPending
-                  }
-                  className={styles.createButton}
-                >
-                  {isPending ? (
-                    <>
-                      <div className={styles.spinner} />
-                      Создание...
-                    </>
-                  ) : (
-                    <>
-                      <PlusIcon className={styles.createIcon} />
-                      Создать тренировку
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <Button onClick={changeTraining} disabled={isChangePending}>
-                  Сохранить
-                </Button>
-              )}
-            </div>
+            ) : (
+              <Button onClick={changeTraining} disabled={isChangePending}>
+                Сохранить
+              </Button>
+            )}
           </div>
         </div>
       </Card>
-    </div>
+    </div>,
+    document.body,
   );
 };

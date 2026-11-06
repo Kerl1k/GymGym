@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useCreateExercises } from "@/entities/exercises/use-create-exercises";
 import { useChangeExercises } from "@/entities/exercises/use-exercises-change";
 import { normalizeRestTime } from "@/shared/lib/rest-time";
+import { usePhoneSheet } from "@/shared/lib/use-phone-sheet";
 import { ApiSchemas } from "@/shared/schema";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
@@ -220,6 +221,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
     restTime: 0,
   });
 
+  const { overlayStyle, contentRef } = usePhoneSheet(close);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [unitRows, setUnitRows] = useState<UnitRow[]>(() => defaultUnitRows());
   const { create, isPending } = useCreateExercises();
@@ -302,25 +304,41 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
     }
   }, [exercises]);
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="flex min-h-0 w-full max-w-2xl max-h-[90vh] flex-col gap-0 overflow-hidden pb-0">
-        <CardHeader className="shrink-0 border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl">Создание упражнения</CardTitle>
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 max-md:items-stretch max-md:p-0"
+      style={overlayStyle}
+    >
+      <Card
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="exercise-create-title"
+        className="flex min-h-0 w-full max-w-2xl max-h-[90vh] flex-col gap-0 overflow-hidden py-0 max-md:h-full max-md:max-h-none max-md:max-w-none max-md:rounded-none"
+      >
+        <CardHeader className="shrink-0 gap-0 border-b px-5! py-3! max-md:px-3! max-md:pt-[max(0.5rem,env(safe-area-inset-top))]! max-md:pb-2!">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle
+              id="exercise-create-title"
+              className="min-w-0 flex-1 truncate text-base sm:text-xl"
+            >
+              {exercises ? "Редактирование упражнения" : "Создание упражнения"}
+            </CardTitle>
             <Button
               variant="ghost"
               size="sm"
               onClick={close}
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 shrink-0 p-0"
             >
               <XIcon className="h-4 w-4" />
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="min-h-0 flex-1 overflow-y-auto">
-          <div className="space-y-6 py-4">
+        <CardContent
+          ref={contentRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 max-md:px-3"
+        >
+          <div className="space-y-4 py-3 max-md:space-y-3 max-md:py-2">
             <div className="space-y-4">
               <div className="space-y-3">
                 <div>
@@ -429,9 +447,14 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
           </div>
         </CardContent>
 
-        <div className="shrink-0 border-t p-6 bg-muted">
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" onClick={close} disabled={isPending}>
+        <div className="bg-muted shrink-0 border-t px-5 py-3 max-md:px-3 max-md:pt-2 max-md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              onClick={close}
+              disabled={isPending}
+              className="max-md:h-9 max-md:flex-1"
+            >
               Отмена
             </Button>
 
@@ -439,7 +462,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
               <Button
                 onClick={addExercise}
                 disabled={!form.name || isPending}
-                className="gap-2"
+                className="gap-2 max-md:h-9 max-md:flex-1"
               >
                 {isPending ? (
                   <>
@@ -457,7 +480,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
               <Button
                 onClick={changeExercises}
                 disabled={!form.name || isPending}
-                className="gap-2"
+                className="gap-2 max-md:h-9 max-md:flex-1"
               >
                 {" "}
                 Сохранить изменения
@@ -466,6 +489,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
           </div>
         </div>
       </Card>
-    </div>
+    </div>,
+    document.body,
   );
 };

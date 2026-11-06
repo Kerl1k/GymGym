@@ -5,7 +5,6 @@ import { useOpen } from "@/shared/lib/useOpen";
 import { ApiSchemas } from "@/shared/schema";
 import { DropdownMenuItem } from "@/shared/ui/kit/dropdown-menu";
 import { ModalDelete } from "@/shared/ui/kit/modalDelete";
-import { Modal } from "@/shared/ui/kit/modalWindow/modal";
 
 import { ExercisesListItem } from "./exercises-list-item/exercises-list-item";
 import { ExercisesCreate } from "./exercisesCreate";
@@ -46,9 +45,9 @@ export function ExerciseItem({
           </>
         }
       />
-      <Modal close={close} isOpen={isOpen} title="Редактирование упражнения">
+      {isOpen ? (
         <ExercisesCreate exercises={exercises} close={close} />
-      </Modal>
+      ) : null}
       <ModalDelete
         close={closeDelete}
         isOpen={isOpenDelete}
