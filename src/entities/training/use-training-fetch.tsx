@@ -36,12 +36,13 @@ export function useTrainingList({
     [filterSerialized, limit, orderBySerialized],
   );
 
-  const { trainings, isPending, hasData } = useMobxSelector(() => {
+  const { trainings, isPending, hasData, isUnavailable } = useMobxSelector(() => {
     const data = trainingStore.getList(query);
     return {
       trainings: data?.content ?? [],
       isPending: trainingStore.isListLoading(query),
       hasData: data !== undefined,
+      isUnavailable: trainingStore.isListUnavailable(query),
     };
   });
 
@@ -54,5 +55,6 @@ export function useTrainingList({
   return {
     trainings,
     isPending,
+    isUnavailable,
   };
 }

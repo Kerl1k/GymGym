@@ -12,7 +12,8 @@ export type OutboxMutationType =
   | "active.start"
   | "active.update"
   | "active.end"
-  | "active.cancel";
+  | "active.cancel"
+  | "active.repeat";
 
 type OutboxBase = {
   id: string;
@@ -63,9 +64,16 @@ export type OutboxMutation =
       type: "active.end";
       /** Final workout payload saved offline; sent on reconnect with end. */
       finalData?: ApiSchemas["ActiveTraining"];
+      /** Local history row created for the offline summary screen. */
+      localHistoryId?: string;
     })
   | (OutboxBase & {
       type: "active.cancel";
+    })
+  | (OutboxBase & {
+      type: "active.repeat";
+      trainingHistoryId: string;
+      dateStart: string;
     });
 
 export type ExercisesSnapshot = {
@@ -80,6 +88,11 @@ export type TrainingsSnapshot = {
 
 export type ActiveTrainingSnapshot = {
   data: ApiSchemas["ActiveTraining"] | null;
+  updatedAt: number;
+};
+
+export type HistorySnapshot = {
+  content: ApiSchemas["TrainingHistory"][];
   updatedAt: number;
 };
 

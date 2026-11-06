@@ -88,6 +88,11 @@ const TrainingPage = () => {
         <ExercisesListLayoutContent
           isEmpty={trainingsQuery.trainings.length === 0}
           isPending={trainingsQuery.isPending}
+          emptyMessage={
+            trainingsQuery.isUnavailable
+              ? "Нет сети и нет сохранённых тренировок"
+              : undefined
+          }
           renderList={() =>
             trainingsQuery.trainings.map((training) => (
               <TrainingItem key={training.id} training={training} />

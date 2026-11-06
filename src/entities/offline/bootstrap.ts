@@ -1,6 +1,7 @@
 import { exercisesStore } from "@/entities/exercises/exercises.store";
 import { trainingStore } from "@/entities/training/training.store";
 import { activeTrainingStore } from "@/entities/training-active/active-training.store";
+import { trainingHistoryStore } from "@/entities/training-history/training-history.store";
 
 import { connectivityStore } from "./connectivity";
 import { syncEngine } from "./sync-engine";
@@ -37,6 +38,8 @@ async function runBootstrap(): Promise<void> {
     applyActiveTraining: (data) => {
       activeTrainingStore.applyActiveTraining(data);
     },
+    replaceHistoryId: (localHistoryId, serverHistory) =>
+      trainingHistoryStore.adoptServerHistory(localHistoryId, serverHistory),
     refetchAfterSync: async () => {
       const skipActive =
         activeTrainingStore.isEnding || activeTrainingStore.isStarting;
@@ -51,6 +54,7 @@ async function runBootstrap(): Promise<void> {
           },
           true,
         ),
+        trainingHistoryStore.fetchList({ limit: 40 }, true),
         skipActive ? Promise.resolve() : activeTrainingStore.fetch(true),
       ]);
     },
@@ -60,6 +64,7 @@ async function runBootstrap(): Promise<void> {
     exercisesStore.hydrateFromCache(),
     trainingStore.hydrateFromCache(),
     activeTrainingStore.hydrateFromCache(),
+    trainingHistoryStore.hydrateFromCache(),
   ]);
 
   syncEngine.start();

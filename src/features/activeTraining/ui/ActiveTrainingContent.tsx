@@ -4,9 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useExercisesFetchList } from "@/entities/exercises/use-exercises-fetch-list";
 import { connectivityStore, syncEngine } from "@/entities/offline";
-import {
-  isLocalHistoryId,
-} from "@/entities/training-active/active-training.store";
 import { useUpdateActiveTraining } from "@/entities/training-active/use-active-training-change";
 import { useEndActiveTraining } from "@/entities/training-active/use-active-training-end";
 import {
@@ -193,6 +190,23 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     [flushTrainingSync],
   );
 
+  useEffect(() => {
+    const persistNow = () => {
+      if (finishingRef.current) return;
+      runInBackground(flushTrainingSync(), "Не удалось сохранить тренировку");
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") persistNow();
+    };
+
+    window.addEventListener("pagehide", persistNow);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("pagehide", persistNow);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [flushTrainingSync]);
+
   const addExercise = (exerciseId: string) => {
     const selectedExercise = exercises.find((ex) => ex.id === exerciseId);
     if (!selectedExercise) return;
@@ -328,10 +342,6 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     }
     try {
       const historyId = await end(finalData);
-      if (isLocalHistoryId(historyId)) {
-        navigate(ROUTES.TRAINING);
-        return;
-      }
       navigate(ROUTES.END.replace(":id", historyId));
     } catch (error) {
       console.error("Не удалось завершить тренировку", error);

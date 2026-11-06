@@ -20,6 +20,7 @@ class ExercisesStore {
     deep: false,
   });
   private loadingByLimit = observable.map<number, boolean>(undefined, { deep: false });
+  private unavailableByLimit = observable.map<number, boolean>(undefined, { deep: false });
   createPending = false;
   changePending = false;
   deletingId: string | null = null;
@@ -35,6 +36,10 @@ class ExercisesStore {
 
   isListLoading(limit: number): boolean {
     return (this.loadingByLimit.get(limit) ?? false) && this.getList(limit) === undefined;
+  }
+
+  isListUnavailable(limit: number): boolean {
+    return this.unavailableByLimit.get(limit) ?? false;
   }
 
   applySnapshot(content: ApiSchemas["ExerciseType"][]) {
@@ -129,13 +134,16 @@ class ExercisesStore {
 
     if (!connectivityStore.isOnline) {
       const snapshot = await readExercisesSnapshot();
-      if (snapshot) {
-        runInAction(() => {
+      runInAction(() => {
+        if (snapshot) {
+          this.unavailableByLimit.set(limit, false);
           this.listByLimit.set(limit, {
             content: snapshot.content.slice(0, limit),
           });
-        });
-      }
+          return;
+        }
+        this.unavailableByLimit.set(limit, true);
+      });
       return;
     }
 
@@ -157,20 +165,22 @@ class ExercisesStore {
       await writeExercisesSnapshot(content);
 
       runInAction(() => {
+        this.unavailableByLimit.set(limit, false);
         this.listByLimit.set(limit, { content });
         this.hydrated = true;
       });
     } catch {
       const snapshot = await readExercisesSnapshot();
-      if (snapshot) {
-        runInAction(() => {
+      runInAction(() => {
+        if (snapshot) {
+          this.unavailableByLimit.set(limit, false);
           this.listByLimit.set(limit, {
             content: snapshot.content.slice(0, limit),
           });
-        });
-      } else {
-        throw new Error("ExercisesUnavailable");
-      }
+          return;
+        }
+        this.unavailableByLimit.set(limit, true);
+      });
     } finally {
       runInAction(() => {
         this.loadingByLimit.set(limit, false);

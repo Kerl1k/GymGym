@@ -8,6 +8,7 @@ import { toUpdateActiveTrainingBody } from "./active-training-body";
 import { connectivityStore } from "./connectivity";
 import { registerFlushHandler } from "./flush-scheduler";
 import { readIdMap, rememberIdMapping } from "./id-map";
+import { isLocalHistoryId } from "./local-history-id";
 import {
   applyIdMapToOutbox,
   markMutationInFlight,
@@ -31,6 +32,10 @@ type StoreHooks = {
   applyExerciseSnapshot: (content: ApiSchemas["ExerciseType"][]) => void;
   applyTrainingSnapshot: (content: ApiSchemas["Training"][]) => void;
   applyActiveTraining: (data: ApiSchemas["ActiveTraining"] | null) => void;
+  replaceHistoryId: (
+    localHistoryId: string | undefined,
+    serverHistory: ApiSchemas["TrainingHistory"],
+  ) => Promise<void>;
   refetchAfterSync: () => Promise<void>;
 };
 
@@ -41,6 +46,7 @@ type FlushOptions = {
 
 const RETRY_BASE_MS = 5_000;
 const RETRY_MAX_MS = 5 * 60_000;
+const HISTORY_ID_PENDING = "HistoryIdPending";
 
 /** In-flight flush chain (kept off the MobX tree). */
 let flushPromise: Promise<void> | null = null;
@@ -257,12 +263,18 @@ class SyncEngine {
 
     await applyIdMapToOutbox();
 
+    // A repeat can wait for active.end to mint a server history id.
+    // Skip it for this pass so later mutations in the queue still flush.
+    const deferredIds = new Set<string>();
+
     // Re-read after each mutation so concurrent enqueueMutation
     // (e.g. active.end during an in-flight update flush) is not wiped.
     while (true) {
       if (generation !== this.generation) return;
 
-      const remaining = sortMutationsForFlush(await readOutbox());
+      const remaining = sortMutationsForFlush(await readOutbox()).filter(
+        (item) => !deferredIds.has(item.id),
+      );
       if (remaining.length === 0) break;
 
       const mutation = remaining[0];
@@ -272,7 +284,11 @@ class SyncEngine {
         if (generation !== this.generation) return;
 
         const next = await removeFromOutbox(mutation.id);
-        if (mutation.type === "exercise.create" || mutation.type === "training.create") {
+        if (
+          mutation.type === "exercise.create" ||
+          mutation.type === "training.create" ||
+          mutation.type === "active.end"
+        ) {
           // Later mutations may reference the temp id just resolved.
           await applyIdMapToOutbox();
         }
@@ -284,6 +300,10 @@ class SyncEngine {
         if (generation !== this.generation) return;
 
         const message = errorMessageOf(error);
+        if (message === HISTORY_ID_PENDING) {
+          deferredIds.add(mutation.id);
+          continue;
+        }
         if (isNetworkFailure(message)) {
           // No "online" event will fire if the browser already thinks it is
           // online, so retry on our own.
@@ -307,6 +327,14 @@ class SyncEngine {
       } finally {
         markMutationInFlight(null);
       }
+    }
+
+    if (deferredIds.size > 0) {
+      this.registerFailure();
+      runInAction(() => {
+        this.status = "offline";
+      });
+      return;
     }
 
     if (this.hooks) {
@@ -415,9 +443,33 @@ class SyncEngine {
           runInAction(() => {
             this.lastEndedHistoryId = history.id;
           });
+          if (
+            mutation.localHistoryId &&
+            mutation.localHistoryId !== history.id
+          ) {
+            await rememberIdMapping(mutation.localHistoryId, history.id);
+          }
+          try {
+            await this.hooks?.replaceHistoryId(mutation.localHistoryId, history);
+          } catch (error) {
+            console.warn("Не удалось сохранить итог тренировки локально", error);
+          }
         }
         await writeActiveTrainingSnapshot(null);
         this.hooks?.applyActiveTraining(null);
+        return;
+      }
+      case "active.repeat": {
+        if (isLocalHistoryId(mutation.trainingHistoryId)) {
+          throw new Error(HISTORY_ID_PENDING);
+        }
+        const result = await fetchClient.POST("/api/active-training/repeat", {
+          body: {
+            trainingHistoryId: mutation.trainingHistoryId,
+            dateStart: mutation.dateStart,
+          },
+        });
+        if (result.error) throw result.error;
         return;
       }
       case "active.cancel": {

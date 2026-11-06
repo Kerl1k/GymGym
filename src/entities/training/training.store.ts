@@ -40,6 +40,7 @@ class TrainingStore {
     deep: false,
   });
   private listLoading = observable.map<string, boolean>(undefined, { deep: false });
+  private listUnavailable = observable.map<string, boolean>(undefined, { deep: false });
   private byId = observable.map<string, ApiSchemas["Training"] | null | undefined>(undefined, {
     deep: false,
   });
@@ -111,6 +112,10 @@ class TrainingStore {
     return (this.listLoading.get(key) ?? false) && this.lists.get(key) === undefined;
   }
 
+  isListUnavailable(query: TrainingListQuery): boolean {
+    return this.listUnavailable.get(this.listKey(query)) ?? false;
+  }
+
   applySnapshot(content: ApiSchemas["Training"][]) {
     this.lists.forEach((_, key) => {
       const query = parseSerializedObject<TrainingListQuery>(key);
@@ -159,15 +164,18 @@ class TrainingStore {
 
     if (!connectivityStore.isOnline) {
       const snapshot = await readTrainingsSnapshot();
-      if (snapshot) {
+      runInAction(() => {
+        if (!snapshot) {
+          this.listUnavailable.set(key, true);
+          return;
+        }
         const filtered = snapshot.content.filter((item) =>
           this.matchesListFilter(item, query),
         );
         const sorted = this.sortByOrder(filtered, query);
-        runInAction(() => {
-          this.lists.set(key, { content: sorted.slice(0, query.limit) });
-        });
-      }
+        this.listUnavailable.set(key, false);
+        this.lists.set(key, { content: sorted.slice(0, query.limit) });
+      });
       return;
     }
 
@@ -189,23 +197,25 @@ class TrainingStore {
       await writeTrainingsSnapshot(merged);
 
       runInAction(() => {
+        this.listUnavailable.set(key, false);
         this.lists.set(key, { content });
         content.forEach((training) => this.byId.set(training.id, training));
         this.hydrated = true;
       });
     } catch {
       const snapshot = await readTrainingsSnapshot();
-      if (snapshot) {
+      runInAction(() => {
+        if (!snapshot) {
+          this.listUnavailable.set(key, true);
+          return;
+        }
         const filtered = snapshot.content.filter((item) =>
           this.matchesListFilter(item, query),
         );
         const sorted = this.sortByOrder(filtered, query);
-        runInAction(() => {
-          this.lists.set(key, { content: sorted.slice(0, query.limit) });
-        });
-      } else {
-        throw new Error("TrainingsUnavailable");
-      }
+        this.listUnavailable.set(key, false);
+        this.lists.set(key, { content: sorted.slice(0, query.limit) });
+      });
     } finally {
       runInAction(() => {
         this.listLoading.set(key, false);

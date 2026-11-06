@@ -1,5 +1,6 @@
 const DB_NAME = "gym-note-offline";
-const DB_VERSION = 1;
+/** v2 keeps the same stores and adds the training-history snapshot key. */
+const DB_VERSION = 2;
 
 export const STORE_SNAPSHOTS = "snapshots";
 export const STORE_OUTBOX = "outbox";
@@ -8,6 +9,7 @@ export const STORE_ID_MAP = "idMap";
 export const SNAPSHOT_EXERCISES = "exercises";
 export const SNAPSHOT_TRAININGS = "trainings";
 export const SNAPSHOT_ACTIVE = "activeTraining";
+export const SNAPSHOT_HISTORY = "trainingHistory";
 export const ID_MAP_KEY = "tempToServer";
 
 type StoreName =

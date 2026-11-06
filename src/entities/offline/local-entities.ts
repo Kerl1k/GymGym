@@ -35,6 +35,55 @@ export function buildActiveTrainingFromTemplate(
   };
 }
 
+export function historyFromActiveTraining(
+  data: ApiSchemas["ActiveTraining"],
+  id: string,
+): ApiSchemas["TrainingHistory"] {
+  return {
+    id,
+    dateStart: data.dateStart,
+    name: data.name,
+    description: data.description,
+    exercises: data.exercises.map((exercise) => ({
+      name: exercise.name,
+      description: exercise.description,
+      restTime: exercise.restTime,
+      sets: exercise.sets,
+      muscleGroups: exercise.muscleGroups,
+      useCustomSets: exercise.useCustomSets,
+    })),
+  };
+}
+
+export function buildActiveTrainingFromHistory(
+  history: ApiSchemas["TrainingHistory"],
+  dateStart: string,
+): ApiSchemas["ActiveTraining"] {
+  return {
+    dateStart,
+    name: history.name,
+    description: history.description,
+    exercises: history.exercises.map((exercise) => ({
+      id: "",
+      name: exercise.name,
+      description: exercise.description || "",
+      restTime: normalizeRestTime(exercise.restTime),
+      sets:
+        exercise.sets.length > 0
+          ? exercise.sets.map((set) => ({
+              units: set.units.map((unit) => ({
+                name: unit.name,
+                value: unit.value,
+              })),
+              done: false,
+            }))
+          : [{ units: [], done: false }],
+      muscleGroups: exercise.muscleGroups || [],
+      useCustomSets: exercise.useCustomSets,
+    })),
+  };
+}
+
 export function createLocalExercise(
   body: ApiSchemas["ExerciseTypeCreateBody"],
   tempId = crypto.randomUUID(),

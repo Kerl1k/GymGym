@@ -4,8 +4,10 @@ import { toApiErrorCode } from "@/entities/api/request";
 import { exercisesStore } from "@/entities/exercises/exercises.store";
 import { fetchClient } from "@/entities/instance";
 import {
+  buildActiveTrainingFromHistory,
   buildActiveTrainingFromTemplate,
   connectivityStore,
+  createLocalHistoryId,
   enqueueMutation,
   readActiveTrainingSnapshot,
   readExercisesSnapshot,
@@ -16,6 +18,7 @@ import {
   writeActiveTrainingSnapshot,
 } from "@/entities/offline";
 import { trainingStore } from "@/entities/training/training.store";
+import { trainingHistoryStore } from "@/entities/training-history/training-history.store";
 import { normalizeActiveTrainingRest } from "@/shared/lib/rest-time";
 import { ApiSchemas } from "@/shared/schema";
 
@@ -24,11 +27,7 @@ import {
   readActiveTrainingDraft,
 } from "./active-training-cache";
 
-const LOCAL_END_PREFIX = "local:";
-
-export function isLocalHistoryId(id: string): boolean {
-  return id.startsWith(LOCAL_END_PREFIX);
-}
+export { isLocalHistoryId } from "@/entities/offline";
 
 class ActiveTrainingStore {
   data: ApiSchemas["ActiveTraining"] | null | undefined = undefined;
@@ -272,6 +271,32 @@ class ActiveTrainingStore {
     }
   }
 
+  /** Start a workout from cached history and queue `active.repeat` for later. */
+  async startFromHistory(
+    history: ApiSchemas["TrainingHistory"],
+    dateStart: string,
+    historyIdForQueue: string,
+  ): Promise<void> {
+    const existingLocal =
+      this.data ?? (await readActiveTrainingSnapshot())?.data ?? null;
+    if (existingLocal) {
+      throw "AlreadyExists";
+    }
+
+    const localActive = buildActiveTrainingFromHistory(history, dateStart);
+    runInAction(() => {
+      this.data = localActive;
+      this.error = undefined;
+    });
+    await writeActiveTrainingSnapshot(localActive);
+    await enqueueMutation({
+      type: "active.repeat",
+      trainingHistoryId: historyIdForQueue,
+      dateStart,
+    });
+    requestFlush();
+  }
+
   async end(
     finalData?: ApiSchemas["ActiveTraining"] | null,
   ): Promise<string> {
@@ -307,9 +332,11 @@ class ActiveTrainingStore {
         await syncEngine.flush({ force: true });
       }
 
+      const localHistoryId = createLocalHistoryId();
       await enqueueMutation({
         type: "active.end",
         finalData: snapshotToSync,
+        localHistoryId,
       });
 
       if (connectivityStore.isOnline) {
@@ -328,14 +355,14 @@ class ActiveTrainingStore {
         // Server unreachable despite navigator.onLine: active.end stays
         // in the outbox and is replayed later, so finish locally.
         if (syncEngine.status === "offline") {
-          return await this.finishLocally();
+          return await this.finishLocally(snapshotToSync, localHistoryId);
         }
         // Online flush must produce a history id. Empty outbox without one
         // means the end never reached the server (e.g. silent IDB write loss).
         throw syncEngine.lastError ?? "ActiveEndNotSynced";
       }
 
-      return await this.finishLocally();
+      return await this.finishLocally(snapshotToSync, localHistoryId);
     } finally {
       // Keep isEnding until the next microtask so the caller can navigate
       // to /end/:id before the page would render "Тренировка не начата".
@@ -347,7 +374,11 @@ class ActiveTrainingStore {
     }
   }
 
-  private async finishLocally(): Promise<string> {
+  private async finishLocally(
+    snapshot: ApiSchemas["ActiveTraining"],
+    historyId: string,
+  ): Promise<string> {
+    await trainingHistoryStore.recordLocalFinish(snapshot, historyId);
     runInAction(() => {
       this.data = null;
       this.error = "NotFound";
@@ -356,7 +387,7 @@ class ActiveTrainingStore {
     clearActiveTrainingDraft();
 
     requestFlush();
-    return `${LOCAL_END_PREFIX}${crypto.randomUUID()}`;
+    return historyId;
   }
 
   async cancel(): Promise<void> {

@@ -89,12 +89,14 @@ export function ExercisesListLayoutContent({
   isEmpty,
   isPending,
   isPendingNext,
+  emptyMessage,
   renderList,
 }: {
   children?: React.ReactNode;
   isEmpty?: boolean;
   isPending?: boolean;
   isPendingNext?: boolean;
+  emptyMessage?: string;
   cursorRef?: React.Ref<HTMLDivElement>;
   hasCursor?: boolean;
   renderList?: () => React.ReactNode;
@@ -114,7 +116,7 @@ export function ExercisesListLayoutContent({
 
       {isEmpty && !isPending && (
         <div className="text-center py-6 sm:py-10 text-sm sm:text-base text-muted-foreground">
-          Тренировки не найдены
+          {emptyMessage ?? "Тренировки не найдены"}
         </div>
       )}
 

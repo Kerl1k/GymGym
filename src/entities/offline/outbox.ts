@@ -45,19 +45,49 @@ function isActiveMutation(type: OutboxMutation["type"]): boolean {
   return type.startsWith("active.");
 }
 
+function isSessionOpener(type: OutboxMutation["type"]): boolean {
+  return type === "active.start" || type === "active.repeat";
+}
+
+function isSessionTerminal(type: OutboxMutation["type"]): boolean {
+  return type === "active.end" || type === "active.cancel";
+}
+
 function sortByCreatedAt(mutations: OutboxMutation[]): OutboxMutation[] {
   return [...mutations].sort((a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id));
 }
 
 /**
- * Collapse the active-training lifecycle into at most:
- * start → end(with finalData) | cancel
+ * A later start/repeat belongs to the next workout and must survive
+ * the previous end or cancel.
+ */
+function splitActiveSessions(active: OutboxMutation[]): OutboxMutation[][] {
+  const sessions: OutboxMutation[][] = [];
+  let current: OutboxMutation[] = [];
+
+  for (const item of sortByCreatedAt(active)) {
+    const closed = current.some((existing) => isSessionTerminal(existing.type));
+    if (isSessionOpener(item.type) && closed) {
+      sessions.push(current);
+      current = [item];
+      continue;
+    }
+    current.push(item);
+  }
+
+  if (current.length > 0) sessions.push(current);
+  return sessions;
+}
+
+/**
+ * Collapse one active-training session into at most:
+ * start|repeat → end(with finalData) | cancel
  * Workout payload is folded into end.finalData so reconnect always sends sets/weights.
  */
-function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
+function coalesceActiveSession(active: OutboxMutation[]): OutboxMutation[] {
   if (active.length === 0) return [];
 
-  const start = active.find((item) => item.type === "active.start");
+  const opener = active.find((item) => isSessionOpener(item.type));
   const latestUpdate = [...active]
     .reverse()
     .find(
@@ -66,16 +96,14 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
     );
   const terminal = [...active]
     .reverse()
-    .find(
-      (item) => item.type === "active.end" || item.type === "active.cancel",
-    );
+    .find((item) => isSessionTerminal(item.type));
 
-  // Local-only start cancelled before sync → drop everything
-  if (start && terminal?.type === "active.cancel") {
+  // Local-only opener cancelled before sync → drop this session only
+  if (opener && terminal?.type === "active.cancel") {
     return [];
   }
 
-  // Cancel without pending start (session already on server) → cancel only
+  // Cancel without pending opener (session already on server) → cancel only
   if (terminal?.type === "active.cancel") {
     return [
       {
@@ -87,23 +115,24 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
   }
 
   const result: OutboxMutation[] = [];
-  if (start) {
+  if (opener) {
     result.push({
-      ...start,
+      ...opener,
       status: "pending",
       errorMessage: undefined,
     });
   }
 
   if (terminal?.type === "active.end") {
-    const finalData =
-      ("finalData" in terminal ? terminal.finalData : undefined) ??
-      latestUpdate?.body;
+    const finalData = terminal.finalData ?? latestUpdate?.body;
     // Never drop end from the queue — without it start would sync alone.
     result.push({
       id: terminal.id,
       createdAt: terminal.createdAt,
       type: "active.end",
+      ...(terminal.localHistoryId
+        ? { localHistoryId: terminal.localHistoryId }
+        : {}),
       ...(finalData ? { finalData } : {}),
       status: "pending",
       errorMessage: undefined,
@@ -111,7 +140,7 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
     return result;
   }
 
-  // No terminal yet: keep start + latest update for crash recovery mid-workout
+  // No terminal yet: keep opener + latest update for crash recovery mid-workout
   if (latestUpdate) {
     result.push({
       ...latestUpdate,
@@ -121,6 +150,12 @@ function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
   }
 
   return result;
+}
+
+function coalesceActiveLifecycle(active: OutboxMutation[]): OutboxMutation[] {
+  return splitActiveSessions(active).flatMap((session) =>
+    coalesceActiveSession(session),
+  );
 }
 
 /**
@@ -249,14 +284,24 @@ const MUTATION_ORDER: Record<OutboxMutation["type"], number> = {
   "active.update": 80,
   "active.end": 90,
   "active.cancel": 90,
+  "active.repeat": 100,
 };
 
 export function sortMutationsForFlush(mutations: OutboxMutation[]): OutboxMutation[] {
-  return [...mutations].sort((a, b) => {
+  const catalog = mutations.filter((item) => !isActiveMutation(item.type));
+  const active = mutations.filter((item) => isActiveMutation(item.type));
+
+  catalog.sort((a, b) => {
     const orderDiff = MUTATION_ORDER[a.type] - MUTATION_ORDER[b.type];
     if (orderDiff !== 0) return orderDiff;
     return a.createdAt - b.createdAt;
   });
+  // Active sessions must stay chronological: the previous end before the next start.
+  active.sort(
+    (a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id),
+  );
+
+  return [...catalog, ...active];
 }
 
 let outboxLock: Promise<unknown> = Promise.resolve();
@@ -418,6 +463,11 @@ async function applyIdMapToOutboxUnlocked(): Promise<OutboxMutation[]> {
           finalData: mutation.finalData
             ? rewriteIdsInValue(mutation.finalData, map)
             : mutation.finalData,
+        };
+      case "active.repeat":
+        return {
+          ...mutation,
+          trainingHistoryId: resolveId(mutation.trainingHistoryId, map),
         };
       default:
         return mutation;

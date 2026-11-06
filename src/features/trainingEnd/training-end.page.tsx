@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { Share2Icon } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
+import { isLocalHistoryId } from "@/entities/offline";
 import { useTrainingHistoryByName } from "@/entities/training-history/use-training-history-by-name";
 import { useChangeTrainingHistory } from "@/entities/training-history/use-training-history-change";
 import { useTrainingHistoryFetchId } from "@/entities/training-history/use-training-history-fetch-id";
@@ -58,7 +59,7 @@ const convertActiveTrainingToTrainingHistoryUpdate = (
 
 const TrainingEndPage = () => {
   const { id } = useParams<{ id: string }>();
-  const { data: history } = useTrainingHistoryFetchId(id || "");
+  const { data: history, isLoading } = useTrainingHistoryFetchId(id || "");
   const { history: previousHistory, isPending: isPreviousPending } =
     useTrainingHistoryByName({
       trainingName: history?.name,
@@ -93,6 +94,16 @@ const TrainingEndPage = () => {
   const activeTrainingData = history
     ? convertTrainingHistoryToActiveTraining(history)
     : null;
+  const isLocalSummary = Boolean(
+    id &&
+      history &&
+      isLocalHistoryId(id) &&
+      isLocalHistoryId(history.id),
+  );
+
+  if (isLoading && !history) {
+    return <div className="p-6 text-center">Загрузка итогов...</div>;
+  }
 
   if (!history || !activeTrainingData) {
     return <div>Тренировка не найдена</div>;
@@ -115,6 +126,12 @@ const TrainingEndPage = () => {
           Поделиться итогами
         </Button>
       </div>
+      {isLocalSummary && (
+        <p className="mx-auto max-w-[1200px] px-4 pt-3 text-sm text-muted-foreground sm:px-6">
+          Итог сохранён на этом устройстве и отправится на сервер, когда
+          появится сеть. Пока его можно только посмотреть.
+        </p>
+      )}
       <BestResults
         current={history}
         previousHistory={previousHistory}
@@ -124,6 +141,7 @@ const TrainingEndPage = () => {
         data={activeTrainingData}
         onSave={onSave}
         previousBestByExercise={previousBestByExercise}
+        readOnly={isLocalSummary}
       />
     </>
   );

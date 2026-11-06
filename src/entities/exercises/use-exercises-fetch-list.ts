@@ -10,12 +10,13 @@ type UseExercisesListParams = {
 };
 
 export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
-  const { exercises, isPending, hasData } = useMobxSelector(() => {
+  const { exercises, isPending, hasData, isUnavailable } = useMobxSelector(() => {
     const data = exercisesStore.getList(limit);
     return {
       exercises: data?.content ?? [],
       isPending: exercisesStore.isListLoading(limit),
       hasData: data !== undefined,
+      isUnavailable: exercisesStore.isListUnavailable(limit),
     };
   });
 
@@ -28,5 +29,6 @@ export function useExercisesFetchList({ limit = 20 }: UseExercisesListParams) {
   return {
     exercises,
     isPending,
+    isUnavailable,
   };
 }

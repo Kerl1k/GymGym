@@ -3,6 +3,7 @@ import type { ApiSchemas } from "@/shared/schema";
 import {
   SNAPSHOT_ACTIVE,
   SNAPSHOT_EXERCISES,
+  SNAPSHOT_HISTORY,
   SNAPSHOT_TRAININGS,
   STORE_SNAPSHOTS,
   idbGet,
@@ -12,6 +13,7 @@ import {
 import type {
   ActiveTrainingSnapshot,
   ExercisesSnapshot,
+  HistorySnapshot,
   TrainingsSnapshot,
 } from "./types";
 
@@ -55,6 +57,20 @@ export async function writeActiveTrainingSnapshot(
     updatedAt: Date.now(),
   };
   await idbSet(STORE_SNAPSHOTS, SNAPSHOT_ACTIVE, payload);
+}
+
+export async function readHistorySnapshot(): Promise<HistorySnapshot | null> {
+  return (await idbGet<HistorySnapshot>(STORE_SNAPSHOTS, SNAPSHOT_HISTORY)) ?? null;
+}
+
+export async function writeHistorySnapshot(
+  content: ApiSchemas["TrainingHistory"][],
+): Promise<void> {
+  const payload: HistorySnapshot = {
+    content,
+    updatedAt: Date.now(),
+  };
+  await idbSet(STORE_SNAPSHOTS, SNAPSHOT_HISTORY, payload);
 }
 
 export async function upsertExerciseInSnapshot(

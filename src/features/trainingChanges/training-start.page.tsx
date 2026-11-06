@@ -48,6 +48,8 @@ type TrainingChangesProps = {
   previousBestByExercise?: Record<string, PersonalRecord>;
   /** На /start: подставить веса и повторения из прошлой тренировки. */
   showFillFromPrevious?: boolean;
+  /** Локальный итог без серверного id: без правок и без запроса к API. */
+  readOnly?: boolean;
 };
 
 type ActiveExercise = ApiSchemas["ActiveTraining"]["exercises"][number];
@@ -162,6 +164,7 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
   onSave,
   previousBestByExercise,
   showFillFromPrevious = false,
+  readOnly = false,
 }) => {
   const [activeTraining, setActiveTraining] = useState<
     ApiSchemas["ActiveTraining"] | null
@@ -389,7 +392,11 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
       </div>
 
       {/* Упражнения */}
-      <div className={styles.exercisesList}>
+      <fieldset
+        disabled={readOnly}
+        inert={readOnly || undefined}
+        className={cn(styles.exercisesList, "m-0 min-w-0 border-0 p-0")}
+      >
         {activeTraining.exercises.map((exercise, exerciseIndex) => (
           <Card
             key={exerciseKeys.keys[exerciseIndex]}
@@ -514,26 +521,30 @@ export const TrainingChanges: FC<TrainingChangesProps> = ({
             </CardContent>
           </Card>
         ))}
-        <Button
-          onClick={() => setIsExerciseModalOpen(true)}
-          className={styles.addExerciseButton}
-          variant="outline"
-        >
-          <PlusIcon className={styles.addExerciseIcon} />
-          Добавить упражнение
-        </Button>
-      </div>
+        {!readOnly && (
+          <Button
+            onClick={() => setIsExerciseModalOpen(true)}
+            className={styles.addExerciseButton}
+            variant="outline"
+          >
+            <PlusIcon className={styles.addExerciseIcon} />
+            Добавить упражнение
+          </Button>
+        )}
+      </fieldset>
 
-      <div className={styles.footer}>
-        <Button
-          onClick={handleSave}
-          size="lg"
-          className={styles.saveButton}
-          disabled={isUpdating}
-        >
-          {isUpdating ? "Сохранение..." : "Сохранить параметры"}
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className={styles.footer}>
+          <Button
+            onClick={handleSave}
+            size="lg"
+            className={styles.saveButton}
+            disabled={isUpdating}
+          >
+            {isUpdating ? "Сохранение..." : "Сохранить параметры"}
+          </Button>
+        </div>
+      )}
 
       <ExerciseSelectModal
         exercises={exercises}

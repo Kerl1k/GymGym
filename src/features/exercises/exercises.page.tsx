@@ -37,6 +37,11 @@ const ExercisesPage = () => {
         <ExercisesListLayoutContent
           isEmpty={exercisesQuery.exercises.length === 0}
           isPending={exercisesQuery.isPending}
+          emptyMessage={
+            exercisesQuery.isUnavailable
+              ? "Нет сети и нет сохранённых упражнений"
+              : undefined
+          }
           renderList={() =>
             exercisesQuery.exercises.map((exercises) => (
               <ExerciseItem key={exercises.id} exercises={exercises} />
