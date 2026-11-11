@@ -40,9 +40,14 @@ async function runBootstrap(): Promise<void> {
     },
     replaceHistoryId: (localHistoryId, serverHistory) =>
       trainingHistoryStore.adoptServerHistory(localHistoryId, serverHistory),
+    acceptsActiveSnapshot: () => activeTrainingStore.acceptsIncomingActive(),
     refetchAfterSync: async () => {
-      const skipActive =
-        activeTrainingStore.isEnding || activeTrainingStore.isStarting;
+      // end() waits on this flush. These GETs have no timeout, so a stalled
+      // catalog refetch used to freeze the finish screen after the workout
+      // itself was already saved.
+      if (activeTrainingStore.isEnding) return;
+
+      const skipActive = activeTrainingStore.isStarting;
       await Promise.allSettled([
         exercisesStore.fetchList(20, true),
         trainingStore.fetchList(

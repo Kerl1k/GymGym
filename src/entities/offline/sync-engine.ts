@@ -32,6 +32,8 @@ type StoreHooks = {
   applyExerciseSnapshot: (content: ApiSchemas["ExerciseType"][]) => void;
   applyTrainingSnapshot: (content: ApiSchemas["Training"][]) => void;
   applyActiveTraining: (data: ApiSchemas["ActiveTraining"] | null) => void;
+  /** False while a local finish must not be overwritten by a late /update. */
+  acceptsActiveSnapshot?: () => boolean;
   replaceHistoryId: (
     localHistoryId: string | undefined,
     serverHistory: ApiSchemas["TrainingHistory"],
@@ -423,7 +425,9 @@ class SyncEngine {
           body: toUpdateActiveTrainingBody(mutation.body),
         });
         if (result.error) throw result.error;
-        if (result.data) {
+        // A finish that already gave up on the network must not be undone
+        // when this PATCH finally returns.
+        if (result.data && this.hooks?.acceptsActiveSnapshot?.() !== false) {
           await writeActiveTrainingSnapshot(result.data);
           this.hooks?.applyActiveTraining(result.data);
         }

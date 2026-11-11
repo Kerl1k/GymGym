@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { activeTrainingStore } from "@/entities/training-active/active-training.store";
 import { useActiveTrainingFetch } from "@/entities/training-active/use-active-training-fetch";
@@ -32,11 +32,63 @@ const ActiveTraining = () => {
   const isEnding = useMobxSelector(() => activeTrainingStore.isEnding);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isFinishing, setIsFinishing] = useState(false);
+  const [finishError, setFinishError] = useState(false);
+  const navigate = useNavigate();
 
   const handleTrainingRepeated = async () => {
     setRefreshKey((prev) => prev + 1);
     await activeTrainingStore.fetch(true);
   };
+
+  const retryFinish = async () => {
+    setFinishError(false);
+    setIsFinishing(true);
+    try {
+      const historyId = await activeTrainingStore.end();
+      navigate(ROUTES.END.replace(":id", historyId));
+    } catch (error) {
+      console.error("Не удалось завершить тренировку", error);
+      setIsFinishing(false);
+      setFinishError(true);
+    }
+  };
+
+  if (finishError) {
+    return (
+      <div className={styles.container}>
+        <Card className={styles.card}>
+          <CardHeader>
+            <CardTitle className={styles.loadingTitle}>
+              Не удалось завершить тренировку
+            </CardTitle>
+          </CardHeader>
+          <CardContent className={styles.cardContent}>
+            <CardDescription className={styles.cardDescription}>
+              Завершение не выполнилось. Повторите попытку. Если ошибка
+              повторяется, проверьте соединение.
+            </CardDescription>
+            <div className={styles.buttonContainer}>
+              <Button
+                className={styles.button}
+                onClick={() => {
+                  void retryFinish();
+                }}
+              >
+                Повторить
+              </Button>
+            </div>
+            <div className={styles.buttonContainer}>
+              <Link to={ROUTES.TRAINING} className={styles.button}>
+                <Button className={styles.button} variant="secondary">
+                  К тренировкам
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (isFinishing || isEnding) {
     return (
@@ -152,7 +204,10 @@ const ActiveTraining = () => {
     <ActiveTrainingContent
       data={data}
       onFinishStart={() => setIsFinishing(true)}
-      onFinishError={() => setIsFinishing(false)}
+      onFinishError={() => {
+        setIsFinishing(false);
+        setFinishError(true);
+      }}
     />
   );
 };

@@ -323,6 +323,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const finishTraining = async (
     snapshot?: ApiSchemas["ActiveTraining"],
   ) => {
+    if (finishingRef.current) return;
     finishingRef.current = true;
     const openExerciseIndex =
       indexCurrentExerciseRef.current >= 0
@@ -344,10 +345,23 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
       const historyId = await end(finalData);
       navigate(ROUTES.END.replace(":id", historyId));
     } catch (error) {
+      finishingRef.current = false;
       console.error("Не удалось завершить тренировку", error);
       onFinishError();
     }
   };
+
+  const finishTrainingRef = useRef(finishTraining);
+  finishTrainingRef.current = finishTraining;
+
+  useEffect(() => {
+    if (trainingData.exercises.length === 0) return;
+    if (indexCurrentExercise !== -1) return;
+    runInBackground(
+      finishTrainingRef.current(latestTrainingRef.current),
+      "Не удалось завершить тренировку",
+    );
+  }, [indexCurrentExercise, trainingData.exercises.length]);
 
   const setTrainingWrapper = (
     value: React.SetStateAction<ApiSchemas["ActiveTraining"]>,

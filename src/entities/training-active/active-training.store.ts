@@ -29,6 +29,31 @@ import {
 
 export { isLocalHistoryId } from "@/entities/offline";
 
+/** Online finish gives up and completes locally so the screen cannot spin forever. */
+const END_ONLINE_WAIT_MS = 20_000;
+
+let endingPromise: Promise<string> | null = null;
+
+function raceWithTimeout(
+  work: Promise<unknown>,
+  ms: number,
+): Promise<"done" | "timeout"> {
+  let timer: number | undefined;
+  return new Promise((resolve, reject) => {
+    timer = window.setTimeout(() => resolve("timeout"), ms);
+    work.then(
+      () => {
+        if (timer !== undefined) window.clearTimeout(timer);
+        resolve("done");
+      },
+      (error: unknown) => {
+        if (timer !== undefined) window.clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 class ActiveTrainingStore {
   data: ApiSchemas["ActiveTraining"] | null | undefined = undefined;
   error: unknown = undefined;
@@ -37,6 +62,8 @@ class ActiveTrainingStore {
   isStarting = false;
   isEnding = false;
   isCancelling = false;
+  /** Set once a workout is closed locally; a late /update must not reopen it. */
+  private ignoreIncomingActive = false;
 
   constructor() {
     makeAutoObservable(this, {}, { autoBind: true });
@@ -58,7 +85,12 @@ class ActiveTrainingStore {
     return this.isFetching ? "fetching" : "idle";
   }
 
+  acceptsIncomingActive(): boolean {
+    return !this.ignoreIncomingActive;
+  }
+
   applyActiveTraining(data: ApiSchemas["ActiveTraining"] | null) {
+    if (data && this.ignoreIncomingActive) return;
     this.adoptExternal(data);
   }
 
@@ -69,6 +101,8 @@ class ActiveTrainingStore {
   }
 
   async hydrateFromCache(): Promise<void> {
+    if (this.ignoreIncomingActive) return;
+
     const snapshot = await readActiveTrainingSnapshot();
     if (snapshot) {
       runInAction(() => {
@@ -130,6 +164,9 @@ class ActiveTrainingStore {
       const serverData = result.data
         ? normalizeActiveTrainingRest(result.data)
         : null;
+      if (serverData && this.ignoreIncomingActive) {
+        return;
+      }
       await writeActiveTrainingSnapshot(serverData);
 
       runInAction(() => {
@@ -140,11 +177,11 @@ class ActiveTrainingStore {
       const legacyDraft = readActiveTrainingDraft();
 
       runInAction(() => {
-        if (snapshot?.data) {
+        if (snapshot?.data && !this.ignoreIncomingActive) {
           this.adoptExternal(snapshot.data);
           return;
         }
-        if (legacyDraft?.data) {
+        if (legacyDraft?.data && !this.ignoreIncomingActive) {
           this.adoptExternal(legacyDraft.data);
           return;
         }
@@ -186,6 +223,7 @@ class ActiveTrainingStore {
   }
 
   async start(id: string): Promise<void> {
+    this.ignoreIncomingActive = false;
     this.isStarting = true;
     try {
       const existingLocal =
@@ -277,6 +315,7 @@ class ActiveTrainingStore {
     dateStart: string,
     historyIdForQueue: string,
   ): Promise<void> {
+    this.ignoreIncomingActive = false;
     const existingLocal =
       this.data ?? (await readActiveTrainingSnapshot())?.data ?? null;
     if (existingLocal) {
@@ -300,6 +339,20 @@ class ActiveTrainingStore {
   async end(
     finalData?: ApiSchemas["ActiveTraining"] | null,
   ): Promise<string> {
+    if (endingPromise) return endingPromise;
+
+    const run = this.finishSession(finalData);
+    endingPromise = run;
+    try {
+      return await run;
+    } finally {
+      if (endingPromise === run) endingPromise = null;
+    }
+  }
+
+  private async finishSession(
+    finalData?: ApiSchemas["ActiveTraining"] | null,
+  ): Promise<string> {
     this.isEnding = true;
     try {
       const snapshotFromCache = finalData
@@ -321,47 +374,66 @@ class ActiveTrainingStore {
       });
       await writeActiveTrainingSnapshot(snapshotToSync);
 
-      // /end keeps whatever the server already stored. The debounced update is
-      // cancelled on finish, so the last set must be patched and acknowledged
-      // before the workout is closed.
+      const localHistoryId = createLocalHistoryId();
+      const deadline = Date.now() + END_ONLINE_WAIT_MS;
+      const remainingMs = () => Math.max(0, deadline - Date.now());
+
+      // /end keeps whatever the server already stored. Patch first, but do not
+      // wait forever: a stalled request used to leave the finish screen up.
       if (connectivityStore.isOnline) {
         await enqueueMutation({
           type: "active.update",
           body: snapshotToSync,
         });
-        await syncEngine.flush({ force: true });
+        const updateWait = await raceWithTimeout(
+          syncEngine.flush({ force: true }),
+          remainingMs(),
+        );
+        if (updateWait === "timeout") {
+          await enqueueMutation({
+            type: "active.end",
+            finalData: snapshotToSync,
+            localHistoryId,
+          });
+          return await this.finishLocally(snapshotToSync, localHistoryId);
+        }
       }
 
-      const localHistoryId = createLocalHistoryId();
       await enqueueMutation({
         type: "active.end",
         finalData: snapshotToSync,
         localHistoryId,
       });
 
-      if (connectivityStore.isOnline) {
-        const waitForHistoryId = when(() =>
-          Boolean(syncEngine.lastEndedHistoryId),
-        );
-        const flushPromise = syncEngine.flush({ force: true });
-        try {
-          await Promise.race([waitForHistoryId, flushPromise]);
-        } finally {
-          waitForHistoryId.cancel();
-        }
-        if (syncEngine.lastEndedHistoryId) {
-          return syncEngine.lastEndedHistoryId;
-        }
-        // Server unreachable despite navigator.onLine: active.end stays
-        // in the outbox and is replayed later, so finish locally.
-        if (syncEngine.status === "offline") {
-          return await this.finishLocally(snapshotToSync, localHistoryId);
-        }
-        // Online flush must produce a history id. Empty outbox without one
-        // means the end never reached the server (e.g. silent IDB write loss).
-        throw syncEngine.lastError ?? "ActiveEndNotSynced";
+      if (!connectivityStore.isOnline || syncEngine.status === "offline") {
+        return await this.finishLocally(snapshotToSync, localHistoryId);
       }
 
+      const waitForHistoryId = when(() =>
+        Boolean(syncEngine.lastEndedHistoryId),
+      );
+      const historySignal = waitForHistoryId.then(
+        () => undefined,
+        () => undefined,
+      );
+      try {
+        await raceWithTimeout(
+          Promise.race([
+            historySignal,
+            syncEngine.flush({ force: true }),
+          ]),
+          remainingMs(),
+        );
+      } finally {
+        waitForHistoryId.cancel();
+      }
+
+      if (syncEngine.lastEndedHistoryId) {
+        return syncEngine.lastEndedHistoryId;
+      }
+
+      // No server id (offline, HTTP error, or the request never returned).
+      // active.end stays queued and is replayed; the summary opens locally.
       return await this.finishLocally(snapshotToSync, localHistoryId);
     } finally {
       // Keep isEnding until the next microtask so the caller can navigate
@@ -378,11 +450,12 @@ class ActiveTrainingStore {
     snapshot: ApiSchemas["ActiveTraining"],
     historyId: string,
   ): Promise<string> {
-    await trainingHistoryStore.recordLocalFinish(snapshot, historyId);
     runInAction(() => {
+      this.ignoreIncomingActive = true;
       this.data = null;
       this.error = "NotFound";
     });
+    await trainingHistoryStore.recordLocalFinish(snapshot, historyId);
     await writeActiveTrainingSnapshot(null);
     clearActiveTrainingDraft();
 
