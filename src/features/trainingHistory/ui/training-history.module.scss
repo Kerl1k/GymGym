@@ -121,14 +121,27 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  min-width: 0;
 }
 
 .exerciseFilterButton {
-  width: 100%;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   justify-content: flex-start;
 }
 
+.exerciseFilterLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 .clearExerciseFilterButton {
+  flex-shrink: 0;
   white-space: nowrap;
 }
 
@@ -244,7 +257,9 @@
 .exerciseItem {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
   padding: 12px 0;
   border-bottom: 2px solid var(--border);
 
@@ -254,12 +269,16 @@
 }
 
 .exerciseName {
+  flex: 1 1 10rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 600;
   color: var(--foreground);
   font-size: 0.9rem;
 }
 
 .exerciseStats {
+  flex-shrink: 0;
   font-size: 0.9rem;
   color: var(--muted-foreground);
 }

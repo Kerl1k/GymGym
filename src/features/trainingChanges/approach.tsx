@@ -207,7 +207,7 @@ const Approach: FC<Props> = ({
                           }
                           className={cn(
                             styles.setInput,
-                            "h-8 w-[4.25rem] shrink-0 px-2 text-sm tabular-nums md:text-sm",
+                            "h-8 w-[4.25rem] max-w-full min-w-0 px-2 text-sm tabular-nums md:text-sm",
                           )}
                         />
                         <Label className={styles.setFieldLabel}>

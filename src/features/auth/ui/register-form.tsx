@@ -73,6 +73,7 @@ export function RegisterForm() {
                     id="register-password"
                     placeholder="******"
                     type="password"
+                    className="pr-12"
                     {...field}
                   />
                   <PasswordToggle inputId="register-password" />

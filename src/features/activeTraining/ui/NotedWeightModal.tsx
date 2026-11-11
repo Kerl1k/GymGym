@@ -195,7 +195,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
       close={close}
       isOpen={isOpen}
       title="Запись весов и повторений"
-      className="max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 [&_[data-slot=dialog-header]]:px-4 [&_[data-slot=dialog-header]]:pt-6 [&_[data-slot=dialog-header]]:pb-2 sm:[&_[data-slot=dialog-header]]:px-6 sm:[&_[data-slot=dialog-header]]:pt-7 sm:[&_[data-slot=dialog-header]]:pb-3"
+      className="max-h-[90vh] flex flex-col overflow-hidden p-0 gap-0 [&_[data-slot=dialog-header]]:py-4 [&_[data-slot=dialog-header]]:pr-14 [&_[data-slot=dialog-header]]:pl-4 sm:[&_[data-slot=dialog-header]]:py-5 sm:[&_[data-slot=dialog-header]]:pr-16 sm:[&_[data-slot=dialog-header]]:pl-6"
     >
       <div
         ref={contentRef}
@@ -269,7 +269,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                           variant="outline"
                           size="sm"
                           onClick={() => handleDecrement(index, unitIndex)}
-                          className="w-8 sm:w-10 h-8 sm:h-10"
+                          className="h-8 w-8 shrink-0 sm:h-10 sm:w-10"
                         >
                           <Minus className="w-3 sm:w-4 h-3 sm:h-4" />
                         </Button>
@@ -286,7 +286,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                             if (e.target.value === "0") e.target.select();
                           }}
                           placeholder="0"
-                          className="text-center text-sm sm:text-base"
+                          className="w-auto min-w-0 flex-1 text-center text-sm sm:text-base"
                         />
 
                         <Button
@@ -294,7 +294,7 @@ export const NotedWeightModal: FC<NotedWeightModalProps> = ({
                           variant="outline"
                           size="sm"
                           onClick={() => handleIncrement(index, unitIndex)}
-                          className="w-8 sm:w-10 h-8 sm:h-10"
+                          className="h-8 w-8 shrink-0 sm:h-10 sm:w-10"
                         >
                           <Plus className="w-3 sm:w-4 h-3 sm:h-4" />
                         </Button>

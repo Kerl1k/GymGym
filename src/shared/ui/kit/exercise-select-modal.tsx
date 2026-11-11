@@ -109,7 +109,7 @@ export const ExerciseSelectModal: FC<ExerciseSelectModalProps> = ({
       className="max-h-[90vh] w-full max-w-[95vw] overflow-hidden p-0 gap-0 sm:max-w-2xl md:max-w-3xl"
       disableAutoFocus
     >
-      <div className="border-b border-border bg-card px-6 py-6 sm:px-8 sm:py-7">
+      <div className="border-b border-border bg-card px-4 pt-14 pb-6 sm:px-8 sm:pt-16 sm:pb-7">
         <div className="flex flex-col gap-4">
           <div className="relative">
             <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

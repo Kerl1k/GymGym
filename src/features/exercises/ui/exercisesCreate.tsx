@@ -448,12 +448,12 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
         </CardContent>
 
         <div className="bg-muted shrink-0 border-t px-5 py-3 max-md:px-3 max-md:pt-2 max-md:pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-2 max-md:flex-col max-md:items-stretch">
             <Button
               variant="ghost"
               onClick={close}
               disabled={isPending}
-              className="max-md:h-9 max-md:flex-1"
+              className="max-md:h-auto max-md:w-full max-md:whitespace-normal"
             >
               Отмена
             </Button>
@@ -462,7 +462,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
               <Button
                 onClick={addExercise}
                 disabled={!form.name || isPending}
-                className="gap-2 max-md:h-9 max-md:flex-1"
+                className="gap-2 max-md:h-auto max-md:w-full max-md:whitespace-normal"
               >
                 {isPending ? (
                   <>
@@ -480,7 +480,7 @@ export const ExercisesCreate: FC<ExercisesCreateProps> = ({
               <Button
                 onClick={changeExercises}
                 disabled={!form.name || isPending}
-                className="gap-2 max-md:h-9 max-md:flex-1"
+                className="gap-2 max-md:h-auto max-md:w-full max-md:whitespace-normal"
               >
                 {" "}
                 Сохранить изменения

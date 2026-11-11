@@ -175,12 +175,15 @@
   align-items: center;
   margin-bottom: 20px;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .sectionTitle {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--foreground);

@@ -78,7 +78,7 @@ export function SetTracker({
   return (
     <Card>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4">
           {exercise.sets.map((set, index) => (
             <div
               key={index}

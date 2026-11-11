@@ -39,14 +39,25 @@
 }
 
 .title {
-  font-size: 1.875rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin-bottom: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.375rem;
   font-weight: 700;
   color: var(--foreground);
-  margin-bottom: 0;
+
+  @media (min-width: 768px) {
+    font-size: 1.875rem;
+  }
 }
 
 .previousButton {
   gap: 0.5rem;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  text-align: left;
 }
 
 .stats {
@@ -321,13 +332,17 @@
 .setField {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
+  max-width: 100%;
 }
 
 .setFieldLabel {
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--muted-foreground);

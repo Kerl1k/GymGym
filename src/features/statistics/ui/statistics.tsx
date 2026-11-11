@@ -294,10 +294,12 @@ export const Statistics = () => {
           <Button
             size="sm"
             variant="outline"
-            className="w-full sm:w-auto"
+            className="w-full min-w-0 max-w-full overflow-hidden sm:w-auto"
             onClick={() => setIsModalOpen(true)}
           >
-            {selectedExercise ? selectedExercise : "Выбрать упражнение"}
+            <span className="min-w-0 truncate">
+              {selectedExercise ? selectedExercise : "Выбрать упражнение"}
+            </span>
           </Button>
 
           <ExerciseSelectModal

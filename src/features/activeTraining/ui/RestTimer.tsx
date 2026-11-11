@@ -60,7 +60,7 @@ export const RestTimer: FC<RestTimeProps> = ({
             type="button"
             onClick={requestNotif}
             variant="secondary"
-            className="mb-3 w-full text-sm sm:text-base"
+            className="mb-3 h-auto w-full min-w-0 whitespace-normal text-center text-sm sm:text-base"
           >
             Включить уведомления об окончании отдыха
           </Button>

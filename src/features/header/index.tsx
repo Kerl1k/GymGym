@@ -66,32 +66,32 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
 
   return (
     <header className="bg-background/80 backdrop-blur-sm border-b border-border/20 shadow-sm py-4 px-4 sm:px-6 mb-6 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <Link to={ROUTES.HOME}>
-            <div className="text-2xl font-bold text-gradient animate-fade-in">
+      <div className="max-w-7xl mx-auto flex min-w-0 items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <Link to={ROUTES.HOME} className="min-w-0">
+            <div className="text-xl font-bold text-gradient animate-fade-in sm:text-2xl">
               ❀ Gym Note ❀
             </div>
           </Link>
           {syncBadge === "offline" && (
-            <Badge variant="warning" className="gap-1 shrink-0">
-              <CloudOffIcon className="h-3 w-3" />
+            <Badge variant="warning" className="max-w-full gap-1 whitespace-normal">
+              <CloudOffIcon className="h-3 w-3 shrink-0" />
               Оффлайн
             </Badge>
           )}
           {syncBadge === "syncing" && (
-            <Badge variant="info" className="gap-1 shrink-0">
-              <RefreshCwIcon className="h-3 w-3 animate-spin" />
+            <Badge variant="info" className="max-w-full gap-1 whitespace-normal">
+              <RefreshCwIcon className="h-3 w-3 shrink-0 animate-spin" />
               Синхронизация
             </Badge>
           )}
           {syncBadge === "error" && (
             <Badge
               variant="warning"
-              className="gap-1 cursor-pointer shrink-0"
+              className="max-w-full cursor-pointer gap-1 whitespace-normal"
               onClick={() => void syncEngine.flush({ force: true })}
             >
-              <RefreshCwIcon className="h-3 w-3" />
+              <RefreshCwIcon className="h-3 w-3 shrink-0" />
               Ошибка синхронизации
             </Badge>
           )}
@@ -100,7 +100,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
           variant="ghost"
           size="sm"
           onClick={toggleMenu}
-          className="sm:hidden hover:bg-accent hover:text-accent-foreground transition-all"
+          className="shrink-0 sm:hidden hover:bg-accent hover:text-accent-foreground transition-all"
           aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         >
           {isMenuOpen ? (
@@ -161,7 +161,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
             </Link>
           </Button>
 
-          <div className="sm:hidden w-full pt-3 mt-3 border-t border-border/20 flex items-center justify-between gap-3">
+          <div className="mt-3 flex w-full min-w-0 items-center gap-3 border-t border-border/20 pt-3 sm:hidden">
             <Button
               variant="ghost"
               size="sm"
@@ -169,7 +169,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
                 toggleDarkMode();
                 setIsMenuOpen(false);
               }}
-              className="hover:bg-accent hover:text-accent-foreground transition-all"
+              className="shrink-0 hover:bg-accent hover:text-accent-foreground transition-all"
               aria-label={
                 darkMode ? "Switch to light mode" : "Switch to dark mode"
               }
@@ -181,8 +181,12 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
               )}
             </Button>
 
-            <Link to={ROUTES.PROFILE} onClick={() => setIsMenuOpen(false)}>
-              <span className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <Link
+              to={ROUTES.PROFILE}
+              onClick={() => setIsMenuOpen(false)}
+              className="min-w-0 flex-1"
+            >
+              <span className="block truncate text-sm text-muted-foreground hover:text-foreground transition-colors">
                 {session.email}
               </span>
             </Link>
@@ -194,7 +198,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
                 logout();
                 setIsMenuOpen(false);
               }}
-              className="hover:bg-destructive/10 border-destructive/20 hover:border-destructive/40 transition-all"
+              className="shrink-0 hover:bg-destructive/10 border-destructive/20 hover:border-destructive/40 transition-all"
             >
               Выйти
             </Button>

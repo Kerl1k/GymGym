@@ -71,6 +71,7 @@ export function LoginForm() {
                     id="login-password"
                     placeholder="******"
                     type="password"
+                    className="pr-12"
                     {...field}
                   />
                   <PasswordToggle inputId="login-password" />

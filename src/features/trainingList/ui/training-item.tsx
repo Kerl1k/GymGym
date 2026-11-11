@@ -197,7 +197,7 @@ export function TrainingItem({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full text-sm sm:text-base"
+                  className="h-auto w-full min-w-0 max-w-full whitespace-normal text-center text-sm sm:text-base"
                   onClick={() => setShowAllExercises(!showAllExercises)}
                 >
                   {showAllExercises

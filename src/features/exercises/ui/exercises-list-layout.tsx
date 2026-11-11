@@ -15,17 +15,13 @@ export function ExercisesListLayout({
   templates?: React.ReactNode;
 }) {
   return (
-    <div className="container mx-auto">
-      <div className="flex gap-4">
-        <div className="flex-1  p-4 flex flex-col gap-6">
-          {templates && (
-            <div className="rounded-md bg-gray-100 p-4">{templates}</div>
-          )}
-          {header}
-          {filters}
-          {children}
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      {templates && (
+        <div className="rounded-md bg-gray-100 p-4">{templates}</div>
+      )}
+      {header}
+      {filters}
+      {children}
     </div>
   );
 }

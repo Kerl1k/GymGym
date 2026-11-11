@@ -13,14 +13,10 @@ export function ExercisesListLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="container mx-auto p-2 sm:p-4 md:p-6">
-      <div className="flex gap-4">
-        <div className="flex-1 p-2 sm:p-4 flex flex-col gap-4 sm:gap-6">
-          {header}
-          {filters}
-          {children}
-        </div>
-      </div>
+    <div className="flex flex-col gap-4 sm:gap-6">
+      {header}
+      {filters}
+      {children}
     </div>
   );
 }

@@ -171,7 +171,9 @@ export const TrainingHistory = () => {
             className={styles.exerciseFilterButton}
             onClick={() => setIsExerciseModalOpen(true)}
           >
-            {exerciseFilter || "Выбрать упражнение"}
+            <span className={styles.exerciseFilterLabel}>
+              {exerciseFilter || "Выбрать упражнение"}
+            </span>
           </Button>
 
           <ExerciseSelectModal
