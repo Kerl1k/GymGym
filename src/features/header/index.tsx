@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 
-import { MoonIcon, SunIcon, MenuIcon, XIcon, CloudOffIcon, RefreshCwIcon } from "lucide-react";
+import {
+  MoonIcon,
+  SunIcon,
+  MenuIcon,
+  XIcon,
+  CloudOffIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { connectivityStore, syncEngine } from "@/entities/offline";
@@ -70,17 +77,23 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <Link to={ROUTES.HOME} className="min-w-0">
             <div className="text-xl font-bold text-gradient animate-fade-in sm:text-2xl">
-              ❀ Gym Note ❀
+              ☃️ Gym Note ☃️
             </div>
           </Link>
           {syncBadge === "offline" && (
-            <Badge variant="warning" className="max-w-full gap-1 whitespace-normal">
+            <Badge
+              variant="warning"
+              className="max-w-full gap-1 whitespace-normal"
+            >
               <CloudOffIcon className="h-3 w-3 shrink-0" />
               Оффлайн
             </Badge>
           )}
           {syncBadge === "syncing" && (
-            <Badge variant="info" className="max-w-full gap-1 whitespace-normal">
+            <Badge
+              variant="info"
+              className="max-w-full gap-1 whitespace-normal"
+            >
               <RefreshCwIcon className="h-3 w-3 shrink-0 animate-spin" />
               Синхронизация
             </Badge>
