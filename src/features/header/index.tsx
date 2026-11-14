@@ -77,7 +77,7 @@ export function AppHeader({ darkMode, setDarkMode }: AppHeaderProps) {
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <Link to={ROUTES.HOME} className="shrink-0">
             <div className="whitespace-nowrap text-xl font-bold text-gradient animate-fade-in sm:text-2xl">
-              ☃️ Gym Note ☃️
+              ⛄ Gym Note ⛄
             </div>
           </Link>
           {syncBadge === "offline" && (
