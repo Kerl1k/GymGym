@@ -9,20 +9,27 @@ import {
 } from "lucide-react";
 
 import {
+  getRepeatsLike,
   getWeightLike,
   parseDecimalInput,
   setUnitValueAt,
+  REPS_UNIT_INDEX,
   WEIGHT_UNIT_INDEX,
 } from "@/shared/lib/active-training-units";
 import { ApiSchemas } from "@/shared/schema";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
-import { getProgressionHint } from "../model/progression";
+import {
+  getProgressionHint,
+  selectPreviousSetsAtIndex,
+} from "../model/progression";
 
 type CurrentExerciseProps = {
   exercise: ApiSchemas["ActiveTraining"]["exercises"][number];
   previousSets?: ApiSchemas["Set"][];
+  /** Newest first. Each entry is one past workout's sets for this exercise. */
+  previousSetHistory?: ApiSchemas["Set"][][];
   setTraining: React.Dispatch<
     React.SetStateAction<ApiSchemas["ActiveTraining"]>
   >;
@@ -33,6 +40,7 @@ type CurrentExerciseProps = {
 export function CurrentExercise({
   exercise,
   previousSets = [],
+  previousSetHistory = [],
   setTraining,
   onCompleteSet,
   showCompleteButton = true,
@@ -86,12 +94,30 @@ export function CurrentExercise({
     setEditingUnitIndex(null);
   };
 
+  let progressionSource: ApiSchemas["Set"][][] = [];
+  if (previousSetHistory.length > 0) {
+    progressionSource = previousSetHistory;
+  } else if (previousSets.length > 0) {
+    progressionSource = [previousSets];
+  }
   const progressionHint =
-    activeSet && !activeSet.done ? getProgressionHint(previousSet) : null;
+    activeSet && !activeSet.done
+      ? getProgressionHint(
+          selectPreviousSetsAtIndex(progressionSource, activeSetIndex),
+        )
+      : null;
   const isHintApplied =
     !!progressionHint &&
     !!activeSet &&
-    getWeightLike(activeSet) === progressionHint.weight;
+    getWeightLike(activeSet) === progressionHint.weight &&
+    (progressionHint.reps <= 0 ||
+      getRepeatsLike(activeSet) === progressionHint.reps);
+  const hintGain =
+    progressionHint == null
+      ? 0
+      : Math.round(
+          (progressionHint.weight - progressionHint.previousWeight) * 100,
+        ) / 100;
 
   const applyProgressionHint = () => {
     if (!progressionHint) return;
@@ -101,11 +127,20 @@ export function CurrentExercise({
         if (ex.id !== exercise.id) return ex;
         return {
           ...ex,
-          sets: ex.sets.map((set, index) =>
-            index === activeSetIndex
-              ? setUnitValueAt(set, WEIGHT_UNIT_INDEX, progressionHint.weight)
-              : set,
-          ),
+          sets: ex.sets.map((set, index) => {
+            if (index !== activeSetIndex) return set;
+            const withWeight = setUnitValueAt(
+              set,
+              WEIGHT_UNIT_INDEX,
+              progressionHint.weight,
+            );
+            if (progressionHint.reps <= 0) return withWeight;
+            return setUnitValueAt(
+              withWeight,
+              REPS_UNIT_INDEX,
+              progressionHint.reps,
+            );
+          }),
         };
       }),
     }));
@@ -141,10 +176,15 @@ export function CurrentExercise({
               <TrendingUpIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
               <span>
                 В прошлый раз {progressionHint.previousWeight} кг
-                {progressionHint.reps > 0 ? ` × ${progressionHint.reps}` : ""}.
-                Попробуйте{" "}
-                <b className="tabular-nums">{progressionHint.weight} кг</b> (+
-                {progressionHint.weight - progressionHint.previousWeight} кг)
+                {progressionHint.previousReps > 0
+                  ? ` × ${progressionHint.previousReps}`
+                  : ""}
+                . Попробуйте{" "}
+                <b className="tabular-nums">
+                  {progressionHint.weight} кг
+                  {progressionHint.reps > 0 ? ` × ${progressionHint.reps}` : ""}
+                </b>
+                {hintGain > 0 ? ` (+${hintGain} кг)` : ""}
               </span>
             </div>
             <Button

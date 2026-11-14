@@ -113,7 +113,9 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     if (!connectivityStore.isOnline) return "offline" as const;
     if (syncEngine.status === "syncing") return "syncing" as const;
     if (syncEngine.status === "error" || syncEngine.pendingCount > 0) {
-      return syncEngine.status === "error" ? ("error" as const) : ("syncing" as const);
+      return syncEngine.status === "error"
+        ? ("error" as const)
+        : ("syncing" as const);
     }
     return "synced" as const;
   });
@@ -128,9 +130,10 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     number | null
   >(null);
   const [isRetryingSync, setIsRetryingSync] = useState(false);
-  const { previousSetsByExerciseName } = useLatestTrainingHistoryByName({
-    trainingName: trainingData.name,
-  });
+  const { previousSetsByExerciseName, setHistoryByExerciseName } =
+    useLatestTrainingHistoryByName({
+      trainingName: trainingData.name,
+    });
 
   const latestTrainingRef = useRef<ApiSchemas["ActiveTraining"]>(data);
   const pendingRestMsRef = useRef<number>(0);
@@ -151,7 +154,11 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
   const indexCurrentExerciseRef = useRef(indexCurrentExercise);
   indexCurrentExerciseRef.current = indexCurrentExercise;
   const previousSetsForActiveExercise = activeExercise
-    ? previousSetsByExerciseName[historyExerciseKey(activeExercise.name)] ?? []
+    ? (previousSetsByExerciseName[historyExerciseKey(activeExercise.name)] ??
+      [])
+    : [];
+  const previousSetHistoryForActiveExercise = activeExercise
+    ? (setHistoryByExerciseName[historyExerciseKey(activeExercise.name)] ?? [])
     : [];
 
   useEffect(() => {
@@ -320,9 +327,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
     }
   }, []);
 
-  const finishTraining = async (
-    snapshot?: ApiSchemas["ActiveTraining"],
-  ) => {
+  const finishTraining = async (snapshot?: ApiSchemas["ActiveTraining"]) => {
     if (finishingRef.current) return;
     finishingRef.current = true;
     const openExerciseIndex =
@@ -464,6 +469,7 @@ export const ActiveTrainingContent: FC<ActiveTrainingContentProps> = ({
                   onCompleteSet={handleSetCompletion}
                   showCompleteButton={!isViewingPastExercise}
                   previousSets={previousSetsForActiveExercise}
+                  previousSetHistory={previousSetHistoryForActiveExercise}
                 />
               )}
               {isResting && (

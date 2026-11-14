@@ -27,6 +27,23 @@ function byNewest(
   return new Date(b.dateStart).getTime() - new Date(a.dateStart).getTime();
 }
 
+/** Newest first. One entry per training; a repeated name in the same workout is ignored. */
+function collectSetHistory(
+  trainings: ApiSchemas["TrainingHistory"][],
+): Record<string, ApiSchemas["Set"][][]> {
+  const history: Record<string, ApiSchemas["Set"][][]> = {};
+  for (const training of trainings) {
+    const seenInTraining = new Set<string>();
+    for (const exercise of training.exercises ?? []) {
+      const key = historyExerciseKey(exercise.name);
+      if (!key || seenInTraining.has(key) || !exercise.sets?.length) continue;
+      seenInTraining.add(key);
+      (history[key] ??= []).push(exercise.sets);
+    }
+  }
+  return history;
+}
+
 export function useLatestTrainingHistoryByName({
   trainingName,
 }: UseLatestTrainingHistoryByNameProps) {
@@ -64,48 +81,57 @@ export function useLatestTrainingHistoryByName({
     void trainingHistoryStore.fetchList(recentQuery);
   }, [hasName, namedQuery, recentQuery]);
 
-  const { latestHistory, previousSetsByExerciseName, isPending } =
-    useMobxSelector(() => {
-      const empty = {
-        latestHistory: undefined as ApiSchemas["TrainingHistory"] | undefined,
-        previousSetsByExerciseName: {} as Record<string, ApiSchemas["Set"][]>,
-        isPending: false,
-      };
-      if (!hasName) return empty;
+  const {
+    latestHistory,
+    previousSetsByExerciseName,
+    setHistoryByExerciseName,
+    isPending,
+  } = useMobxSelector(() => {
+    const empty = {
+      latestHistory: undefined as ApiSchemas["TrainingHistory"] | undefined,
+      previousSetsByExerciseName: {} as Record<string, ApiSchemas["Set"][]>,
+      setHistoryByExerciseName: {} as Record<string, ApiSchemas["Set"][][]>,
+      isPending: false,
+    };
+    if (!hasName) return empty;
 
-      const named = trainingHistoryStore.getList(namedQuery);
-      const recent = trainingHistoryStore.getList(recentQuery);
-      const byId = new Map<string, ApiSchemas["TrainingHistory"]>();
-      for (const item of [...(named?.content ?? []), ...(recent?.content ?? [])]) {
-        byId.set(item.id, item);
-      }
+    const named = trainingHistoryStore.getList(namedQuery);
+    const recent = trainingHistoryStore.getList(recentQuery);
+    const byId = new Map<string, ApiSchemas["TrainingHistory"]>();
+    for (const item of [
+      ...(named?.content ?? []),
+      ...(recent?.content ?? []),
+    ]) {
+      byId.set(item.id, item);
+    }
 
-      const all = [...byId.values()].sort(byNewest);
-      const sameProgram = all.filter(
-        (item) => historyExerciseKey(item.name) === nameKey,
-      );
-      const previousSetsByExerciseName: Record<string, ApiSchemas["Set"][]> =
-        {};
+    const all = [...byId.values()].sort(byNewest);
+    const sameProgram = all.filter(
+      (item) => historyExerciseKey(item.name) === nameKey,
+    );
+    // Same program wins. Exercises that never appeared in it fall back to any workout.
+    const setHistoryByExerciseName = {
+      ...collectSetHistory(all),
+      ...collectSetHistory(sameProgram),
+    };
+    const previousSetsByExerciseName: Record<string, ApiSchemas["Set"][]> = {};
+    for (const [key, sessions] of Object.entries(setHistoryByExerciseName)) {
+      const latest = sessions[0];
+      if (latest?.length) previousSetsByExerciseName[key] = latest;
+    }
 
-      for (const training of [...sameProgram, ...all]) {
-        for (const exercise of training.exercises ?? []) {
-          const key = historyExerciseKey(exercise.name);
-          if (!key || previousSetsByExerciseName[key]) continue;
-          if (!exercise.sets?.length) continue;
-          previousSetsByExerciseName[key] = exercise.sets;
-        }
-      }
-
-      return {
-        latestHistory: sameProgram[0],
-        previousSetsByExerciseName,
-        isPending: named === undefined && recent === undefined,
-      };
-    });
+    return {
+      latestHistory: sameProgram[0],
+      previousSetsByExerciseName,
+      setHistoryByExerciseName,
+      isPending: named === undefined && recent === undefined,
+    };
+  });
 
   return {
     latestHistory,
     previousSetsByExerciseName,
+    setHistoryByExerciseName,
     isPending,
   };
 }
