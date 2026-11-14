@@ -78,11 +78,11 @@ export function SetTracker({
   return (
     <Card>
       <CardContent>
-        <div className="mb-6 grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4">
           {exercise.sets.map((set, index) => (
             <div
               key={index}
-              className={`p-3 sm:p-4 rounded-xl text-center relative ${index < currentActive ? "bg-green-700 border-2 border-green-700" : "bg-card border-2 border-border"}`}
+              className={`relative rounded-xl p-2 text-center sm:p-4 ${index < currentActive ? "bg-green-700 border-2 border-green-700" : "bg-card border-2 border-border"}`}
             >
               {!set.done && exercise.sets.length > 1 && (
                 <button
@@ -112,7 +112,7 @@ export function SetTracker({
             </div>
           ))}
           <div
-            className="p-3 sm:p-4 rounded-xl text-center bg-card border-2 border-dashed border-border hover:border-primary cursor-pointer transition-colors"
+            className="cursor-pointer rounded-xl border-2 border-dashed border-border bg-card p-2 text-center transition-colors hover:border-primary sm:p-4"
             onClick={addSet}
           >
             <div className="text-xs sm:text-sm text-muted-foreground mb-1">
